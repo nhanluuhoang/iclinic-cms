@@ -1,0 +1,20 @@
+{
+  "auth": {
+    "appName": "CMS",
+    "appDescription": "Hệ thống quản lý",
+    "signIn": "Đăng nhập",
+    "signInDescription": "Nhập email và mật khẩu bên dưới để đăng nhập vào tài khoản của bạn",
+    "agreement": "Bằng cách nhấp vào đăng nhập, bạn đồng ý với",
+    "termsOfService": "Điều khoản dịch vụ",
+    "and": "và",
+    "privacyPolicy": "Chính sách bảo mật"
+  },
+  "dataTable": {
+    "sortAsc": "Tăng",
+    "sortDesc": "Giảm",
+    "clearSort": "Bỏ sắp xếp"
+  },
+  "language": {
+    "switch": "Đổi ngôn ngữ"
+  }
+}
