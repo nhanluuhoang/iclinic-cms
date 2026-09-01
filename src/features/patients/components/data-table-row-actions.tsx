@@ -1,6 +1,6 @@
 import { DotsHorizontalIcon } from '@radix-ui/react-icons'
 import { type Row } from '@tanstack/react-table'
-import { Edit, Trash } from 'lucide-react'
+import { Edit, FileClock, Trash } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -38,6 +38,17 @@ export function DataTableRowActions({ row }: { row: Row<Patient> }) {
           Sửa
           <DropdownMenuShortcut>
             <Edit size={16} />
+          </DropdownMenuShortcut>
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => {
+            setCurrentRow(patient)
+            setOpen('history')
+          }}
+        >
+          Lịch sử khám
+          <DropdownMenuShortcut>
+            <FileClock size={16} />
           </DropdownMenuShortcut>
         </DropdownMenuItem>
         <DropdownMenuSeparator />

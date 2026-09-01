@@ -51,21 +51,11 @@ export function PatientsTable({
     navigate,
     pagination: { defaultPage: 1, defaultPageSize: 10 },
     columnFilters: [
-      // fullName do ô tìm kiếm của toolbar set (một chuỗi) nên type 'string' đúng.
       { columnId: 'fullName', searchKey: 'fullName', type: 'string' },
-      // phone hiện chỉ lọc được qua URL, không có ô nào trên toolbar.
       { columnId: 'phone', searchKey: 'phone', type: 'string' },
       {
         columnId: 'gender',
         searchKey: 'gender',
-        // KHÔNG dùng type 'string': DataTableFacetedFilter luôn set giá trị là
-        // MẢNG (`setFilterValue([value])`), còn nhánh 'string' của hook đòi
-        // `typeof === 'string'` nên sẽ bỏ qua và không ghi gì lên URL. Đây đúng
-        // là lý do filter giới tính trước đó không hoạt động.
-        //
-        // API nhận `gender` là một giá trị đơn (PatientParams.gender?: string),
-        // nên rút mảng về phần tử đầu khi ghi và bọc lại thành mảng khi đọc —
-        // giống cách bảng Banners xử lý filter trạng thái.
         serialize: (val) => {
           const a = val as string[]
           return a.length > 0 ? a[0] : undefined
@@ -92,9 +82,6 @@ export function PatientsTable({
     getCoreRowModel: getCoreRowModel(),
   })
 
-  // Xoá bệnh nhân hoặc siết bộ lọc có thể làm số trang tụt xuống dưới trang
-  // đang xem; không có dòng này thì người dùng thấy bảng trống mà không hiểu vì
-  // sao. `getPageCount()` tính từ `rowCount` = total của server.
   const pageCount = table.getPageCount()
   useEffect(() => {
     ensurePageInRange(pageCount)
@@ -110,13 +97,13 @@ export function PatientsTable({
           {
             columnId: 'gender',
             title: 'Giới tính',
-            options: genders.map((g) => ({
-              label: g.label,
-              value: String(g.value),
-            })),
-            // radio vì API chỉ nhận một giá trị gender. Để multi-select thì
-            // người dùng tick được 2 mục nhưng chỉ mục đầu thực sự được gửi —
-            // giao diện nói dối kết quả.
+            options: [
+              { label: 'Không rõ', value: '0' },
+              ...genders.map((g) => ({
+                label: g.label,
+                value: String(g.value),
+              })),
+            ],
             variant: 'radio',
           },
         ]}

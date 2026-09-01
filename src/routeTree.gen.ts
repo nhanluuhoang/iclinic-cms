@@ -21,15 +21,13 @@ import { Route as authSignInRouteImport } from './routes/(auth)/sign-in'
 import { Route as authResetPasswordRouteImport } from './routes/(auth)/reset-password'
 import { Route as authForgotPasswordRouteImport } from './routes/(auth)/forgot-password'
 import { Route as AuthenticatedSettingsRouteRouteImport } from './routes/_authenticated/settings/route'
-import { Route as AuthenticatedTasksIndexRouteImport } from './routes/_authenticated/tasks/index'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
-import { Route as AuthenticatedPrescriptionsIndexRouteImport } from './routes/_authenticated/prescriptions/index'
 import { Route as AuthenticatedPostsIndexRouteImport } from './routes/_authenticated/posts/index'
 import { Route as AuthenticatedPatientsIndexRouteImport } from './routes/_authenticated/patients/index'
+import { Route as AuthenticatedMedicinesIndexRouteImport } from './routes/_authenticated/medicines/index'
 import { Route as AuthenticatedMasterDataIndexRouteImport } from './routes/_authenticated/master-data/index'
 import { Route as AuthenticatedInventoryIndexRouteImport } from './routes/_authenticated/inventory/index'
 import { Route as AuthenticatedHelpCenterIndexRouteImport } from './routes/_authenticated/help-center/index'
-import { Route as AuthenticatedExaminationQueueIndexRouteImport } from './routes/_authenticated/examination-queue/index'
 import { Route as AuthenticatedBannersIndexRouteImport } from './routes/_authenticated/banners/index'
 import { Route as AuthenticatedAdminsIndexRouteImport } from './routes/_authenticated/admins/index'
 import { Route as AuthenticatedErrorsErrorRouteImport } from './routes/_authenticated/errors/$error'
@@ -94,22 +92,11 @@ const AuthenticatedSettingsRouteRoute =
     path: '/settings',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedTasksIndexRoute = AuthenticatedTasksIndexRouteImport.update({
-  id: '/tasks/',
-  path: '/tasks/',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedSettingsIndexRoute =
   AuthenticatedSettingsIndexRouteImport.update({
     id: '/',
     path: '/',
     getParentRoute: () => AuthenticatedSettingsRouteRoute,
-  } as any)
-const AuthenticatedPrescriptionsIndexRoute =
-  AuthenticatedPrescriptionsIndexRouteImport.update({
-    id: '/prescriptions/',
-    path: '/prescriptions/',
-    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedPostsIndexRoute = AuthenticatedPostsIndexRouteImport.update({
   id: '/posts/',
@@ -120,6 +107,12 @@ const AuthenticatedPatientsIndexRoute =
   AuthenticatedPatientsIndexRouteImport.update({
     id: '/patients/',
     path: '/patients/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedMedicinesIndexRoute =
+  AuthenticatedMedicinesIndexRouteImport.update({
+    id: '/medicines/',
+    path: '/medicines/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedMasterDataIndexRoute =
@@ -138,12 +131,6 @@ const AuthenticatedHelpCenterIndexRoute =
   AuthenticatedHelpCenterIndexRouteImport.update({
     id: '/help-center/',
     path: '/help-center/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedExaminationQueueIndexRoute =
-  AuthenticatedExaminationQueueIndexRouteImport.update({
-    id: '/examination-queue/',
-    path: '/examination-queue/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedBannersIndexRoute =
@@ -180,15 +167,13 @@ export interface FileRoutesByFullPath {
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/admins/': typeof AuthenticatedAdminsIndexRoute
   '/banners/': typeof AuthenticatedBannersIndexRoute
-  '/examination-queue/': typeof AuthenticatedExaminationQueueIndexRoute
   '/help-center/': typeof AuthenticatedHelpCenterIndexRoute
   '/inventory/': typeof AuthenticatedInventoryIndexRoute
   '/master-data/': typeof AuthenticatedMasterDataIndexRoute
+  '/medicines/': typeof AuthenticatedMedicinesIndexRoute
   '/patients/': typeof AuthenticatedPatientsIndexRoute
   '/posts/': typeof AuthenticatedPostsIndexRoute
-  '/prescriptions/': typeof AuthenticatedPrescriptionsIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
-  '/tasks/': typeof AuthenticatedTasksIndexRoute
 }
 export interface FileRoutesByTo {
   '/forgot-password': typeof authForgotPasswordRoute
@@ -204,15 +189,13 @@ export interface FileRoutesByTo {
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/admins': typeof AuthenticatedAdminsIndexRoute
   '/banners': typeof AuthenticatedBannersIndexRoute
-  '/examination-queue': typeof AuthenticatedExaminationQueueIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
   '/inventory': typeof AuthenticatedInventoryIndexRoute
   '/master-data': typeof AuthenticatedMasterDataIndexRoute
+  '/medicines': typeof AuthenticatedMedicinesIndexRoute
   '/patients': typeof AuthenticatedPatientsIndexRoute
   '/posts': typeof AuthenticatedPostsIndexRoute
-  '/prescriptions': typeof AuthenticatedPrescriptionsIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
-  '/tasks': typeof AuthenticatedTasksIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -231,15 +214,13 @@ export interface FileRoutesById {
   '/_authenticated/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/_authenticated/admins/': typeof AuthenticatedAdminsIndexRoute
   '/_authenticated/banners/': typeof AuthenticatedBannersIndexRoute
-  '/_authenticated/examination-queue/': typeof AuthenticatedExaminationQueueIndexRoute
   '/_authenticated/help-center/': typeof AuthenticatedHelpCenterIndexRoute
   '/_authenticated/inventory/': typeof AuthenticatedInventoryIndexRoute
   '/_authenticated/master-data/': typeof AuthenticatedMasterDataIndexRoute
+  '/_authenticated/medicines/': typeof AuthenticatedMedicinesIndexRoute
   '/_authenticated/patients/': typeof AuthenticatedPatientsIndexRoute
   '/_authenticated/posts/': typeof AuthenticatedPostsIndexRoute
-  '/_authenticated/prescriptions/': typeof AuthenticatedPrescriptionsIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
-  '/_authenticated/tasks/': typeof AuthenticatedTasksIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -258,15 +239,13 @@ export interface FileRouteTypes {
     | '/errors/$error'
     | '/admins/'
     | '/banners/'
-    | '/examination-queue/'
     | '/help-center/'
     | '/inventory/'
     | '/master-data/'
+    | '/medicines/'
     | '/patients/'
     | '/posts/'
-    | '/prescriptions/'
     | '/settings/'
-    | '/tasks/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/forgot-password'
@@ -282,15 +261,13 @@ export interface FileRouteTypes {
     | '/errors/$error'
     | '/admins'
     | '/banners'
-    | '/examination-queue'
     | '/help-center'
     | '/inventory'
     | '/master-data'
+    | '/medicines'
     | '/patients'
     | '/posts'
-    | '/prescriptions'
     | '/settings'
-    | '/tasks'
   id:
     | '__root__'
     | '/_authenticated'
@@ -308,15 +285,13 @@ export interface FileRouteTypes {
     | '/_authenticated/errors/$error'
     | '/_authenticated/admins/'
     | '/_authenticated/banners/'
-    | '/_authenticated/examination-queue/'
     | '/_authenticated/help-center/'
     | '/_authenticated/inventory/'
     | '/_authenticated/master-data/'
+    | '/_authenticated/medicines/'
     | '/_authenticated/patients/'
     | '/_authenticated/posts/'
-    | '/_authenticated/prescriptions/'
     | '/_authenticated/settings/'
-    | '/_authenticated/tasks/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -418,26 +393,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsRouteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/tasks/': {
-      id: '/_authenticated/tasks/'
-      path: '/tasks'
-      fullPath: '/tasks/'
-      preLoaderRoute: typeof AuthenticatedTasksIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/settings/': {
       id: '/_authenticated/settings/'
       path: '/'
       fullPath: '/settings/'
       preLoaderRoute: typeof AuthenticatedSettingsIndexRouteImport
       parentRoute: typeof AuthenticatedSettingsRouteRoute
-    }
-    '/_authenticated/prescriptions/': {
-      id: '/_authenticated/prescriptions/'
-      path: '/prescriptions'
-      fullPath: '/prescriptions/'
-      preLoaderRoute: typeof AuthenticatedPrescriptionsIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/posts/': {
       id: '/_authenticated/posts/'
@@ -451,6 +412,13 @@ declare module '@tanstack/react-router' {
       path: '/patients'
       fullPath: '/patients/'
       preLoaderRoute: typeof AuthenticatedPatientsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/medicines/': {
+      id: '/_authenticated/medicines/'
+      path: '/medicines'
+      fullPath: '/medicines/'
+      preLoaderRoute: typeof AuthenticatedMedicinesIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/master-data/': {
@@ -472,13 +440,6 @@ declare module '@tanstack/react-router' {
       path: '/help-center'
       fullPath: '/help-center/'
       preLoaderRoute: typeof AuthenticatedHelpCenterIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/examination-queue/': {
-      id: '/_authenticated/examination-queue/'
-      path: '/examination-queue'
-      fullPath: '/examination-queue/'
-      preLoaderRoute: typeof AuthenticatedExaminationQueueIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/banners/': {
@@ -525,14 +486,12 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedErrorsErrorRoute: typeof AuthenticatedErrorsErrorRoute
   AuthenticatedAdminsIndexRoute: typeof AuthenticatedAdminsIndexRoute
   AuthenticatedBannersIndexRoute: typeof AuthenticatedBannersIndexRoute
-  AuthenticatedExaminationQueueIndexRoute: typeof AuthenticatedExaminationQueueIndexRoute
   AuthenticatedHelpCenterIndexRoute: typeof AuthenticatedHelpCenterIndexRoute
   AuthenticatedInventoryIndexRoute: typeof AuthenticatedInventoryIndexRoute
   AuthenticatedMasterDataIndexRoute: typeof AuthenticatedMasterDataIndexRoute
+  AuthenticatedMedicinesIndexRoute: typeof AuthenticatedMedicinesIndexRoute
   AuthenticatedPatientsIndexRoute: typeof AuthenticatedPatientsIndexRoute
   AuthenticatedPostsIndexRoute: typeof AuthenticatedPostsIndexRoute
-  AuthenticatedPrescriptionsIndexRoute: typeof AuthenticatedPrescriptionsIndexRoute
-  AuthenticatedTasksIndexRoute: typeof AuthenticatedTasksIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -541,15 +500,12 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedErrorsErrorRoute: AuthenticatedErrorsErrorRoute,
   AuthenticatedAdminsIndexRoute: AuthenticatedAdminsIndexRoute,
   AuthenticatedBannersIndexRoute: AuthenticatedBannersIndexRoute,
-  AuthenticatedExaminationQueueIndexRoute:
-    AuthenticatedExaminationQueueIndexRoute,
   AuthenticatedHelpCenterIndexRoute: AuthenticatedHelpCenterIndexRoute,
   AuthenticatedInventoryIndexRoute: AuthenticatedInventoryIndexRoute,
   AuthenticatedMasterDataIndexRoute: AuthenticatedMasterDataIndexRoute,
+  AuthenticatedMedicinesIndexRoute: AuthenticatedMedicinesIndexRoute,
   AuthenticatedPatientsIndexRoute: AuthenticatedPatientsIndexRoute,
   AuthenticatedPostsIndexRoute: AuthenticatedPostsIndexRoute,
-  AuthenticatedPrescriptionsIndexRoute: AuthenticatedPrescriptionsIndexRoute,
-  AuthenticatedTasksIndexRoute: AuthenticatedTasksIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

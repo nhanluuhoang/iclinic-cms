@@ -1,20 +1,16 @@
 import React, { useState } from 'react'
 import useDialogState from '@/hooks/use-dialog-state'
-import { type Medicine, type StockBatch } from '../api'
+import { type StockBatch } from '../api'
 
 type InventoryDialogType =
   | 'receipt-create'
   | 'stocktake-create'
-  | 'medicine-create'
-  | 'medicine-update'
-  | 'medicine-delete'
+  | 'issue-create'
   | 'batch-dispose'
 
 type InventoryContextType = {
   open: InventoryDialogType | null
   setOpen: (str: InventoryDialogType | null) => void
-  currentMedicine: Medicine | null
-  setCurrentMedicine: React.Dispatch<React.SetStateAction<Medicine | null>>
   currentBatch: StockBatch | null
   setCurrentBatch: React.Dispatch<React.SetStateAction<StockBatch | null>>
 }
@@ -23,7 +19,6 @@ const InventoryContext = React.createContext<InventoryContextType | null>(null)
 
 export function InventoryProvider({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useDialogState<InventoryDialogType>(null)
-  const [currentMedicine, setCurrentMedicine] = useState<Medicine | null>(null)
   const [currentBatch, setCurrentBatch] = useState<StockBatch | null>(null)
 
   return (
@@ -31,8 +26,6 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
       value={{
         open,
         setOpen,
-        currentMedicine,
-        setCurrentMedicine,
         currentBatch,
         setCurrentBatch,
       }}

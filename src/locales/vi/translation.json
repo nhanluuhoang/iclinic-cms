@@ -1,6 +1,6 @@
 {
   "auth": {
-    "appName": "CMS",
+    "appName": "iClinic",
     "appDescription": "Hệ thống quản lý",
     "signIn": "Đăng nhập",
     "signInDescription": "Nhập email và mật khẩu bên dưới để đăng nhập vào tài khoản của bạn",

@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import useDialogState from '@/hooks/use-dialog-state'
 import { type Patient } from '../api'
 
-type PatientsDialogType = 'create' | 'update' | 'delete'
+type PatientsDialogType = 'create' | 'update' | 'history' | 'delete'
 
 type PatientsContextType = {
   open: PatientsDialogType | null

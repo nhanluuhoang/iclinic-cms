@@ -1,12 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
 import { type ColumnDef, type Row } from '@tanstack/react-table'
 import { ChevronDown, ChevronRight } from 'lucide-react'
+import { useApiSearch } from '@/hooks/use-api-search'
 import { Button } from '@/components/ui/button'
 import { DataTableColumnHeader } from '@/components/data-table'
+import { UrlDataTable } from '@/components/data-table/url-data-table'
 import { GetReceipts, type GoodsReceipt } from '../api'
 import { formatDate, formatMoney, formatNumber } from '../utils'
 import { ExpiryBadge } from './expiry-badge'
-import { InventoryTable } from './inventory-table'
 
 function ReceiptLines({ row }: { row: Row<GoodsReceipt> }) {
   return (
@@ -155,13 +156,14 @@ const columns: ColumnDef<GoodsReceipt>[] = [
 ]
 
 export function ReceiptsTab() {
+  const search = useApiSearch()
   const { data, isLoading } = useQuery({
-    queryKey: ['inventory', 'receipts'],
-    queryFn: GetReceipts,
+    queryKey: ['inventory', 'receipts', search],
+    queryFn: () => GetReceipts(search),
   })
 
   return (
-    <InventoryTable
+    <UrlDataTable
       columns={columns}
       data={data ?? []}
       isLoading={isLoading}

@@ -23,8 +23,6 @@ export function Patients() {
       GetPatients({
         page: search.page ?? 1,
         pageSize: search.pageSize ?? 10,
-        // Rỗng thì để undefined chứ không gửi '': axios bỏ hẳn param undefined,
-        // còn '' vẫn thành `?gender=` và backend có thể hiểu là đang lọc.
         fullName: search.fullName || undefined,
         phone: search.phone || undefined,
         gender: search.gender || undefined,

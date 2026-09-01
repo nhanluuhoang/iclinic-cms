@@ -60,7 +60,7 @@ const defaults: MedicineForm = {
   isActive: true,
 }
 
-export function MedicineMutateDrawer({
+export function MedicineMutateDialog({
   open,
   onOpenChange,
   currentRow,
@@ -104,6 +104,7 @@ export function MedicineMutateDrawer({
         await CreateMedicine(data)
         toast.success('Đã thêm thuốc vào danh mục')
       }
+      queryClient.invalidateQueries({ queryKey: ['medicines'] })
       queryClient.invalidateQueries({ queryKey: ['inventory'] })
       onOpenChange(false)
     } catch (error) {

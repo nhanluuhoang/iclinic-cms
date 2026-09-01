@@ -14,7 +14,9 @@ export interface QueueUser {
   id: string
   fullName: string
   phone?: string | null
+  address?: string | null
   role: string
+  dateOfBirth?: string | Date | null
 }
 
 export interface QueueEntry {
@@ -50,19 +52,60 @@ export interface QueueDashboard {
   counts: Partial<Record<QueueStatus, number>>
 }
 
-export const getQueue = (queueDate: string): Promise<Page<QueueEntry>> =>
+export interface MedicalHistory {
+  id: string
+  examinedAt: string
+  symptoms: string
+  diagnosis: string
+  treatment: string
+  doctorName: string
+  advice: string
+  note: string
+  prescription: {
+    id: string
+    prescribedAt: string
+    items: Array<{
+      id: string
+      medicineName: string
+      dosage: string
+      frequency: string
+      duration: string
+      quantity: number | null
+      instruction: string
+      medicine: {
+        strength: string
+        unit: string
+      } | null
+    }>
+  } | null
+}
+
+export const getQueue = (params: {
+  queueDate: string
+  statuses: QueueStatus[]
+  page: number
+  limit: number
+  search?: string
+}): Promise<Page<QueueEntry>> =>
   axios.get('/examination-queue', {
-    params: { queueDate, page: 1, limit: 100 },
+    params: {
+      ...params,
+      statuses: params.statuses.join(','),
+      search: params.search || undefined,
+    },
   })
 
 export const getQueueDashboard = (queueDate: string): Promise<QueueDashboard> =>
   axios.get('/examination-queue/dashboard', { params: { queueDate } })
 
-export const getPatients = async (): Promise<QueueUser[]> => {
-  const response = await axios.get<unknown, Page<QueueUser>>('/users', {
-    params: { page: 1, limit: 100 },
+export const getPatients = async (search = ''): Promise<QueueUser[]> => {
+  const response = await axios.get<
+    unknown,
+    { status: boolean; data: QueueUser[] }
+  >('/patients', {
+    params: { page: 1, pageSize: 20, search: search || undefined },
   })
-  return response.data.filter((user) => user.role === 'PATIENT')
+  return response.data
 }
 
 export const createQueueEntry = (data: {
@@ -83,3 +126,10 @@ export const changeQueueStatus = (
   id: string,
   status: QueueStatus
 ): Promise<void> => axios.patch(`/examination-queue/${id}/status`, { status })
+
+export const getMedicalHistories = (
+  patientId: string
+): Promise<Page<MedicalHistory>> =>
+  axios.get('/medical-histories', {
+    params: { userId: patientId, page: 1, limit: 100 },
+  })

@@ -2,6 +2,7 @@ import { DotsHorizontalIcon } from '@radix-ui/react-icons'
 import { useQuery } from '@tanstack/react-query'
 import { type ColumnDef } from '@tanstack/react-table'
 import { Edit, Trash } from 'lucide-react'
+import { useApiSearch } from '@/hooks/use-api-search'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -13,14 +14,13 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { DataTableColumnHeader } from '@/components/data-table'
-import { GetMedicines, GetStock, type Medicine } from '../api'
+import { UrlDataTable } from '@/components/data-table/url-data-table'
+import { GetMedicines, type Medicine } from '../api'
 import { medicineGroupLabel, medicineGroups } from '../data/data'
-import { formatNumber } from '../utils'
-import { useInventory } from './inventory-provider'
-import { InventoryTable } from './inventory-table'
+import { useMedicines } from './medicines-provider'
 
 function RowActions({ medicine }: { medicine: Medicine }) {
-  const { setOpen, setCurrentMedicine } = useInventory()
+  const { setOpen, setCurrentMedicine } = useMedicines()
 
   return (
     <DropdownMenu>
@@ -63,18 +63,10 @@ function RowActions({ medicine }: { medicine: Medicine }) {
   )
 }
 
-type MedicineRow = Medicine & { totalQty: number }
+const formatNumber = (value: number) =>
+  new Intl.NumberFormat('vi-VN').format(value)
 
-const columns: ColumnDef<MedicineRow>[] = [
-  {
-    accessorKey: 'code',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Mã' />
-    ),
-    cell: ({ row }) => (
-      <span className='font-mono text-xs'>{row.original.code}</span>
-    ),
-  },
+const columns: ColumnDef<Medicine>[] = [
   {
     accessorKey: 'name',
     header: ({ column }) => (
@@ -124,18 +116,6 @@ const columns: ColumnDef<MedicineRow>[] = [
     enableSorting: false,
   },
   {
-    accessorKey: 'totalQty',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Tồn hiện tại' />
-    ),
-    cell: ({ row }) => (
-      <span className='tabular-nums'>
-        {formatNumber(row.original.totalQty)}
-      </span>
-    ),
-    meta: { className: 'text-end', tdClassName: 'text-end' },
-  },
-  {
     accessorKey: 'minStock',
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title='Định mức tối thiểu' />
@@ -153,26 +133,17 @@ const columns: ColumnDef<MedicineRow>[] = [
   },
 ]
 
-export function MedicinesTab() {
+export function MedicinesTable() {
+  const search = useApiSearch()
   const { data: medicines, isLoading } = useQuery({
-    queryKey: ['inventory', 'medicines'],
-    queryFn: GetMedicines,
+    queryKey: ['medicines', search],
+    queryFn: () => GetMedicines(search),
   })
-
-  const { data: stock } = useQuery({
-    queryKey: ['inventory', 'stock'],
-    queryFn: GetStock,
-  })
-
-  const rows: MedicineRow[] = (medicines ?? []).map((m) => ({
-    ...m,
-    totalQty: stock?.find((s) => s.medicineId === m.id)?.totalQty ?? 0,
-  }))
 
   return (
-    <InventoryTable
+    <UrlDataTable
       columns={columns}
-      data={rows}
+      data={medicines ?? []}
       isLoading={isLoading}
       searchPlaceholder='Tìm theo tên, mã, hoạt chất...'
       emptyMessage='Chưa có thuốc nào trong danh mục.'

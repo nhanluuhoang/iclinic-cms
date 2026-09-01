@@ -1,12 +1,22 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { z } from 'zod'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Plus, Trash2 } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
+import { Check, ChevronsUpDown, ExternalLink, Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { useDebounce } from '@/hooks/use-debounce'
 import { Button } from '@/components/ui/button'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
 import {
   Dialog,
   DialogClose,
@@ -25,9 +35,15 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { Textarea } from '@/components/ui/textarea'
-import { SelectDropdown } from '@/components/select-dropdown'
-import { CreateReceipt, GetMedicines } from '../api'
+import { DatePickerInput } from '@/components/date-picker-input'
+import { GetMedicines, type Medicine } from '@/features/medicines/api'
+import { CreateReceipt } from '../api'
 import { expiryMeta } from '../data/data'
 import { formatMoney, getExpiryStatus, toDateInput } from '../utils'
 
@@ -72,6 +88,110 @@ const defaults = (): ReceiptForm => ({
   lines: [{ ...emptyLine }],
 })
 
+function MedicinePicker({
+  onChange,
+}: {
+  onChange: (medicineId: string) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const [search, setSearch] = useState('')
+  const [selected, setSelected] = useState<Medicine | null>(null)
+  const debouncedSearch = useDebounce(search, 300)
+  const { data: medicines, isLoading } = useQuery({
+    queryKey: ['medicines', 'search', debouncedSearch],
+    queryFn: () => GetMedicines(debouncedSearch),
+    enabled: open,
+  })
+
+  return (
+    <div className='space-y-1.5'>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            type='button'
+            variant='outline'
+            role='combobox'
+            aria-expanded={open}
+            className='w-full justify-between font-normal'
+          >
+            <span className='truncate'>
+              {selected
+                ? `${selected.name} · ${selected.strength}`
+                : isLoading
+                  ? 'Đang tải thuốc...'
+                  : 'Tìm và chọn thuốc'}
+            </span>
+            <ChevronsUpDown className='ms-2 size-4 shrink-0 opacity-50' />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent
+          className='w-[var(--radix-popover-trigger-width)] p-0'
+          align='start'
+        >
+          <Command shouldFilter={false}>
+            <CommandInput
+              value={search}
+              onValueChange={setSearch}
+              placeholder='Tìm tên, mã, hoạt chất...'
+            />
+            <CommandList>
+              <CommandEmpty>
+                <div className='space-y-2 px-3'>
+                  <p>{isLoading ? 'Đang tìm...' : 'Không tìm thấy thuốc.'}</p>
+                  <Button asChild variant='outline' size='sm'>
+                    <Link to='/medicines'>
+                      Vào danh mục để thêm
+                      <ExternalLink className='size-3.5' />
+                    </Link>
+                  </Button>
+                </div>
+              </CommandEmpty>
+              <CommandGroup>
+                {(medicines ?? []).map((medicine) => (
+                  <CommandItem
+                    key={medicine.id}
+                    value={`${medicine.name} ${medicine.code} ${medicine.activeIngredient} ${medicine.strength} ${medicine.manufacturer}`}
+                    onSelect={() => {
+                      setSelected(medicine)
+                      onChange(medicine.id)
+                      setOpen(false)
+                    }}
+                    className='items-start'
+                  >
+                    <Check
+                      className={cn(
+                        'mt-0.5 size-4',
+                        medicine.id === selected?.id
+                          ? 'opacity-100'
+                          : 'opacity-0'
+                      )}
+                    />
+                    <div className='min-w-0'>
+                      <p className='truncate font-medium'>
+                        {medicine.name} · {medicine.strength}
+                      </p>
+                      <p className='truncate text-xs text-muted-foreground'>
+                        {medicine.code} · {medicine.activeIngredient} ·{' '}
+                        {medicine.manufacturer} · {medicine.unit}
+                      </p>
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+      {selected && (
+        <p className='truncate text-xs text-muted-foreground'>
+          {selected.code} · {selected.activeIngredient} ·{' '}
+          {selected.manufacturer} · ĐVT: {selected.unit}
+        </p>
+      )}
+    </div>
+  )
+}
+
 export function ReceiptMutateDrawer({
   open,
   onOpenChange,
@@ -80,12 +200,6 @@ export function ReceiptMutateDrawer({
   onOpenChange: (open: boolean) => void
 }) {
   const queryClient = useQueryClient()
-
-  const { data: medicines, isLoading: loadingMedicines } = useQuery({
-    queryKey: ['inventory', 'medicines'],
-    queryFn: GetMedicines,
-    enabled: open,
-  })
 
   const form = useForm<ReceiptForm>({
     resolver: zodResolver(formSchema),
@@ -108,22 +222,16 @@ export function ReceiptMutateDrawer({
   )
   const totalQty = lines.reduce((sum, l) => sum + (l.qty || 0), 0)
 
-  const medicineOptions =
-    medicines?.map((m) => ({
-      label: `${m.name} (${m.unit})`,
-      value: m.id,
-    })) ?? []
-
   const onSubmit = async (data: ReceiptForm) => {
     try {
       await CreateReceipt(data)
       queryClient.invalidateQueries({ queryKey: ['inventory'] })
-      toast.success('Đã tạo phiếu nhập', {
+      toast.success('Đã nhập hàng', {
         description: `${data.lines.length} lô hàng mới đã được thêm vào kho.`,
       })
       onOpenChange(false)
     } catch (error) {
-      toast.error('Không tạo được phiếu nhập', {
+      toast.error('Không nhập được hàng', {
         description: error instanceof Error ? error.message : undefined,
       })
     }
@@ -138,7 +246,7 @@ export function ReceiptMutateDrawer({
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
         <DialogHeader className='pe-8 text-start'>
-          <DialogTitle>Nhập đơn hàng mới</DialogTitle>
+          <DialogTitle>Nhập hàng</DialogTitle>
           <DialogDescription>
             Mỗi dòng dưới đây tạo ra một lô riêng trong kho. Số lô và hạn sử
             dụng là bắt buộc để phân biệt được các đợt nhập của cùng một thuốc.
@@ -184,9 +292,10 @@ export function ReceiptMutateDrawer({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Ngày nhập</FormLabel>
-                    <FormControl>
-                      <Input {...field} type='date' />
-                    </FormControl>
+                    <DatePickerInput
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -252,14 +361,7 @@ export function ReceiptMutateDrawer({
                         render={({ field }) => (
                           <FormItem className='lg:col-span-2'>
                             <FormLabel className='text-xs'>Thuốc</FormLabel>
-                            <SelectDropdown
-                              isControlled
-                              defaultValue={field.value}
-                              onValueChange={field.onChange}
-                              placeholder='Chọn thuốc'
-                              isPending={loadingMedicines}
-                              items={medicineOptions}
-                            />
+                            <MedicinePicker onChange={field.onChange} />
                             <FormMessage />
                           </FormItem>
                         )}
@@ -287,9 +389,10 @@ export function ReceiptMutateDrawer({
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className='text-xs'>Ngày SX</FormLabel>
-                            <FormControl>
-                              <Input {...field} type='date' />
-                            </FormControl>
+                            <DatePickerInput
+                              value={field.value}
+                              onChange={field.onChange}
+                            />
                             <FormMessage />
                           </FormItem>
                         )}
@@ -300,16 +403,14 @@ export function ReceiptMutateDrawer({
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className='text-xs'>Hạn dùng</FormLabel>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                type='date'
-                                className={cn(
-                                  status === 'expired' &&
-                                    'border-red-400 dark:border-red-700'
-                                )}
-                              />
-                            </FormControl>
+                            <DatePickerInput
+                              value={field.value}
+                              onChange={field.onChange}
+                              inputClassName={cn(
+                                status === 'expired' &&
+                                  'border-red-400 dark:border-red-700'
+                              )}
+                            />
                             <FormMessage />
                           </FormItem>
                         )}
@@ -439,7 +540,7 @@ export function ReceiptMutateDrawer({
             type='submit'
             disabled={form.formState.isSubmitting}
           >
-            {form.formState.isSubmitting ? 'Đang lưu...' : 'Lưu phiếu nhập'}
+            {form.formState.isSubmitting ? 'Đang lưu...' : 'Nhập hàng'}
           </Button>
         </DialogFooter>
       </DialogContent>

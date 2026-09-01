@@ -4,6 +4,7 @@ export interface User {
   id: string
   fullName: string
   phone?: string | null
+  dateOfBirth?: string | Date | null
   role: string
 }
 
@@ -12,6 +13,7 @@ export interface Medicine {
   name: string
   strength: string
   unit: string
+  totalQty: number
   isActive: boolean
 }
 
@@ -28,18 +30,19 @@ export interface MedicalHistoryInput {
   symptoms?: string
   diagnosis: string
   treatment?: string
+  advice?: string
   doctorName: string
   facility?: string
   note?: string
 }
 
 export interface PrescriptionItemInput {
-  medicineId?: string
+  medicineId: string
   medicineName: string
   dosage: string
   frequency: string
   duration: string
-  quantity?: number
+  quantity: number
   instruction?: string
 }
 
@@ -77,6 +80,5 @@ export const uploadMedicalHistoryAttachments = (
 
 export const createPrescription = (data: {
   medicalHistoryId: string
-  advice?: string
   items: PrescriptionItemInput[]
 }): Promise<void> => axios.post('/prescriptions', data)

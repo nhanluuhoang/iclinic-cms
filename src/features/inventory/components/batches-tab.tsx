@@ -1,8 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { type ColumnDef } from '@tanstack/react-table'
 import { Trash2 } from 'lucide-react'
+import { useApiSearch } from '@/hooks/use-api-search'
 import { Button } from '@/components/ui/button'
 import { DataTableColumnHeader } from '@/components/data-table'
+import { UrlDataTable } from '@/components/data-table/url-data-table'
 import { GetBatches, type StockBatch } from '../api'
 import { expiryStatuses } from '../data/data'
 import {
@@ -13,7 +15,6 @@ import {
 } from '../utils'
 import { ExpiryBadge } from './expiry-badge'
 import { useInventory } from './inventory-provider'
-import { InventoryTable } from './inventory-table'
 
 function DisposeButton({ batch }: { batch: StockBatch }) {
   const { setOpen, setCurrentBatch } = useInventory()
@@ -135,16 +136,17 @@ const columns: ColumnDef<StockBatch>[] = [
 ]
 
 export function BatchesTab() {
+  const search = useApiSearch()
   const { data, isLoading } = useQuery({
-    queryKey: ['inventory', 'batches'],
-    queryFn: GetBatches,
+    queryKey: ['inventory', 'batches', search],
+    queryFn: () => GetBatches(search),
   })
 
   // Lô đã xuất/huỷ hết không còn ý nghĩa để theo dõi HSD.
   const batches = (data ?? []).filter((b) => b.qtyRemaining > 0)
 
   return (
-    <InventoryTable
+    <UrlDataTable
       columns={columns}
       data={batches}
       isLoading={isLoading}

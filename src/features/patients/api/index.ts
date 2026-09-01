@@ -30,7 +30,7 @@ export interface Patient {
   fullName: string
   email?: string | null
   phone?: string | null
-  gender?: number | null
+  gender?: string | null
   dateOfBirth?: string | null
   address?: string | null
   note?: string | null
@@ -53,7 +53,7 @@ export interface PatientDtoRequest {
   fullName: string
   email?: string
   phone?: string
-  gender?: number
+  gender?: string | null
   dateOfBirth?: string
   address?: string
   note?: string

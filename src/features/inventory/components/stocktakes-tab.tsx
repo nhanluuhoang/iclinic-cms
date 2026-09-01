@@ -2,12 +2,13 @@ import { useQuery } from '@tanstack/react-query'
 import { type ColumnDef, type Row } from '@tanstack/react-table'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useApiSearch } from '@/hooks/use-api-search'
 import { Button } from '@/components/ui/button'
 import { DataTableColumnHeader } from '@/components/data-table'
+import { UrlDataTable } from '@/components/data-table/url-data-table'
 import { GetStockTakes, type StockTake } from '../api'
 import { formatDate, formatNumber } from '../utils'
 import { ExpiryBadge } from './expiry-badge'
-import { InventoryTable } from './inventory-table'
 
 const diffClass = (diff: number) =>
   diff === 0
@@ -150,13 +151,14 @@ const columns: ColumnDef<StockTake>[] = [
 ]
 
 export function StockTakesTab() {
+  const search = useApiSearch()
   const { data, isLoading } = useQuery({
-    queryKey: ['inventory', 'stocktakes'],
-    queryFn: GetStockTakes,
+    queryKey: ['inventory', 'stocktakes', search],
+    queryFn: () => GetStockTakes(search),
   })
 
   return (
-    <InventoryTable
+    <UrlDataTable
       columns={columns}
       data={data ?? []}
       isLoading={isLoading}

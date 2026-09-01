@@ -1,7 +1,8 @@
 import { axios } from '@/lib/axios'
+import { getDeviceId } from '@/lib/fingerprint'
 
 export interface LoginRequest {
-  email: string
+  userName: string
   password: string
 }
 
@@ -13,6 +14,7 @@ export interface ProfileResponse {
 export interface ProfileData {
   id: string
   email: string
+  tenantId?: string
   phone?: string
   fullName?: string
   dateOfBirth?: string
@@ -21,7 +23,7 @@ export interface ProfileData {
 }
 
 export interface ForgotPasswordRequest {
-  email: string
+  userName: string
 }
 
 export interface ResetPasswordRequest {
@@ -30,8 +32,14 @@ export interface ResetPasswordRequest {
   passwordConfirmation: string
 }
 
-const Login = (data: LoginRequest): Promise<void> => {
-  return axios.post('/auth/login', data, { withCredentials: true })
+const Login = async (data: LoginRequest): Promise<void> => {
+  const deviceId = await getDeviceId()
+  return axios.post('/auth/login', data, {
+    headers: {
+      'x-device-id': deviceId,
+    },
+    withCredentials: true,
+  })
 }
 
 const Profile = (): Promise<ProfileResponse> => {

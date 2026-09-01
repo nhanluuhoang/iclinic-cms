@@ -14,15 +14,6 @@ import { DataTableRowActions } from './data-table-row-actions'
  */
 export const patientsColumns: ColumnDef<Patient>[] = [
   {
-    accessorKey: 'userName',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Tên đăng nhập' />
-    ),
-    cell: ({ row }) => (
-      <span className='font-medium'>{row.original.userName}</span>
-    ),
-  },
-  {
     accessorKey: 'fullName',
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title='Họ tên' />
@@ -30,19 +21,6 @@ export const patientsColumns: ColumnDef<Patient>[] = [
     cell: ({ row }) => (
       <LongText className='max-w-44'>{row.original.fullName}</LongText>
     ),
-  },
-  {
-    accessorKey: 'email',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Email' />
-    ),
-    cell: ({ row }) =>
-      row.original.email ? (
-        <LongText className='max-w-44'>{row.original.email}</LongText>
-      ) : (
-        <span className='text-muted-foreground'>—</span>
-      ),
-    enableSorting: false,
   },
   {
     accessorKey: 'phone',
@@ -76,15 +54,30 @@ export const patientsColumns: ColumnDef<Patient>[] = [
     ),
   },
   {
-    accessorKey: 'createdAt',
+    accessorKey: 'address',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Ngày tạo' />
+      <DataTableColumnHeader column={column} title='Địa chỉ' />
     ),
-    cell: ({ row }) => (
-      <span className='text-muted-foreground tabular-nums'>
-        {formatDate(row.original.createdAt)}
-      </span>
+    cell: ({ row }) =>
+      row.original.address ? (
+        <LongText className='max-w-44'>{row.original.address}</LongText>
+      ) : (
+        <span className='text-muted-foreground'>—</span>
+      ),
+    enableSorting: false,
+  },
+  {
+    accessorKey: 'note',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Ghi chú' />
     ),
+    cell: ({ row }) =>
+      row.original.note ? (
+        <LongText className='max-w-44'>{row.original.note}</LongText>
+      ) : (
+        <span className='text-muted-foreground'>—</span>
+      ),
+    enableSorting: false,
   },
   {
     id: 'actions',

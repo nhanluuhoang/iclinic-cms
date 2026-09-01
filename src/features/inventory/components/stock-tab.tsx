@@ -2,19 +2,19 @@ import { useQuery } from '@tanstack/react-query'
 import { type ColumnDef, type Row } from '@tanstack/react-table'
 import { ChevronDown, ChevronRight, TrendingDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useApiSearch } from '@/hooks/use-api-search'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { DataTableColumnHeader } from '@/components/data-table'
-import { GetStock, type StockSummary } from '../api'
+import { UrlDataTable } from '@/components/data-table/url-data-table'
 import {
-  expiryMeta,
-  expiryStatuses,
   medicineGroupLabel,
   medicineGroups,
-} from '../data/data'
+} from '@/features/medicines/data/data'
+import { GetStock, type StockSummary } from '../api'
+import { expiryMeta, expiryStatuses } from '../data/data'
 import { formatMoney, formatNumber } from '../utils'
 import { ExpiryBadge } from './expiry-badge'
-import { InventoryTable } from './inventory-table'
 
 function BatchBreakdown({ row }: { row: Row<StockSummary> }) {
   const { batches, unit } = row.original
@@ -195,13 +195,14 @@ const columns: ColumnDef<StockSummary>[] = [
 ]
 
 export function StockTab() {
+  const search = useApiSearch()
   const { data, isLoading } = useQuery({
-    queryKey: ['inventory', 'stock'],
-    queryFn: GetStock,
+    queryKey: ['inventory', 'stock', search],
+    queryFn: () => GetStock(search),
   })
 
   return (
-    <InventoryTable
+    <UrlDataTable
       columns={columns}
       data={data ?? []}
       isLoading={isLoading}

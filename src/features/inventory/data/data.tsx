@@ -4,12 +4,12 @@ import {
   CircleX,
   ClipboardCheck,
   Layers,
+  PackageMinus,
   PackagePlus,
-  Pill,
   TriangleAlert,
   Warehouse,
 } from 'lucide-react'
-import { type ExpiryStatus, type MedicineGroup } from '../api/types'
+import { type ExpiryStatus } from '../api/types'
 import { EXPIRY_CRITICAL_DAYS, EXPIRY_WARNING_DAYS } from '../utils'
 
 /**
@@ -20,8 +20,8 @@ export const INVENTORY_TAB_VALUES = [
   'stock',
   'batches',
   'receipts',
+  'issues',
   'stocktakes',
-  'medicines',
 ] as const
 
 export type InventoryTab = (typeof INVENTORY_TAB_VALUES)[number]
@@ -33,23 +33,10 @@ export const inventoryTabs: {
 }[] = [
   { value: 'stock', label: 'Tồn kho', icon: Warehouse },
   { value: 'batches', label: 'Lô hàng', icon: Layers },
-  { value: 'receipts', label: 'Phiếu nhập', icon: PackagePlus },
+  { value: 'receipts', label: 'Nhập hàng', icon: PackagePlus },
+  { value: 'issues', label: 'Xuất hàng', icon: PackageMinus },
   { value: 'stocktakes', label: 'Kiểm kê', icon: ClipboardCheck },
-  { value: 'medicines', label: 'Danh mục thuốc', icon: Pill },
 ]
-
-export const medicineGroups: { label: string; value: MedicineGroup }[] = [
-  { label: 'Kháng sinh', value: 'antibiotic' },
-  { label: 'Giảm đau / hạ sốt', value: 'analgesic' },
-  { label: 'Vitamin / khoáng chất', value: 'vitamin' },
-  { label: 'Tim mạch', value: 'cardio' },
-  { label: 'Tiêu hoá', value: 'digestive' },
-  { label: 'Hô hấp / dị ứng', value: 'respiratory' },
-  { label: 'Khác', value: 'other' },
-]
-
-export const medicineGroupLabel = (value: MedicineGroup) =>
-  medicineGroups.find((g) => g.value === value)?.label ?? value
 
 type ExpiryMeta = {
   label: string
@@ -98,15 +85,3 @@ export const expiryStatuses: ExpiryMeta[] = [
 
 export const expiryMeta = (status: ExpiryStatus): ExpiryMeta =>
   expiryStatuses.find((s) => s.value === status) ?? expiryStatuses[3]
-
-/** Đơn vị tính hay dùng, cho dropdown ở form danh mục thuốc. */
-export const medicineUnits = [
-  'viên',
-  'vỉ',
-  'hộp',
-  'lọ',
-  'ống',
-  'tuýp',
-  'gói',
-  'chai',
-]

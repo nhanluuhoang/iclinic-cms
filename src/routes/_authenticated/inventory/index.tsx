@@ -23,7 +23,7 @@ const inventorySearchSchema = z.object({
   filter: z.string().optional().catch(''),
 
   // Faceted filter là multi-select nên giá trị là mảng.
-  // group        -> tab Tồn kho, Danh mục thuốc
+  // group        -> tab Tồn kho
   // expiryStatus -> tab Tồn kho, Lô hàng
   group: z.array(z.string()).optional().catch([]),
   expiryStatus: z.array(z.string()).optional().catch([]),

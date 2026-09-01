@@ -1,11 +1,12 @@
 import { axios } from '@/lib/axios'
+import { GetMedicines, type Medicine } from '@/features/medicines/api'
 import { isExpired, worstExpiryStatus } from '../utils'
 import {
   type GoodsReceipt,
   type GoodsReceiptInput,
+  type GoodsIssue,
+  type GoodsIssueInput,
   type InventoryStats,
-  type Medicine,
-  type MedicineGroup,
   type StockBatch,
   type StockSummary,
   type StockTake,
@@ -18,9 +19,6 @@ interface Page<T> {
   page: number
   limit: number
 }
-interface ApiMedicine extends Omit<Medicine, 'group'> {
-  medicineGroup: MedicineGroup
-}
 interface ApiBatch {
   id: string
   medicineId: string
@@ -30,7 +28,7 @@ interface ApiBatch {
   qtyReceived: number
   qtyRemaining: number
   unitCost: number | string
-  medicine: ApiMedicine
+  medicine: Pick<Medicine, 'code' | 'name' | 'unit'>
   receiptLine: null | {
     receipt: {
       id: string
@@ -67,30 +65,33 @@ interface ApiStockTake {
     batch: ApiBatch
   }>
 }
+interface ApiGoodsIssue {
+  id: string
+  code: string
+  recipientName: string
+  issuedAt: string
+  note: string
+  lines: Array<{ quantity: number; batch: ApiBatch }>
+}
 
 const generatedCode = (prefix: string) =>
   `${prefix}-${Date.now().toString(36).toUpperCase()}`
 
-const getAll = async <T>(url: string): Promise<T[]> => {
+const getAll = async <T>(url: string, search = ''): Promise<T[]> => {
   const first = await axios.get<unknown, Page<T>>(url, {
-    params: { page: 1, limit: 100 },
+    params: { page: 1, limit: 100, search: search || undefined },
   })
   if (first.data.length >= first.total) return first.data
   const pageCount = Math.ceil(first.total / 100)
   const rest = await Promise.all(
     Array.from({ length: pageCount - 1 }, (_, index) =>
       axios.get<unknown, Page<T>>(url, {
-        params: { page: index + 2, limit: 100 },
+        params: { page: index + 2, limit: 100, search: search || undefined },
       })
     )
   )
   return [...first.data, ...rest.flatMap((page) => page.data)]
 }
-
-const mapMedicine = (medicine: ApiMedicine): Medicine => ({
-  ...medicine,
-  group: medicine.medicineGroup,
-})
 
 const mapBatch = (batch: ApiBatch): StockBatch => ({
   id: batch.id,
@@ -110,35 +111,22 @@ const mapBatch = (batch: ApiBatch): StockBatch => ({
   receivedAt: batch.receiptLine?.receipt.receivedAt ?? '',
 })
 
-const CreateMedicine = (data: Omit<Medicine, 'id' | 'code'>): Promise<void> =>
-  axios.post('/inventory/medicines', {
-    ...data,
-    code: generatedCode('MED'),
-    medicineGroup: data.group,
-    group: undefined,
-  })
+const GetBatches = async (search = ''): Promise<StockBatch[]> =>
+  (await getAll<ApiBatch>('/inventory/stock-batches', search)).map(mapBatch)
 
-const UpdateMedicine = (
-  id: string,
-  data: Omit<Medicine, 'id' | 'code'>
-): Promise<void> =>
-  axios.patch(`/inventory/medicines/${id}`, {
-    ...data,
-    medicineGroup: data.group,
-    group: undefined,
-  })
+const SearchBatches = async (search: string): Promise<StockBatch[]> => {
+  const page = await axios.get<unknown, Page<ApiBatch>>(
+    '/inventory/stock-batches',
+    { params: { page: 1, limit: 50, search: search || undefined } }
+  )
+  return page.data.map(mapBatch)
+}
 
-const DeleteMedicine = (id: string): Promise<void> =>
-  axios.delete(`/inventory/medicines/${id}`)
-
-const GetMedicines = async (): Promise<Medicine[]> =>
-  (await getAll<ApiMedicine>('/inventory/medicines')).map(mapMedicine)
-
-const GetBatches = async (): Promise<StockBatch[]> =>
-  (await getAll<ApiBatch>('/inventory/stock-batches')).map(mapBatch)
-
-const GetStock = async (): Promise<StockSummary[]> => {
-  const [medicines, batches] = await Promise.all([GetMedicines(), GetBatches()])
+const GetStock = async (search = ''): Promise<StockSummary[]> => {
+  const [medicines, batches] = await Promise.all([
+    GetMedicines(search),
+    GetBatches(),
+  ])
   return medicines.map((medicine) => {
     const own = batches
       .filter(
@@ -192,8 +180,11 @@ const GetStats = async (): Promise<InventoryStats> => {
   }
 }
 
-const GetReceipts = async (): Promise<GoodsReceipt[]> => {
-  const summaries = await getAll<{ id: string }>('/inventory/goods-receipts')
+const GetReceipts = async (search = ''): Promise<GoodsReceipt[]> => {
+  const summaries = await getAll<{ id: string }>(
+    '/inventory/goods-receipts',
+    search
+  )
   const receipts = await Promise.all(
     summaries.map(({ id }) =>
       axios.get<unknown, ApiReceipt>(`/inventory/goods-receipts/${id}`)
@@ -237,8 +228,44 @@ const CreateReceipt = (data: GoodsReceiptInput): Promise<void> =>
     })),
   })
 
-const GetStockTakes = async (): Promise<StockTake[]> => {
-  const summaries = await getAll<{ id: string }>('/inventory/stock-takes')
+const GetGoodsIssues = async (search = ''): Promise<GoodsIssue[]> => {
+  const summaries = await getAll<{ id: string }>(
+    '/inventory/goods-issues',
+    search
+  )
+  const issues = await Promise.all(
+    summaries.map(({ id }) =>
+      axios.get<unknown, ApiGoodsIssue>(`/inventory/goods-issues/${id}`)
+    )
+  )
+  return issues.map((issue) => {
+    const lines = issue.lines.map(({ batch, quantity }) => ({
+      batchId: batch.id,
+      batchNo: batch.batchNo,
+      medicineCode: batch.medicine.code,
+      medicineName: batch.medicine.name,
+      unit: batch.medicine.unit,
+      quantity,
+    }))
+    return {
+      ...issue,
+      lines,
+      totalQty: lines.reduce((sum, line) => sum + line.quantity, 0),
+    }
+  })
+}
+
+const CreateGoodsIssue = (data: GoodsIssueInput): Promise<void> =>
+  axios.post('/inventory/goods-issues', {
+    ...data,
+    code: generatedCode('PX'),
+  })
+
+const GetStockTakes = async (search = ''): Promise<StockTake[]> => {
+  const summaries = await getAll<{ id: string }>(
+    '/inventory/stock-takes',
+    search
+  )
   const takes = await Promise.all(
     summaries.map(({ id }) =>
       axios.get<unknown, ApiStockTake>(`/inventory/stock-takes/${id}`)
@@ -277,15 +304,14 @@ const DisposeBatch = (batchId: string): Promise<void> =>
   })
 
 export {
-  CreateMedicine,
-  UpdateMedicine,
-  DeleteMedicine,
-  GetMedicines,
   GetStock,
   GetBatches,
+  SearchBatches,
   GetStats,
   GetReceipts,
   CreateReceipt,
+  GetGoodsIssues,
+  CreateGoodsIssue,
   GetStockTakes,
   CreateStockTake,
   DisposeBatch,

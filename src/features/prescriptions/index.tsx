@@ -11,6 +11,7 @@ import {
   X,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { useAuthStore } from '@/stores/auth-store'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -35,30 +36,22 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { LanguageSwitcher } from '@/components/language-switcher'
-import { Header } from '@/components/layout/header'
-import { Main } from '@/components/layout/main'
-import { ProfileDropdown } from '@/components/profile-dropdown'
-import { ThemeSwitch } from '@/components/theme-switch'
 import {
   createMedicalHistory,
   createPrescription,
   getMedicines,
-  getPatients,
+  type User,
   type Medicine,
   type PrescriptionItemInput,
   uploadMedicalHistoryAttachments,
 } from './api'
 
-type MedicineRow = PrescriptionItemInput & { key: number }
+type MedicineRow = Omit<PrescriptionItemInput, 'medicineId' | 'quantity'> & {
+  key: number
+  medicineId?: string
+  quantity?: number
+}
 
 const emptyMedicine = (key: number): MedicineRow => ({
   key,
@@ -91,9 +84,14 @@ const INSTRUCTION_OPTIONS = [
   'Bôi ngoài da',
 ]
 
-export function Prescriptions() {
-  const [patientId, setPatientId] = useState('')
-  const [doctorName, setDoctorName] = useState('')
+export function Prescriptions({
+  patient,
+  formId = 'prescription-form',
+}: {
+  patient: User
+  formId?: string
+}) {
+  const doctorName = useAuthStore((state) => state.auth.user?.fullName ?? '')
   const [symptoms, setSymptoms] = useState('')
   const [diagnosis, setDiagnosis] = useState('')
   const [treatment, setTreatment] = useState('')
@@ -103,10 +101,6 @@ export function Prescriptions() {
   const [nextKey, setNextKey] = useState(2)
   const [items, setItems] = useState<MedicineRow[]>([emptyMedicine(1)])
 
-  const patients = useQuery({
-    queryKey: ['prescription-patients'],
-    queryFn: getPatients,
-  })
   const medicines = useQuery({
     queryKey: ['prescription-medicines'],
     queryFn: getMedicines,
@@ -115,11 +109,12 @@ export function Prescriptions() {
   const save = useMutation({
     mutationFn: async () => {
       const history = await createMedicalHistory({
-        userId: patientId,
+        userId: patient.id,
         examinedAt: new Date().toISOString(),
         symptoms: symptoms.trim() || undefined,
         diagnosis: diagnosis.trim(),
         treatment: treatment.trim() || undefined,
+        advice: advice.trim() || undefined,
         doctorName: doctorName.trim(),
         note: note.trim() || undefined,
       })
@@ -128,22 +123,20 @@ export function Prescriptions() {
       }
       await createPrescription({
         medicalHistoryId: history.id,
-        advice: advice.trim() || undefined,
         items: items.map(({ key: _key, ...item }) => ({
           ...item,
-          medicineId: item.medicineId || undefined,
+          medicineId: item.medicineId!,
           medicineName: item.medicineName.trim(),
           dosage: 'Theo chỉ định',
           frequency: 'Theo chỉ định',
           duration: 'Theo chỉ định',
-          quantity: item.quantity || undefined,
+          quantity: item.quantity!,
           instruction: item.instruction?.trim() || undefined,
         })),
       })
     },
     onSuccess: () => {
       toast.success('Đã lưu chẩn đoán và kê đơn thuốc')
-      setPatientId('')
       setSymptoms('')
       setDiagnosis('')
       setTreatment('')
@@ -195,242 +188,259 @@ export function Prescriptions() {
     setAttachments((current) => [...current, ...selected])
   }
 
+  const getQuantityError = (item: MedicineRow) => {
+    if (item.quantity === undefined) return null
+    if (!Number.isInteger(item.quantity) || item.quantity < 1) {
+      return 'Số lượng phải là số nguyên từ 1 trở lên.'
+    }
+    if (!item.medicineId) return null
+    const available =
+      medicines.data?.find((medicine) => medicine.id === item.medicineId)
+        ?.totalQty ?? 0
+    const prescribed = items
+      .filter((row) => row.medicineId === item.medicineId)
+      .reduce((total, row) => total + (row.quantity ?? 0), 0)
+    return prescribed > available ? `Kho chỉ còn ${available}.` : null
+  }
+
   const isValid = Boolean(
-    patientId &&
+    patient.id &&
     doctorName.trim() &&
     diagnosis.trim() &&
-    items.every((item) => item.medicineId && item.medicineName.trim())
+    items.every(
+      (item) =>
+        item.medicineId &&
+        item.medicineName.trim() &&
+        Number.isInteger(item.quantity) &&
+        (item.quantity ?? 0) >= 1 &&
+        !getQuantityError(item)
+    )
   )
 
   return (
-    <>
-      <Header fixed>
-        <div className='ms-auto flex items-center space-x-4'>
-          <LanguageSwitcher />
-          <ThemeSwitch />
-          <ProfileDropdown />
-        </div>
-      </Header>
-      <Main className='flex flex-1 flex-col gap-6'>
-        <div>
-          <h2 className='flex items-center gap-2 text-2xl font-bold tracking-tight'>
-            <Stethoscope className='size-6' /> Kê toa thuốc
-          </h2>
-          <p className='text-muted-foreground'>
-            Ghi nhận thông tin khám, chẩn đoán và đơn thuốc cho bệnh nhân.
-          </p>
-        </div>
+    <div className='grid gap-6'>
+      <div>
+        <h2 className='flex items-center gap-2 text-2xl font-bold tracking-tight'>
+          <Stethoscope className='size-6' /> Kê toa thuốc
+        </h2>
+        <p className='text-muted-foreground'>
+          Ghi nhận thông tin khám, chẩn đoán và đơn thuốc cho bệnh nhân.
+        </p>
+      </div>
 
-        <form
-          className='grid gap-6'
-          onSubmit={(event) => {
-            event.preventDefault()
-            if (isValid) save.mutate()
-          }}
-        >
-          <Card>
-            <CardHeader>
-              <CardTitle>Thông tin lượt khám</CardTitle>
-              <CardDescription>
-                Các trường có dấu * là bắt buộc.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className='grid gap-5 md:grid-cols-2'>
-              <div className='grid gap-2'>
-                <Label>Bệnh nhân *</Label>
-                <Select value={patientId} onValueChange={setPatientId}>
-                  <SelectTrigger className='w-full'>
-                    <SelectValue
-                      placeholder={
-                        patients.isLoading ? 'Đang tải...' : 'Chọn bệnh nhân'
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(patients.data ?? []).map((patient) => (
-                      <SelectItem key={patient.id} value={patient.id}>
-                        {patient.fullName}
-                        {patient.phone ? ` · ${patient.phone}` : ''}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+      <form
+        id={formId}
+        className='grid gap-6'
+        onSubmit={(event) => {
+          event.preventDefault()
+          if (isValid) {
+            save.mutate()
+          } else {
+            toast.error('Vui lòng nhập đầy đủ thông tin bắt buộc')
+          }
+        }}
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle>Thông tin lượt khám</CardTitle>
+          </CardHeader>
+          <CardContent className='grid gap-5 md:grid-cols-2'>
+            <Field label='Bệnh nhân *'>
+              <Input
+                value={`${patient.fullName}${
+                  patient.dateOfBirth
+                    ? ` · ${new Date(patient.dateOfBirth).toLocaleDateString('vi-VN')}`
+                    : ''
+                }`}
+                disabled
+              />
+            </Field>
+            <Field label='Bác sĩ khám *' htmlFor='doctorName'>
+              <Input
+                id='doctorName'
+                value={doctorName}
+                placeholder='Họ và tên bác sĩ'
+                maxLength={255}
+                disabled
+                required
+              />
+            </Field>
+            <Field
+              className='md:col-span-2'
+              label='Triệu chứng'
+              htmlFor='symptoms'
+            >
+              <Textarea
+                id='symptoms'
+                value={symptoms}
+                onChange={(e) => setSymptoms(e.target.value)}
+              />
+            </Field>
+            <Field
+              className='md:col-span-2'
+              label='Chẩn đoán *'
+              htmlFor='diagnosis'
+            >
+              <Textarea
+                id='diagnosis'
+                value={diagnosis}
+                onChange={(e) => setDiagnosis(e.target.value)}
+                placeholder='Nhập kết luận chẩn đoán của bác sĩ'
+                required
+              />
+            </Field>
+            <Field label='Hướng điều trị' htmlFor='treatment'>
+              <Textarea
+                id='treatment'
+                value={treatment}
+                onChange={(e) => setTreatment(e.target.value)}
+              />
+            </Field>
+            <Field label='Ghi chú hồ sơ' htmlFor='note'>
+              <Textarea
+                id='note'
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+              />
+            </Field>
+            <Field
+              className='md:col-span-2'
+              label='Lời dặn của bác sĩ'
+              htmlFor='advice'
+            >
+              <Textarea
+                id='advice'
+                value={advice}
+                onChange={(e) => setAdvice(e.target.value)}
+                placeholder='Chế độ ăn uống, sinh hoạt và lịch tái khám...'
+              />
+            </Field>
+            <div className='grid gap-3 md:col-span-2'>
+              <div>
+                <Label htmlFor='diagnosis-attachments'>Tệp chẩn đoán</Label>
+                <p className='mt-1 text-xs text-muted-foreground'>
+                  Tối đa {MAX_ATTACHMENTS} tệp. Ảnh/PDF không quá 5 MB; video
+                  MP4, WebM hoặc MOV không quá 100 MB.
+                </p>
               </div>
-              <Field label='Bác sĩ khám *' htmlFor='doctorName'>
-                <Input
-                  id='doctorName'
-                  value={doctorName}
-                  onChange={(e) => setDoctorName(e.target.value)}
-                  placeholder='Họ và tên bác sĩ'
-                  maxLength={255}
-                  required
-                />
-              </Field>
-              <Field
-                className='md:col-span-2'
-                label='Triệu chứng'
-                htmlFor='symptoms'
+              <label
+                htmlFor='diagnosis-attachments'
+                className='flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed p-6 text-center transition-colors hover:bg-muted/50'
               >
-                <Textarea
-                  id='symptoms'
-                  value={symptoms}
-                  onChange={(e) => setSymptoms(e.target.value)}
-                />
-              </Field>
-              <Field
-                className='md:col-span-2'
-                label='Chẩn đoán *'
-                htmlFor='diagnosis'
-              >
-                <Textarea
-                  id='diagnosis'
-                  value={diagnosis}
-                  onChange={(e) => setDiagnosis(e.target.value)}
-                  placeholder='Nhập kết luận chẩn đoán của bác sĩ'
-                  required
-                />
-              </Field>
-              <Field label='Hướng điều trị' htmlFor='treatment'>
-                <Textarea
-                  id='treatment'
-                  value={treatment}
-                  onChange={(e) => setTreatment(e.target.value)}
-                />
-              </Field>
-              <Field label='Ghi chú hồ sơ' htmlFor='note'>
-                <Textarea
-                  id='note'
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                />
-              </Field>
-              <Field
-                className='md:col-span-2'
-                label='Lời dặn của bác sĩ'
-                htmlFor='advice'
-              >
-                <Textarea
-                  id='advice'
-                  value={advice}
-                  onChange={(e) => setAdvice(e.target.value)}
-                  placeholder='Chế độ ăn uống, sinh hoạt và lịch tái khám...'
-                />
-              </Field>
-              <div className='grid gap-3 md:col-span-2'>
-                <div>
-                  <Label htmlFor='diagnosis-attachments'>Tệp chẩn đoán</Label>
-                  <p className='mt-1 text-xs text-muted-foreground'>
-                    Tối đa {MAX_ATTACHMENTS} tệp. Ảnh/PDF không quá 5 MB; video
-                    MP4, WebM hoặc MOV không quá 100 MB.
-                  </p>
-                </div>
-                <label
-                  htmlFor='diagnosis-attachments'
-                  className='flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed p-6 text-center transition-colors hover:bg-muted/50'
-                >
-                  <ImagePlus className='size-7 text-muted-foreground' />
-                  <span className='text-sm font-medium'>
-                    Chọn ảnh, PDF hoặc video
-                  </span>
-                  <span className='text-xs text-muted-foreground'>
-                    Đã chọn {attachments.length}/{MAX_ATTACHMENTS} tệp
-                  </span>
-                </label>
-                <Input
-                  id='diagnosis-attachments'
-                  className='sr-only'
-                  type='file'
-                  accept='image/jpeg,image/png,application/pdf,video/mp4,video/webm,video/quicktime'
-                  multiple
-                  onChange={(event) => {
-                    addAttachments(event.target.files)
-                    event.target.value = ''
-                  }}
-                />
-                {attachments.length > 0 && (
-                  <div className='grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5'>
-                    {attachments.map((file, index) => (
-                      <AttachmentPreview
-                        key={`${file.name}-${file.lastModified}-${index}`}
-                        file={file}
-                        onRemove={() =>
-                          setAttachments((current) =>
-                            current.filter(
-                              (_, fileIndex) => fileIndex !== index
-                            )
-                          )
-                        }
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Đơn thuốc</CardTitle>
-              <CardDescription>
-                Tìm kiếm và chọn thuốc trong danh mục.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className='grid gap-4'>
-              {items.map((item, index) => (
-                <div
-                  key={item.key}
-                  className='grid gap-4 rounded-lg border p-4'
-                >
-                  <div className='flex items-center justify-between'>
-                    <p className='font-medium'>Thuốc {index + 1}</p>
-                    <Button
-                      type='button'
-                      variant='ghost'
-                      size='icon'
-                      disabled={items.length === 1}
-                      onClick={() =>
-                        setItems((rows) =>
-                          rows.filter((row) => row.key !== item.key)
+                <ImagePlus className='size-7 text-muted-foreground' />
+                <span className='text-sm font-medium'>
+                  Chọn ảnh, PDF hoặc video
+                </span>
+                <span className='text-xs text-muted-foreground'>
+                  Đã chọn {attachments.length}/{MAX_ATTACHMENTS} tệp
+                </span>
+              </label>
+              <Input
+                id='diagnosis-attachments'
+                className='sr-only'
+                type='file'
+                accept='image/jpeg,image/png,application/pdf,video/mp4,video/webm,video/quicktime'
+                multiple
+                onChange={(event) => {
+                  addAttachments(event.target.files)
+                  event.target.value = ''
+                }}
+              />
+              {attachments.length > 0 && (
+                <div className='grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5'>
+                  {attachments.map((file, index) => (
+                    <AttachmentPreview
+                      key={`${file.name}-${file.lastModified}-${index}`}
+                      file={file}
+                      onRemove={() =>
+                        setAttachments((current) =>
+                          current.filter((_, fileIndex) => fileIndex !== index)
                         )
                       }
-                    >
-                      <Trash2 />
-                      <span className='sr-only'>Xóa thuốc</span>
-                    </Button>
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Đơn thuốc</CardTitle>
+            <CardDescription>
+              Tìm kiếm và chọn thuốc trong danh mục.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className='grid gap-4'>
+            {items.map((item, index) => (
+              <div key={item.key} className='grid gap-4 rounded-lg border p-4'>
+                <div className='flex items-center justify-between'>
+                  <p className='font-medium'>Thuốc {index + 1}</p>
+                  <Button
+                    type='button'
+                    variant='ghost'
+                    size='icon'
+                    disabled={items.length === 1}
+                    onClick={() =>
+                      setItems((rows) =>
+                        rows.filter((row) => row.key !== item.key)
+                      )
+                    }
+                  >
+                    <Trash2 />
+                    <span className='sr-only'>Xóa thuốc</span>
+                  </Button>
+                </div>
+                <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-[minmax(0,2fr)_minmax(8rem,0.6fr)_minmax(0,1.4fr)]'>
+                  <div className='grid grid-rows-[auto_2.25rem_1rem] content-start gap-2 md:col-span-2 lg:col-span-1'>
+                    <Label>
+                      Thuốc <span className='text-destructive'>*</span>
+                    </Label>
+                    <MedicinePicker
+                      medicines={medicines.data ?? []}
+                      value={item.medicineId}
+                      isLoading={medicines.isLoading}
+                      onChange={(medicine) =>
+                        updateItem(item.key, {
+                          medicineId: medicine.id,
+                          medicineName: medicine.name,
+                        })
+                      }
+                    />
+                    <span aria-hidden='true' />
                   </div>
-                  <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-[minmax(0,2fr)_minmax(8rem,0.6fr)_minmax(0,1.4fr)]'>
-                    <div className='grid gap-2 md:col-span-2 lg:col-span-1'>
-                      <Label>Thuốc *</Label>
-                      <MedicinePicker
-                        medicines={medicines.data ?? []}
-                        value={item.medicineId}
-                        isLoading={medicines.isLoading}
-                        onChange={(medicine) =>
-                          updateItem(item.key, {
-                            medicineId: medicine.id,
-                            medicineName: medicine.name,
-                          })
-                        }
-                      />
-                    </div>
-                    <Field label='Số lượng'>
-                      <Input
-                        type='number'
-                        min={1}
-                        value={item.quantity ?? ''}
-                        onChange={(e) =>
-                          updateItem(item.key, {
-                            quantity: e.target.value
-                              ? Number(e.target.value)
-                              : undefined,
-                          })
-                        }
-                      />
-                    </Field>
-                    <Field
-                      className='md:col-span-2 lg:col-span-1'
-                      label='Hướng dẫn sử dụng'
-                    >
+                  <Field
+                    label='Số lượng *'
+                    className='grid-rows-[auto_2.25rem_1rem] content-start'
+                  >
+                    <Input
+                      type='number'
+                      min={1}
+                      step={1}
+                      required
+                      aria-invalid={Boolean(getQuantityError(item))}
+                      value={item.quantity ?? ''}
+                      onChange={(e) =>
+                        updateItem(item.key, {
+                          quantity: e.target.value
+                            ? Number(e.target.value)
+                            : undefined,
+                        })
+                      }
+                    />
+                    {getQuantityError(item) && (
+                      <p className='text-xs leading-4 text-destructive'>
+                        {getQuantityError(item)}
+                      </p>
+                    )}
+                    {!getQuantityError(item) && <span aria-hidden='true' />}
+                  </Field>
+                  <Field
+                    className='grid-rows-[auto_2.25rem_1rem] content-start md:col-span-2 lg:col-span-1'
+                    label='Hướng dẫn sử dụng'
+                  >
+                    <div>
                       <Input
                         list={`instruction-options-${item.key}`}
                         value={item.instruction}
@@ -444,28 +454,24 @@ export function Prescriptions() {
                           <option key={instruction} value={instruction} />
                         ))}
                       </datalist>
-                    </Field>
-                  </div>
+                    </div>
+                    <span aria-hidden='true' />
+                  </Field>
                 </div>
-              ))}
-              <Button
-                type='button'
-                variant='outline'
-                className='w-fit justify-self-center'
-                onClick={addItem}
-              >
-                <Plus /> Thêm thuốc
-              </Button>
-            </CardContent>
-          </Card>
-          <div className='flex justify-end'>
-            <Button type='submit' disabled={!isValid || save.isPending}>
-              {save.isPending ? 'Đang lưu...' : 'Lưu chẩn đoán và kê đơn'}
+              </div>
+            ))}
+            <Button
+              type='button'
+              variant='outline'
+              className='w-fit justify-self-center'
+              onClick={addItem}
+            >
+              <Plus /> Thêm thuốc
             </Button>
-          </div>
-        </form>
-      </Main>
-    </>
+          </CardContent>
+        </Card>
+      </form>
+    </div>
   )
 }
 
@@ -495,7 +501,7 @@ function MedicinePicker({
         >
           <span className='truncate'>
             {selected
-              ? `${selected.name} · ${selected.strength} (${selected.unit})`
+              ? `${selected.name} · ${selected.strength} (${selected.unit}) · Tồn ${selected.totalQty}`
               : isLoading
                 ? 'Đang tải...'
                 : 'Chọn thuốc'}
@@ -516,6 +522,7 @@ function MedicinePicker({
                 <CommandItem
                   key={medicine.id}
                   value={`${medicine.name} ${medicine.strength}`}
+                  disabled={medicine.totalQty < 1}
                   onSelect={() => {
                     onChange(medicine)
                     setOpen(false)
@@ -527,8 +534,11 @@ function MedicinePicker({
                       medicine.id === value ? 'opacity-100' : 'opacity-0'
                     )}
                   />
-                  <span className='truncate'>
+                  <span className='min-w-0 flex-1 truncate'>
                     {medicine.name} · {medicine.strength} ({medicine.unit})
+                  </span>
+                  <span className='ms-auto text-xs text-muted-foreground'>
+                    Tồn: {medicine.totalQty}
                   </span>
                 </CommandItem>
               ))}
@@ -605,9 +615,14 @@ function Field({
   htmlFor?: string
   children: React.ReactNode
 }) {
+  const required = label.endsWith(' *')
+
   return (
     <div className={`grid gap-2 ${className ?? ''}`}>
-      <Label htmlFor={htmlFor}>{label}</Label>
+      <Label htmlFor={htmlFor}>
+        {required ? label.slice(0, -2) : label}
+        {required && <span className='text-destructive'> *</span>}
+      </Label>
       {children}
     </div>
   )

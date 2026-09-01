@@ -1,3 +1,5 @@
+import { type MedicineGroup } from '@/features/medicines/api/types'
+
 /**
  * Kho thuốc — mô hình dữ liệu.
  *
@@ -7,30 +9,7 @@
  * được HSD. Tồn theo thuốc (`StockSummary`) là số liệu tổng hợp từ các lô.
  */
 
-export type MedicineGroup =
-  | 'antibiotic'
-  | 'analgesic'
-  | 'vitamin'
-  | 'cardio'
-  | 'digestive'
-  | 'respiratory'
-  | 'other'
-
 export type ExpiryStatus = 'expired' | 'critical' | 'warning' | 'ok'
-
-export interface Medicine {
-  id: string
-  code: string
-  name: string
-  activeIngredient: string
-  strength: string
-  unit: string
-  group: MedicineGroup
-  manufacturer: string
-  /** Định mức tồn tối thiểu, dưới mức này thì cảnh báo cần nhập thêm. */
-  minStock: number
-  isActive: boolean
-}
 
 /** Một đợt nhập hàng của một thuốc. Đơn vị tồn kho thật sự. */
 export interface StockBatch {
@@ -109,6 +88,32 @@ export interface GoodsReceiptInput {
   receivedAt: string
   note: string
   lines: GoodsReceiptLineInput[]
+}
+
+export interface GoodsIssueLine {
+  batchId: string
+  batchNo: string
+  medicineCode: string
+  medicineName: string
+  unit: string
+  quantity: number
+}
+
+export interface GoodsIssue {
+  id: string
+  code: string
+  recipientName: string
+  issuedAt: string
+  note: string
+  lines: GoodsIssueLine[]
+  totalQty: number
+}
+
+export interface GoodsIssueInput {
+  recipientName: string
+  issuedAt: string
+  note: string
+  lines: Array<{ batchId: string; quantity: number }>
 }
 
 export interface StockTakeLine {

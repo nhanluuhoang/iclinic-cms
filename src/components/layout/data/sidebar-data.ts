@@ -2,13 +2,12 @@ import { SUPER_ADMIN } from '@/config/enum'
 import {
   GalleryHorizontalEnd,
   LayoutDashboard,
-  ListTodo,
   Users,
   Database,
+  Pill,
   SquarePen,
   Warehouse,
   HeartPulse,
-  ClipboardPlus,
   ShieldCheck,
   Settings,
   ListOrdered,
@@ -25,20 +24,9 @@ export const sidebarData: SidebarData = {
     {
       items: [
         {
-          title: 'Dashboard',
+          title: 'Thứ tự khám',
           url: '/',
-          icon: LayoutDashboard,
-        },
-        {
-          title: 'Tasks',
-          url: '/tasks',
-          icon: ListTodo,
-        },
-        {
-          title: 'Admins',
-          url: '/admins',
-          icon: Users,
-          roles: [SUPER_ADMIN],
+          icon: ListOrdered,
         },
         {
           title: 'Bệnh nhân',
@@ -46,19 +34,39 @@ export const sidebarData: SidebarData = {
           icon: HeartPulse,
         },
         {
-          title: 'Hàng đợi khám',
-          url: '/examination-queue',
-          icon: ListOrdered,
-        },
-        {
-          title: 'Kê toa thuốc',
-          url: '/prescriptions',
-          icon: ClipboardPlus,
-        },
-        {
-          title: 'Kho thuốc',
-          url: '/inventory',
+          title: 'Quản lý thuốc',
           icon: Warehouse,
+          items: [
+            {
+              title: 'Danh mục thuốc',
+              url: '/medicines',
+              icon: Pill,
+            },
+            {
+              title: 'Kho thuốc',
+              url: '/inventory',
+              icon: Warehouse,
+            },
+          ],
+        },
+      ],
+    },
+    {
+      items: [
+        {
+          title: 'Nhân viên',
+          url: '/admins',
+          icon: Users,
+          roles: [SUPER_ADMIN],
+        },
+      ],
+    },
+    {
+      items: [
+        {
+          title: 'Thống kê',
+          url: '/dashboards',
+          icon: LayoutDashboard,
         },
       ],
     },

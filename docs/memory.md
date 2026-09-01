@@ -2,12 +2,12 @@
 
 ## User
 
-Nói tiếng Việt, muốn trả lời bằng tiếng Việt. Làm sản phẩm quản lý dược `simplemdg`.
+Nói tiếng Việt, muốn trả lời bằng tiếng Việt. Làm sản phẩm quản lý dược `iclinic`.
 Ưu tiên thay đổi gọn, hỏi lại khi yêu cầu có nhiều cách hiểu ảnh hưởng đáng kể.
 
 ## Project
 
-`simplemdg_ui_react` là admin CMS dựa trên `shadcn-admin`. Branch chính: `develop`.
+`iclinic-cms` là admin CMS dựa trên `shadcn-admin`. Branch chính: `develop`.
 Package manager: pnpm.
 
 ## Architecture
@@ -17,16 +17,23 @@ zustand, react-hook-form, zod và axios. Feature đặt trong `src/features/<nam
 đặt trong `src/routes/_authenticated/<name>`. Axios interceptor trả trực tiếp
 `response.data`.
 
-Kho thuốc gọi API thật từ `iclinic-backend` qua `VITE_APP_API_URL`; lớp mock
-in-memory đã được xóa.
+Frontend gọi API thật từ `iclinic-backend` qua `VITE_APP_API_URL`; tìm kiếm dữ
+liệu từ server dùng debounce 300 ms. Các bảng dùng chung nằm trong
+`src/components/data-table`; input ngày dùng chung là `DatePickerInput`, hiển thị
+`dd/mm/yyyy` và lưu `yyyy-mm-dd`.
 
 ## State
 
-- Có trang bệnh nhân `/patients` và kho thuốc `/inventory`.
-- Có trang kê toa `/prescriptions`: chọn bệnh nhân, lưu thông tin khám/chẩn đoán qua
-  `/medical-histories`, sau đó tạo đơn qua `/prescriptions`; danh mục thuốc lấy từ
-  `/inventory/medicines`.
-- Có trang hàng đợi khám `/examination-queue`: dashboard theo ngày, tiếp nhận bệnh
-  nhân, gọi lượt tiếp theo, check-in lịch hẹn và chuyển trạng thái theo backend.
-- Route kê toa đã được sinh vào `src/routeTree.gen.ts` và đã thêm vào sidebar.
-- ESLint feature hàng đợi và `tsc -b` đều chạy sạch tại lần kiểm tra gần nhất.
+- Có các nghiệp vụ bệnh nhân, danh mục thuốc, kho thuốc và thứ tự khám; trang demo
+  Tasks và route `/tasks` đã được xóa.
+- `/medicines` là feature danh mục thuốc độc lập. `/inventory` quản lý tồn kho,
+  lô, phiếu nhập, phiếu xuất và kiểm kê bằng API thật; dòng phiếu xuất dùng field
+  `quantity`, thuốc/lô được tìm kiếm server-side.
+- Trang “Thứ tự khám” chia tab `Đang khám` và `Đã xử lý`, có tìm kiếm và phân
+  trang server-side 20 lượt/trang; hỗ trợ tiếp nhận bệnh nhân, gọi lượt tiếp theo,
+  check-in, xem hồ sơ khám, kê toa và chuyển trạng thái theo backend.
+- Form kê toa bắt buộc chọn thuốc từ danh mục; hồ sơ khám hỗ trợ tối đa 10 tệp
+  đính kèm ảnh, PDF hoặc video theo giới hạn dung lượng đã cấu hình.
+- Chưa kiểm thử end-to-end trên trình duyệt với backend đang chạy. Cần kiểm tra
+  bằng tài khoản `DOCTOR` thuộc tenant có dữ liệu bệnh nhân và thuốc.
+

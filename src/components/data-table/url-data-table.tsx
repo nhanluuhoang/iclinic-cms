@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useMemo, useState } from 'react'
-import { getRouteApi } from '@tanstack/react-router'
+import { useNavigate, useSearch } from '@tanstack/react-router'
 import {
   type ColumnDef,
   type ExpandedState,
@@ -15,7 +15,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table'
 import { cn } from '@/lib/utils'
-import { useTableUrlState } from '@/hooks/use-table-url-state'
+import { type NavigateFn, useTableUrlState } from '@/hooks/use-table-url-state'
 import {
   Table,
   TableBody,
@@ -25,8 +25,6 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
-
-const route = getRouteApi('/_authenticated/inventory/')
 
 type ToolbarFilter = {
   columnId: string
@@ -48,7 +46,7 @@ type ToolbarFilter = {
   variant?: 'checkbox' | 'radio'
 }
 
-type InventoryTableProps<TData> = {
+type UrlDataTableProps<TData> = {
   columns: ColumnDef<TData>[]
   data: TData[]
   isLoading?: boolean
@@ -62,7 +60,7 @@ type InventoryTableProps<TData> = {
   getSearchText?: (row: TData) => string
 }
 
-export function InventoryTable<TData>({
+export function UrlDataTable<TData>({
   columns,
   data,
   isLoading,
@@ -74,7 +72,10 @@ export function InventoryTable<TData>({
   renderSubRow,
   rowClassName,
   getSearchText,
-}: InventoryTableProps<TData>) {
+}: UrlDataTableProps<TData>) {
+  const search = useSearch({ strict: false })
+  const navigate = useNavigate()
+
   // Mở rộng dòng là trạng thái xem tạm, không đáng đưa lên URL.
   const [expanded, setExpanded] = useState<ExpandedState>({})
 
@@ -101,8 +102,8 @@ export function InventoryTable<TData>({
     onSortingChange,
     ensurePageInRange,
   } = useTableUrlState({
-    search: route.useSearch(),
-    navigate: route.useNavigate(),
+    search,
+    navigate: navigate as NavigateFn,
     pagination: { defaultPage: 1, defaultPageSize: pageSize },
     globalFilter: { enabled: true, key: 'filter' },
     columnFilters: columnFiltersCfg,

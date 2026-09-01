@@ -21,8 +21,9 @@ import { PasswordInput } from '@/components/password-input'
 import { Login, Profile } from '@/features/auth/api'
 
 const formSchema = z.object({
-  email: z.email({
-    error: (iss) => (iss.input === '' ? 'Please enter your email' : undefined),
+  userName: z.string({
+    error: (iss) =>
+      iss.input === '' ? 'Please enter your user name' : undefined,
   }),
   password: z
     .string()
@@ -46,8 +47,8 @@ export function UserAuthForm({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: '',
-      password: '',
+      userName: 'admin.clinic',
+      password: 'IClinic@123',
     },
   })
 
@@ -60,7 +61,7 @@ export function UserAuthForm({
 
       const targetPath = redirectTo || '/'
       navigate({ to: targetPath, replace: true })
-      toast.success(`Welcome back, ${profile.data.email}!`)
+      toast.success(`Welcome back, ${profile.data.fullName}!`)
     } catch {
       toast.error('Sign in failed. Please check your credentials.')
     } finally {
@@ -77,10 +78,10 @@ export function UserAuthForm({
       >
         <FormField
           control={form.control}
-          name='email'
+          name='userName'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>User name</FormLabel>
               <FormControl>
                 <Input placeholder='name@example.com' {...field} />
               </FormControl>

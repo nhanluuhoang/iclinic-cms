@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
-import { ClipboardCheck, PackagePlus, Plus } from 'lucide-react'
+import { ClipboardCheck, PackageMinus, PackagePlus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { LanguageSwitcher } from '@/components/language-switcher'
@@ -16,7 +16,7 @@ import {
   useInventory,
 } from './components/inventory-provider'
 import { InventoryStats } from './components/inventory-stats'
-import { MedicinesTab } from './components/medicines-tab'
+import { IssuesTab } from './components/issues-tab'
 import { ReceiptsTab } from './components/receipts-tab'
 import { StockTab } from './components/stock-tab'
 import { StockTakesTab } from './components/stocktakes-tab'
@@ -63,15 +63,6 @@ function TabBar({ active }: { active: InventoryTab }) {
 function PrimaryButtons({ tab }: { tab: InventoryTab }) {
   const { setOpen } = useInventory()
 
-  if (tab === 'medicines') {
-    return (
-      <Button onClick={() => setOpen('medicine-create')}>
-        Thêm thuốc
-        <Plus className='size-4' />
-      </Button>
-    )
-  }
-
   if (tab === 'stocktakes') {
     return (
       <Button onClick={() => setOpen('stocktake-create')}>
@@ -81,12 +72,25 @@ function PrimaryButtons({ tab }: { tab: InventoryTab }) {
     )
   }
 
-  return (
-    <Button onClick={() => setOpen('receipt-create')}>
-      <PackagePlus className='size-4' />
-      Nhập hàng
-    </Button>
-  )
+  if (tab === 'issues') {
+    return (
+      <Button onClick={() => setOpen('issue-create')}>
+        <PackageMinus className='size-4' />
+        Xuất hàng
+      </Button>
+    )
+  }
+
+  if (tab === 'receipts') {
+    return (
+      <Button onClick={() => setOpen('receipt-create')}>
+        <PackagePlus className='size-4' />
+        Nhập hàng
+      </Button>
+    )
+  }
+
+  return null
 }
 
 function InventoryContent() {
@@ -126,8 +130,8 @@ function InventoryContent() {
         {tab === 'stock' && <StockTab />}
         {tab === 'batches' && <BatchesTab />}
         {tab === 'receipts' && <ReceiptsTab />}
+        {tab === 'issues' && <IssuesTab />}
         {tab === 'stocktakes' && <StockTakesTab />}
-        {tab === 'medicines' && <MedicinesTab />}
       </Main>
 
       <InventoryDialogs />

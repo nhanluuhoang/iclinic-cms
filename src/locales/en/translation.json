@@ -1,6 +1,6 @@
 {
   "auth": {
-    "appName": "CMS",
+    "appName": "iClinic",
     "appDescription": "Management System",
     "signIn": "Sign in",
     "signInDescription": "Enter your email and password below to log into your account",

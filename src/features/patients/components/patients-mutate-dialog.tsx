@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { Info } from 'lucide-react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -26,6 +27,12 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+import { DatePickerInput } from '@/components/date-picker-input'
 import { PasswordInput } from '@/components/password-input'
 import { SelectDropdown } from '@/components/select-dropdown'
 import {
@@ -35,6 +42,8 @@ import {
   type PatientDtoRequest,
 } from '../api'
 import { MAX, genders } from '../data/data'
+
+const GENDER_UNSET = '0'
 
 /**
  * Form thêm/sửa bệnh nhân.
@@ -47,9 +56,6 @@ import { MAX, genders } from '../data/data'
  * để không phải chờ backend trả lỗi.
  */
 
-/** Radix Select không cho value là chuỗi rỗng, nên dùng '0' làm "chưa chọn". */
-const GENDER_UNSET = '0'
-
 const formSchema = z
   .object({
     fullName: z
@@ -58,7 +64,7 @@ const formSchema = z
       .max(MAX.fullName, `Tối đa ${MAX.fullName} ký tự`),
     email: z.string().max(MAX.email, `Tối đa ${MAX.email} ký tự`),
     phone: z.string().max(MAX.phone, `Tối đa ${MAX.phone} ký tự`),
-    gender: z.string(),
+    gender: z.enum(['0', '1', '2']),
     dateOfBirth: z.string(),
     address: z.string().max(MAX.address, `Tối đa ${MAX.address} ký tự`),
     note: z.string().max(MAX.note, `Tối đa ${MAX.note} ký tự`),
@@ -171,8 +177,11 @@ export function PatientsMutateDialog({
       fullName: currentRow.fullName,
       email: currentRow.email ?? '',
       phone: currentRow.phone ?? '',
-      gender: currentRow.gender ? String(currentRow.gender) : GENDER_UNSET,
-      // <input type='date'> chỉ nhận yyyy-MM-dd, còn API trả Timestamptz.
+      gender:
+        currentRow.gender === '1' || currentRow.gender === '2'
+          ? currentRow.gender
+          : GENDER_UNSET,
+      // DatePickerInput nhận yyyy-MM-dd, còn API trả Timestamptz.
       dateOfBirth: currentRow.dateOfBirth
         ? currentRow.dateOfBirth.slice(0, 10)
         : '',
@@ -193,7 +202,7 @@ export function PatientsMutateDialog({
     }
     if (values.email.trim()) payload.email = values.email.trim()
     if (values.phone.trim()) payload.phone = values.phone.trim()
-    if (values.gender !== GENDER_UNSET) payload.gender = Number(values.gender)
+    payload.gender = values.gender === GENDER_UNSET ? null : values.gender
     if (values.dateOfBirth) payload.dateOfBirth = values.dateOfBirth
     if (values.address.trim()) payload.address = values.address.trim()
     if (values.note.trim()) payload.note = values.note.trim()
@@ -257,15 +266,28 @@ export function PatientsMutateDialog({
             <div className={cn('grid gap-4', isEdit && 'sm:grid-cols-2')}>
               {isEdit && (
                 <div className='space-y-2'>
-                  <Label htmlFor='patient-username'>Tên đăng nhập</Label>
+                  <div className='flex items-center gap-1'>
+                    <Label htmlFor='patient-username'>Tên đăng nhập</Label>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type='button'
+                          aria-label='Thông tin tên đăng nhập'
+                          className='inline-flex size-5 items-center justify-center rounded-full text-muted-foreground hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none'
+                        >
+                          <Info className='size-3.5' />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        Do hệ thống sinh, không sửa được.
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
                   <Input
                     id='patient-username'
                     value={currentRow?.userName ?? ''}
                     disabled
                   />
-                  <p className='text-xs text-muted-foreground'>
-                    Do hệ thống sinh, không sửa được.
-                  </p>
                 </div>
               )}
               <FormField
@@ -376,7 +398,7 @@ export function PatientsMutateDialog({
                         { label: 'Không rõ', value: GENDER_UNSET },
                         ...genders.map((g) => ({
                           label: g.label,
-                          value: String(g.value),
+                          value: g.value,
                         })),
                       ]}
                     />
@@ -390,9 +412,10 @@ export function PatientsMutateDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Ngày sinh</FormLabel>
-                    <FormControl>
-                      <Input {...field} type='date' />
-                    </FormControl>
+                    <DatePickerInput
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
