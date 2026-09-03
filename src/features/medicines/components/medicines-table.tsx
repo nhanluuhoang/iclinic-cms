@@ -116,6 +116,11 @@ const columns: ColumnDef<Medicine>[] = [
     enableSorting: false,
   },
   {
+    accessorKey: 'salePrice',
+    header: ({ column }) => <DataTableColumnHeader column={column} title='Giá bán' />,
+    cell: ({ row }) => <span className='tabular-nums'>{formatNumber(Number(row.original.salePrice))} ₫</span>,
+  },
+  {
     accessorKey: 'minStock',
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title='Định mức tối thiểu' />

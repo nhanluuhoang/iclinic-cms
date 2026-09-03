@@ -104,7 +104,7 @@ function MedicinePicker({
   })
 
   return (
-    <div className='space-y-1.5'>
+    <div className='relative min-w-0 space-y-1.5 lg:space-y-0'>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
@@ -112,9 +112,9 @@ function MedicinePicker({
             variant='outline'
             role='combobox'
             aria-expanded={open}
-            className='w-full justify-between font-normal'
+            className='w-full min-w-0 justify-between font-normal'
           >
-            <span className='truncate'>
+            <span className='min-w-0 flex-1 truncate text-start'>
               {selected
                 ? `${selected.name} · ${selected.strength}`
                 : isLoading
@@ -183,7 +183,7 @@ function MedicinePicker({
         </PopoverContent>
       </Popover>
       {selected && (
-        <p className='truncate text-xs text-muted-foreground'>
+        <p className='block w-max text-xs whitespace-nowrap text-muted-foreground lg:absolute lg:top-full lg:left-0 lg:mt-1.5'>
           {selected.code} · {selected.activeIngredient} ·{' '}
           {selected.manufacturer} · ĐVT: {selected.unit}
         </p>
@@ -241,7 +241,7 @@ export function ReceiptMutateDrawer({
     <Dialog open={open} onOpenChange={onOpenChange}>
       {/* Chỉ đóng bằng nút X hoặc Đóng — xem ghi chú ở medicine-mutate-drawer. */}
       <DialogContent
-        className='grid max-h-[90dvh] grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden sm:max-w-4xl'
+        className='grid max-h-[90dvh] grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden sm:max-w-4xl lg:max-w-6xl'
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
@@ -328,7 +328,7 @@ export function ReceiptMutateDrawer({
                 return (
                   <div
                     key={fieldItem.id}
-                    className='space-y-3 rounded-md border p-3'
+                    className='space-y-3 rounded-md border p-3 lg:pb-8'
                   >
                     <div className='flex items-center justify-between'>
                       <span className='text-xs font-medium text-muted-foreground'>
@@ -354,12 +354,12 @@ export function ReceiptMutateDrawer({
                       </div>
                     </div>
 
-                    <div className='grid gap-3 sm:grid-cols-2 lg:grid-cols-6'>
+                    <div className='grid gap-3 sm:grid-cols-2 lg:grid-cols-8'>
                       <FormField
                         control={form.control}
                         name={`lines.${index}.medicineId`}
                         render={({ field }) => (
-                          <FormItem className='lg:col-span-2'>
+                          <FormItem className='min-w-0 lg:col-span-2'>
                             <FormLabel className='text-xs'>Thuốc</FormLabel>
                             <MedicinePicker onChange={field.onChange} />
                             <FormMessage />

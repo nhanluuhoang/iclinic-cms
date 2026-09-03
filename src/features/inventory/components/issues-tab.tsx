@@ -5,12 +5,36 @@ import { useApiSearch } from '@/hooks/use-api-search'
 import { Button } from '@/components/ui/button'
 import { DataTableColumnHeader } from '@/components/data-table'
 import { UrlDataTable } from '@/components/data-table/url-data-table'
-import { GetGoodsIssues, type GoodsIssue } from '../api'
+import {
+  GetGoodsIssue,
+  GetGoodsIssues,
+  type GoodsIssueSummary,
+} from '../api'
 import { formatDate, formatNumber } from '../utils'
 
-function IssueLines({ row }: { row: Row<GoodsIssue> }) {
+function IssueLines({ row }: { row: Row<GoodsIssueSummary> }) {
+  const { data: issue, isLoading, isError } = useQuery({
+    queryKey: ['inventory', 'issue', row.original.id],
+    queryFn: () => GetGoodsIssue(row.original.id),
+  })
+
+  if (isLoading) {
+    return <div className='px-4 py-6 text-sm'>Đang tải chi tiết...</div>
+  }
+
+  if (isError || !issue) {
+    return (
+      <div className='px-4 py-6 text-sm text-destructive'>
+        Không thể tải chi tiết phiếu xuất.
+      </div>
+    )
+  }
+
   return (
     <div className='px-4 py-3'>
+      <p className='mb-2 text-xs font-medium text-muted-foreground'>
+        {issue.lines.length} dòng — tổng {formatNumber(issue.totalQty)}
+      </p>
       <table className='w-full text-sm'>
         <thead className='text-xs text-muted-foreground'>
           <tr className='border-b'>
@@ -20,7 +44,7 @@ function IssueLines({ row }: { row: Row<GoodsIssue> }) {
           </tr>
         </thead>
         <tbody>
-          {row.original.lines.map((line) => (
+          {issue.lines.map((line) => (
             <tr key={line.batchId} className='border-b last:border-0'>
               <td className='py-1.5 pe-4'>
                 <span className='font-medium'>{line.medicineName}</span>
@@ -40,7 +64,7 @@ function IssueLines({ row }: { row: Row<GoodsIssue> }) {
   )
 }
 
-const columns: ColumnDef<GoodsIssue>[] = [
+const columns: ColumnDef<GoodsIssueSummary>[] = [
   {
     id: 'expander',
     cell: ({ row }) => (
@@ -78,11 +102,11 @@ const columns: ColumnDef<GoodsIssue>[] = [
     ),
   },
   {
-    accessorKey: 'totalQty',
+    accessorKey: 'lineCount',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Tổng SL' />
+      <DataTableColumnHeader column={column} title='Số dòng' />
     ),
-    cell: ({ row }) => formatNumber(row.original.totalQty),
+    cell: ({ row }) => formatNumber(row.original.lineCount),
     meta: { className: 'text-end', tdClassName: 'text-end' },
   },
 ]
@@ -110,7 +134,7 @@ export function IssuesTab() {
         searchPlaceholder='Tìm mã phiếu hoặc người nhận...'
         emptyMessage='Chưa có phiếu xuất nào.'
         getSearchText={(issue) =>
-          `${issue.code} ${issue.recipientName} ${issue.lines.map((line) => `${line.medicineName} ${line.batchNo}`).join(' ')}`
+          `${issue.code} ${issue.recipientName}`
         }
         initialSorting={[{ id: 'issuedAt', desc: true }]}
         renderSubRow={(row) => <IssueLines row={row} />}

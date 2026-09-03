@@ -72,9 +72,6 @@ export function MedicalHistoryContent({
                     <tr>
                       <th className='px-3 py-2 font-medium'>Thuốc</th>
                       <th className='px-3 py-2 font-medium'>Số lượng</th>
-                      <th className='px-3 py-2 font-medium'>Liều dùng</th>
-                      <th className='px-3 py-2 font-medium'>Tần suất</th>
-                      <th className='px-3 py-2 font-medium'>Thời gian</th>
                       <th className='px-3 py-2 font-medium'>Hướng dẫn</th>
                     </tr>
                   </thead>
@@ -90,9 +87,6 @@ export function MedicalHistoryContent({
                           )}
                         </td>
                         <td className='px-3 py-2'>{item.quantity ?? '—'}</td>
-                        <td className='px-3 py-2'>{item.dosage || '—'}</td>
-                        <td className='px-3 py-2'>{item.frequency || '—'}</td>
-                        <td className='px-3 py-2'>{item.duration || '—'}</td>
                         <td className='px-3 py-2'>{item.instruction || '—'}</td>
                       </tr>
                     ))}

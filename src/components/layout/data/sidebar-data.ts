@@ -22,6 +22,7 @@ export const sidebarData: SidebarData = {
   },
   navGroups: [
     {
+      title: 'Tổng quan',
       items: [
         {
           title: 'Thứ tự khám',
@@ -32,22 +33,6 @@ export const sidebarData: SidebarData = {
           title: 'Bệnh nhân',
           url: '/patients',
           icon: HeartPulse,
-        },
-        {
-          title: 'Quản lý thuốc',
-          icon: Warehouse,
-          items: [
-            {
-              title: 'Danh mục thuốc',
-              url: '/medicines',
-              icon: Pill,
-            },
-            {
-              title: 'Kho thuốc',
-              url: '/inventory',
-              icon: Warehouse,
-            },
-          ],
         },
       ],
     },
@@ -62,6 +47,22 @@ export const sidebarData: SidebarData = {
       ],
     },
     {
+      title: 'Quản lý thuốc',
+      items: [
+        {
+          title: 'Danh mục thuốc',
+          url: '/medicines',
+          icon: Pill,
+        },
+        {
+          title: 'Kho thuốc',
+          url: '/inventory',
+          icon: Warehouse,
+        },
+      ],
+    },
+    {
+      title: 'Thống kê',
       items: [
         {
           title: 'Thống kê',
@@ -71,6 +72,7 @@ export const sidebarData: SidebarData = {
       ],
     },
     {
+      title: 'Cài đặt',
       items: [
         {
           title: 'Giao diện',

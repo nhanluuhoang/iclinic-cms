@@ -212,7 +212,7 @@ export function ExaminationQueue() {
             total={queue.data?.total ?? 0}
             limit={PAGE_SIZE}
             onPageChange={setPage}
-            showActions={tab === 'active'}
+            showActions
             emptyMessage={
               tab === 'active'
                 ? 'Không có bệnh nhân đang chờ xử lý.'

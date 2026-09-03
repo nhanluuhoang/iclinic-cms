@@ -82,6 +82,16 @@ export interface GoodsReceipt {
   totalAmount: number
 }
 
+export interface GoodsReceiptSummary {
+  id: string
+  code: string
+  supplierName: string
+  invoiceNo: string
+  receivedAt: string
+  note: string
+  lineCount: number
+}
+
 export interface GoodsReceiptInput {
   supplierName: string
   invoiceNo: string
@@ -109,6 +119,15 @@ export interface GoodsIssue {
   totalQty: number
 }
 
+export interface GoodsIssueSummary {
+  id: string
+  code: string
+  recipientName: string
+  issuedAt: string
+  note: string
+  lineCount: number
+}
+
 export interface GoodsIssueInput {
   recipientName: string
   issuedAt: string
@@ -134,6 +153,14 @@ export interface StockTake {
   note: string
   lines: StockTakeLine[]
   totalDiff: number
+}
+
+export interface StockTakeSummary {
+  id: string
+  code: string
+  countedAt: string
+  note: string
+  lineCount: number
 }
 
 export interface StockTakeInput {

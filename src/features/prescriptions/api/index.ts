@@ -15,6 +15,7 @@ export interface Medicine {
   unit: string
   totalQty: number
   isActive: boolean
+  salePrice: number
 }
 
 interface Page<T> {
@@ -25,6 +26,7 @@ interface Page<T> {
 }
 
 export interface MedicalHistoryInput {
+  examinationQueueId?: string
   userId: string
   examinedAt: string
   symptoms?: string
@@ -32,16 +34,12 @@ export interface MedicalHistoryInput {
   treatment?: string
   advice?: string
   doctorName: string
-  facility?: string
   note?: string
 }
 
 export interface PrescriptionItemInput {
   medicineId: string
   medicineName: string
-  dosage: string
-  frequency: string
-  duration: string
   quantity: number
   instruction?: string
 }
@@ -53,12 +51,18 @@ export const getPatients = async (): Promise<User[]> => {
   return response.data.filter((user) => user.role === 'PATIENT')
 }
 
-export const getMedicines = async (): Promise<Medicine[]> => {
+export const getMedicines = async (search = ''): Promise<Medicine[]> => {
   const response = await axios.get<unknown, Page<Medicine>>(
-    '/inventory/medicines',
-    { params: { page: 1, limit: 100 } }
+    '/medicines/search',
+    { params: { page: 1, limit: 100, search: search || undefined } }
   )
-  return response.data.filter((medicine) => medicine.isActive)
+  return response.data
+    .filter((medicine) => medicine.isActive)
+    .map((medicine) => ({
+      ...medicine,
+      salePrice: Number(medicine.salePrice ?? 0),
+      totalQty: Number(medicine.totalQty ?? 0),
+    }))
 }
 
 export const createMedicalHistory = (
@@ -81,4 +85,12 @@ export const uploadMedicalHistoryAttachments = (
 export const createPrescription = (data: {
   medicalHistoryId: string
   items: PrescriptionItemInput[]
+  serviceFee?: number
+  serviceFeeLabel?: string
+  otherFee1?: number
+  otherFee2?: number
+  otherFee3?: number
+  otherFee1Label?: string
+  otherFee2Label?: string
+  otherFee3Label?: string
 }): Promise<void> => axios.post('/prescriptions', data)

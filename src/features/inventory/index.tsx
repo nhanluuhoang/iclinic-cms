@@ -1,6 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
-import { ClipboardCheck, PackageMinus, PackagePlus } from 'lucide-react'
+import {
+  ClipboardCheck,
+  PackageMinus,
+  PackagePlus,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { LanguageSwitcher } from '@/components/language-switcher'
@@ -18,6 +22,7 @@ import {
 import { InventoryStats } from './components/inventory-stats'
 import { IssuesTab } from './components/issues-tab'
 import { ReceiptsTab } from './components/receipts-tab'
+import { ReceiptsExcelActions } from './components/receipts-excel-actions'
 import { StockTab } from './components/stock-tab'
 import { StockTakesTab } from './components/stocktakes-tab'
 import { inventoryTabs, type InventoryTab } from './data/data'
@@ -83,10 +88,13 @@ function PrimaryButtons({ tab }: { tab: InventoryTab }) {
 
   if (tab === 'receipts') {
     return (
-      <Button onClick={() => setOpen('receipt-create')}>
-        <PackagePlus className='size-4' />
-        Nhập hàng
-      </Button>
+      <div className='flex flex-wrap items-center gap-2'>
+        <ReceiptsExcelActions />
+        <Button onClick={() => setOpen('receipt-create')}>
+          <PackagePlus className='size-4' />
+          Nhập hàng
+        </Button>
+      </div>
     )
   }
 
@@ -99,6 +107,7 @@ function InventoryContent() {
   const { data: stats, isLoading: loadingStats } = useQuery({
     queryKey: ['inventory', 'stats'],
     queryFn: GetStats,
+    enabled: tab === 'stock',
   })
 
   return (
@@ -123,7 +132,9 @@ function InventoryContent() {
           <PrimaryButtons tab={tab} />
         </div>
 
-        <InventoryStats stats={stats} isLoading={loadingStats} />
+        {tab === 'stock' && (
+          <InventoryStats stats={stats} isLoading={loadingStats} />
+        )}
 
         <TabBar active={tab} />
 

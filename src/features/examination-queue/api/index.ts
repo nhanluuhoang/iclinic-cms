@@ -36,6 +36,29 @@ export interface QueueEntry {
   completedAt: string | null
   patient: QueueUser
   doctor: QueueUser | null
+  medicalHistory: null | {
+    prescription: null | {
+      items: Array<{
+        medicineName: string
+        quantity: number | null
+        medicine: null | { salePrice: number | string }
+      }>
+      invoice: null | {
+        issuedAt: string
+        consultationFee: number | string
+        serviceFee: number | string
+        serviceFeeLabel: string
+        medicineRevenue: number | string
+        otherFee1: number | string
+        otherFee1Label: string
+        otherFee2: number | string
+        otherFee2Label: string
+        otherFee3: number | string
+        otherFee3Label: string
+        totalAmount: number | string
+      }
+    }
+  }
 }
 
 interface Page<T> {
@@ -50,6 +73,13 @@ export interface QueueDashboard {
   serving: QueueEntry[]
   next: QueueEntry | null
   counts: Partial<Record<QueueStatus, number>>
+  billing: {
+    invoiceCount: number
+    totalAmount: number
+    consultationRevenue: number
+    medicineRevenue: number
+    medicineCost: number
+  }
 }
 
 export interface MedicalHistory {
@@ -67,9 +97,6 @@ export interface MedicalHistory {
     items: Array<{
       id: string
       medicineName: string
-      dosage: string
-      frequency: string
-      duration: string
       quantity: number | null
       instruction: string
       medicine: {

@@ -44,6 +44,7 @@ const formSchema = z.object({
   ]),
   manufacturer: z.string().min(1, 'Nhập nhà sản xuất'),
   minStock: z.number().min(0, 'Định mức không hợp lệ'),
+  salePrice: z.number().min(0, 'Giá bán không hợp lệ'),
   isActive: z.boolean(),
 })
 
@@ -57,6 +58,7 @@ const defaults: MedicineForm = {
   group: 'other',
   manufacturer: '',
   minStock: 0,
+  salePrice: 0,
   isActive: true,
 }
 
@@ -89,6 +91,7 @@ export function MedicineMutateDialog({
             group: currentRow.group,
             manufacturer: currentRow.manufacturer,
             minStock: currentRow.minStock,
+            salePrice: Number(currentRow.salePrice),
             isActive: currentRow.isActive,
           }
         : defaults
@@ -226,6 +229,19 @@ export function MedicineMutateDialog({
                   <FormLabel>Nhà sản xuất</FormLabel>
                   <FormControl>
                     <Input {...field} placeholder='VD: Traphaco' />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='salePrice'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Giá bán</FormLabel>
+                  <FormControl>
+                    <Input {...field} type='number' min={0} onChange={(e) => field.onChange(Number(e.target.value || 0))} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

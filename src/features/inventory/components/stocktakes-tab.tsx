@@ -6,7 +6,11 @@ import { useApiSearch } from '@/hooks/use-api-search'
 import { Button } from '@/components/ui/button'
 import { DataTableColumnHeader } from '@/components/data-table'
 import { UrlDataTable } from '@/components/data-table/url-data-table'
-import { GetStockTakes, type StockTake } from '../api'
+import {
+  GetStockTake,
+  GetStockTakes,
+  type StockTakeSummary,
+} from '../api'
 import { formatDate, formatNumber } from '../utils'
 import { ExpiryBadge } from './expiry-badge'
 
@@ -20,11 +24,31 @@ const diffClass = (diff: number) =>
 const withSign = (diff: number) =>
   diff > 0 ? `+${formatNumber(diff)}` : formatNumber(diff)
 
-function StockTakeLines({ row }: { row: Row<StockTake> }) {
+function StockTakeLines({ row }: { row: Row<StockTakeSummary> }) {
+  const { data: stockTake, isLoading, isError } = useQuery({
+    queryKey: ['inventory', 'stocktake', row.original.id],
+    queryFn: () => GetStockTake(row.original.id),
+  })
+
+  if (isLoading) {
+    return <div className='px-4 py-6 text-sm'>Đang tải chi tiết...</div>
+  }
+
+  if (isError || !stockTake) {
+    return (
+      <div className='px-4 py-6 text-sm text-destructive'>
+        Không thể tải chi tiết phiếu kiểm kê.
+      </div>
+    )
+  }
+
   return (
     <div className='px-4 py-3'>
       <p className='mb-2 text-xs font-medium text-muted-foreground'>
-        Điều chỉnh theo từng lô — hạn sử dụng giữ nguyên, chỉ số lượng thay đổi
+        Điều chỉnh theo từng lô — tổng lệch{' '}
+        <span className={diffClass(stockTake.totalDiff)}>
+          {withSign(stockTake.totalDiff)}
+        </span>
       </p>
       <div className='overflow-x-auto'>
         <table className='w-full text-sm'>
@@ -39,7 +63,7 @@ function StockTakeLines({ row }: { row: Row<StockTake> }) {
             </tr>
           </thead>
           <tbody>
-            {row.original.lines.map((line) => (
+            {stockTake.lines.map((line) => (
               <tr key={line.batchId} className='border-b last:border-0'>
                 <td className='py-1.5 pe-4 font-medium'>{line.medicineName}</td>
                 <td className='py-1.5 pe-4 font-mono text-xs'>
@@ -71,7 +95,7 @@ function StockTakeLines({ row }: { row: Row<StockTake> }) {
   )
 }
 
-const columns: ColumnDef<StockTake>[] = [
+const columns: ColumnDef<StockTakeSummary>[] = [
   {
     id: 'expander',
     header: () => null,
@@ -113,29 +137,12 @@ const columns: ColumnDef<StockTake>[] = [
   },
   {
     id: 'lineCount',
-    accessorFn: (row) => row.lines.length,
+    accessorKey: 'lineCount',
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title='Số lô' />
     ),
     cell: ({ row }) => (
-      <span className='tabular-nums'>{row.original.lines.length}</span>
-    ),
-    meta: { className: 'text-end', tdClassName: 'text-end' },
-  },
-  {
-    accessorKey: 'totalDiff',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Tổng lệch' />
-    ),
-    cell: ({ row }) => (
-      <span
-        className={cn(
-          'font-medium tabular-nums',
-          diffClass(row.original.totalDiff)
-        )}
-      >
-        {withSign(row.original.totalDiff)}
-      </span>
+      <span className='tabular-nums'>{row.original.lineCount}</span>
     ),
     meta: { className: 'text-end', tdClassName: 'text-end' },
   },
@@ -165,7 +172,7 @@ export function StockTakesTab() {
       searchPlaceholder='Tìm theo mã phiếu, thuốc, số lô...'
       emptyMessage='Chưa có phiếu kiểm kê nào. Bấm "Kiểm kê" để tạo phiếu đầu tiên.'
       getSearchText={(s) =>
-        `${s.code} ${s.note} ${s.lines.map((l) => `${l.medicineName} ${l.batchNo}`).join(' ')}`
+        `${s.code} ${s.note}`
       }
       initialSorting={[{ id: 'countedAt', desc: true }]}
       renderSubRow={(row) => <StockTakeLines row={row} />}

@@ -18,10 +18,12 @@ export function PrescriptionDialog({
   open,
   onOpenChange,
   patient,
+  queueId,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   patient: QueueUser
+  queueId: string
 }) {
   const [view, setView] = useState<View>('prescription')
 
@@ -54,7 +56,7 @@ export function PrescriptionDialog({
             </TabsTrigger>
           </TabsList>
           <TabsContent value='prescription' className='overflow-y-auto pe-1'>
-            <Prescriptions patient={patient} />
+            <Prescriptions patient={patient} examinationQueueId={queueId} />
           </TabsContent>
           <TabsContent value='history' className='overflow-y-auto pe-1'>
             <MedicalHistoryContent patient={patient} />

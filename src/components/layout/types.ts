@@ -26,6 +26,7 @@ type NavCollapsible = BaseNavItem & {
 type NavItem = NavCollapsible | NavLink
 
 type NavGroup = {
+  title?: string
   items: NavItem[]
   roles?: string[]
 }

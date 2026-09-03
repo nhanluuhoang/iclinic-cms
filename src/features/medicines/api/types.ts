@@ -17,5 +17,6 @@ export interface Medicine {
   group: MedicineGroup
   manufacturer: string
   minStock: number
+  salePrice: number
   isActive: boolean
 }

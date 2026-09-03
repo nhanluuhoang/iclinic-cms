@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Check,
   ChevronsUpDown,
@@ -13,6 +13,7 @@ import {
 import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth-store'
 import { cn } from '@/lib/utils'
+import { useDebounce } from '@/hooks/use-debounce'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -37,6 +38,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { Textarea } from '@/components/ui/textarea'
+import { GetMasterDatas } from '@/features/master-data/api'
 import {
   createMedicalHistory,
   createPrescription,
@@ -51,14 +53,12 @@ type MedicineRow = Omit<PrescriptionItemInput, 'medicineId' | 'quantity'> & {
   key: number
   medicineId?: string
   quantity?: number
+  selectedMedicine?: Medicine
 }
 
 const emptyMedicine = (key: number): MedicineRow => ({
   key,
   medicineName: '',
-  dosage: 'Theo chỉ định',
-  frequency: 'Theo chỉ định',
-  duration: 'Theo chỉ định',
   instruction: '',
 })
 
@@ -86,12 +86,15 @@ const INSTRUCTION_OPTIONS = [
 
 export function Prescriptions({
   patient,
+  examinationQueueId,
   formId = 'prescription-form',
 }: {
   patient: User
+  examinationQueueId?: string
   formId?: string
 }) {
   const doctorName = useAuthStore((state) => state.auth.user?.fullName ?? '')
+  const queryClient = useQueryClient()
   const [symptoms, setSymptoms] = useState('')
   const [diagnosis, setDiagnosis] = useState('')
   const [treatment, setTreatment] = useState('')
@@ -100,15 +103,31 @@ export function Prescriptions({
   const [attachments, setAttachments] = useState<File[]>([])
   const [nextKey, setNextKey] = useState(2)
   const [items, setItems] = useState<MedicineRow[]>([emptyMedicine(1)])
+  const [serviceFee, setServiceFee] = useState(0)
+  const [serviceFeeLabel, setServiceFeeLabel] = useState('')
+  const [otherFee1, setOtherFee1] = useState(0)
+  const [otherFee2, setOtherFee2] = useState(0)
+  const [otherFee3, setOtherFee3] = useState(0)
+  const [otherFee1Label, setOtherFee1Label] = useState('')
+  const [otherFee2Label, setOtherFee2Label] = useState('')
+  const [otherFee3Label, setOtherFee3Label] = useState('')
 
-  const medicines = useQuery({
-    queryKey: ['prescription-medicines'],
-    queryFn: getMedicines,
+  const masterData = useQuery({
+    queryKey: ['master-data', 'consultation-fee'],
+    queryFn: () => GetMasterDatas({ page: 1, key: 'CONSULTATION_FEE' }),
   })
+  const consultationFee = Number(
+    masterData.data?.data.find((item) => item.key === 'CONSULTATION_FEE')?.value ?? 0
+  )
+  const medicineFee = items.reduce((sum, item) => {
+    return sum + Number(item.selectedMedicine?.salePrice ?? 0) * (item.quantity ?? 0)
+  }, 0)
+  const invoiceTotal = consultationFee + medicineFee + serviceFee + otherFee1 + otherFee2 + otherFee3
 
   const save = useMutation({
     mutationFn: async () => {
       const history = await createMedicalHistory({
+        examinationQueueId,
         userId: patient.id,
         examinedAt: new Date().toISOString(),
         symptoms: symptoms.trim() || undefined,
@@ -123,19 +142,25 @@ export function Prescriptions({
       }
       await createPrescription({
         medicalHistoryId: history.id,
-        items: items.map(({ key: _key, ...item }) => ({
+        serviceFee,
+        serviceFeeLabel,
+        otherFee1,
+        otherFee2,
+        otherFee3,
+        otherFee1Label,
+        otherFee2Label,
+        otherFee3Label,
+        items: items.map(({ key: _key, selectedMedicine: _selected, ...item }) => ({
           ...item,
           medicineId: item.medicineId!,
           medicineName: item.medicineName.trim(),
-          dosage: 'Theo chỉ định',
-          frequency: 'Theo chỉ định',
-          duration: 'Theo chỉ định',
           quantity: item.quantity!,
           instruction: item.instruction?.trim() || undefined,
         })),
       })
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['examination-queue'] })
       toast.success('Đã lưu chẩn đoán và kê đơn thuốc')
       setSymptoms('')
       setDiagnosis('')
@@ -144,6 +169,14 @@ export function Prescriptions({
       setAdvice('')
       setAttachments([])
       setItems([emptyMedicine(nextKey)])
+      setServiceFee(0)
+      setServiceFeeLabel('')
+      setOtherFee1(0)
+      setOtherFee2(0)
+      setOtherFee3(0)
+      setOtherFee1Label('')
+      setOtherFee2Label('')
+      setOtherFee3Label('')
       setNextKey((value) => value + 1)
     },
     onError: (error) =>
@@ -194,9 +227,7 @@ export function Prescriptions({
       return 'Số lượng phải là số nguyên từ 1 trở lên.'
     }
     if (!item.medicineId) return null
-    const available =
-      medicines.data?.find((medicine) => medicine.id === item.medicineId)
-        ?.totalQty ?? 0
+    const available = item.selectedMedicine?.totalQty ?? 0
     const prescribed = items
       .filter((row) => row.medicineId === item.medicineId)
       .reduce((total, row) => total + (row.quantity ?? 0), 0)
@@ -398,13 +429,12 @@ export function Prescriptions({
                       Thuốc <span className='text-destructive'>*</span>
                     </Label>
                     <MedicinePicker
-                      medicines={medicines.data ?? []}
-                      value={item.medicineId}
-                      isLoading={medicines.isLoading}
+                      selected={item.selectedMedicine}
                       onChange={(medicine) =>
                         updateItem(item.key, {
                           medicineId: medicine.id,
                           medicineName: medicine.name,
+                          selectedMedicine: medicine,
                         })
                       }
                     />
@@ -470,24 +500,85 @@ export function Prescriptions({
             </Button>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader className='border-b'>
+            <CardTitle>Chi phí khám</CardTitle>
+            <CardDescription>
+              Kiểm tra các khoản thu trước khi hoàn tất toa thuốc.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className='grid gap-6 pt-6'>
+            <div className='grid gap-3 sm:grid-cols-2'>
+              <AutomaticFee label='Phí khám' value={consultationFee} note='Theo cấu hình phòng khám' />
+              <AutomaticFee label='Phí thuốc' value={medicineFee} note={`${items.filter((item) => item.medicineId).length} loại thuốc`} />
+            </div>
+
+            <div className='grid gap-3'>
+              <div>
+                <p className='text-sm font-medium'>Khoản thu bổ sung</p>
+                <p className='text-xs text-muted-foreground'>Nhập nội dung và số tiền nếu có.</p>
+              </div>
+              <OtherFeeField index='service' title='Dịch vụ thêm' label={serviceFeeLabel} amount={serviceFee} onLabelChange={setServiceFeeLabel} onAmountChange={setServiceFee} />
+              <OtherFeeField index={1} title='Khoản khác 1' label={otherFee1Label} amount={otherFee1} onLabelChange={setOtherFee1Label} onAmountChange={setOtherFee1} />
+              <OtherFeeField index={2} title='Khoản khác 2' label={otherFee2Label} amount={otherFee2} onLabelChange={setOtherFee2Label} onAmountChange={setOtherFee2} />
+              <OtherFeeField index={3} title='Khoản khác 3' label={otherFee3Label} amount={otherFee3} onLabelChange={setOtherFee3Label} onAmountChange={setOtherFee3} />
+            </div>
+
+            <div className='flex flex-col gap-1 rounded-lg bg-primary px-5 py-4 text-primary-foreground sm:flex-row sm:items-center sm:justify-between'>
+              <div>
+                <p className='font-medium'>Tổng thanh toán</p>
+                <p className='text-xs opacity-80'>Đã bao gồm tất cả khoản phí</p>
+              </div>
+              <p className='text-2xl font-bold tabular-nums'>
+                {invoiceTotal.toLocaleString('vi-VN')} ₫
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       </form>
     </div>
   )
 }
 
+function AutomaticFee({ label, value, note }: { label: string; value: number; note: string }) {
+  return (
+    <div className='rounded-lg border bg-muted/30 p-4'>
+      <p className='text-sm text-muted-foreground'>{label}</p>
+      <p className='mt-1 text-xl font-semibold tabular-nums'>{value.toLocaleString('vi-VN')} ₫</p>
+      <p className='mt-1 text-xs text-muted-foreground'>{note}</p>
+    </div>
+  )
+}
+
+function OtherFeeField({ index, title, label, amount, onLabelChange, onAmountChange }: { index: number | string; title: string; label: string; amount: number; onLabelChange: (value: string) => void; onAmountChange: (value: number) => void }) {
+  return (
+    <div className='grid gap-2 rounded-lg border p-3 sm:grid-cols-[8rem_minmax(0,1fr)_12rem] sm:items-center'>
+      <Label htmlFor={`other-fee-label-${index}`}>{title}</Label>
+      <Input id={`other-fee-label-${index}`} value={label} maxLength={255} placeholder='Nội dung khoản thu' onChange={(event) => onLabelChange(event.target.value)} />
+      <div className='relative'>
+        <Input type='text' inputMode='numeric' value={amount.toLocaleString('vi-VN')} className='pe-10 text-end tabular-nums' onChange={(event) => { const digits = event.target.value.replace(/\D/g, ''); onAmountChange(digits ? Number(digits) : 0) }} />
+        <span className='pointer-events-none absolute inset-y-0 end-3 flex items-center text-sm text-muted-foreground'>₫</span>
+      </div>
+    </div>
+  )
+}
+
 function MedicinePicker({
-  medicines,
-  value,
-  isLoading,
+  selected,
   onChange,
 }: {
-  medicines: Medicine[]
-  value?: string
-  isLoading: boolean
+  selected?: Medicine
   onChange: (medicine: Medicine) => void
 }) {
   const [open, setOpen] = useState(false)
-  const selected = medicines.find((medicine) => medicine.id === value)
+  const [search, setSearch] = useState('')
+  const debouncedSearch = useDebounce(search, 300)
+  const medicines = useQuery({
+    queryKey: ['prescription-medicines', debouncedSearch],
+    queryFn: () => getMedicines(debouncedSearch),
+    enabled: open,
+  })
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -502,7 +593,7 @@ function MedicinePicker({
           <span className='truncate'>
             {selected
               ? `${selected.name} · ${selected.strength} (${selected.unit}) · Tồn ${selected.totalQty}`
-              : isLoading
+              : medicines.isLoading
                 ? 'Đang tải...'
                 : 'Chọn thuốc'}
           </span>
@@ -513,12 +604,12 @@ function MedicinePicker({
         className='w-[var(--radix-popover-trigger-width)] p-0'
         align='start'
       >
-        <Command>
-          <CommandInput placeholder='Tìm tên thuốc...' />
+          <Command shouldFilter={false}>
+          <CommandInput value={search} onValueChange={setSearch} placeholder='Tìm tên thuốc...' />
           <CommandList>
             <CommandEmpty>Không tìm thấy thuốc.</CommandEmpty>
             <CommandGroup>
-              {medicines.map((medicine) => (
+              {(medicines.data ?? []).map((medicine) => (
                 <CommandItem
                   key={medicine.id}
                   value={`${medicine.name} ${medicine.strength}`}
@@ -531,14 +622,15 @@ function MedicinePicker({
                   <Check
                     className={cn(
                       'size-4',
-                      medicine.id === value ? 'opacity-100' : 'opacity-0'
+                      medicine.id === selected?.id ? 'opacity-100' : 'opacity-0'
                     )}
                   />
                   <span className='min-w-0 flex-1 truncate'>
                     {medicine.name} · {medicine.strength} ({medicine.unit})
                   </span>
                   <span className='ms-auto text-xs text-muted-foreground'>
-                    Tồn: {medicine.totalQty}
+                    {medicine.salePrice.toLocaleString('vi-VN')} ₫ · Tồn:{' '}
+                    {medicine.totalQty}
                   </span>
                 </CommandItem>
               ))}
