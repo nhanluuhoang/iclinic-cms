@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Check,
@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth-store'
+import { API_URL } from '@/config'
 import { cn } from '@/lib/utils'
 import { useDebounce } from '@/hooks/use-debounce'
 import { Button } from '@/components/ui/button'
@@ -40,13 +41,23 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { GetMasterDatas } from '@/features/master-data/api'
 import {
-  createMedicalHistory,
+  deleteImage,
+  deletePdf,
+  deleteVideo,
+  uploadImage,
+  uploadPdf,
+  uploadVideo,
+  type UploadedImage,
+  type UploadedPdf,
+  type UploadedVideo,
+} from '@/features/examination-queue/api'
+import {
   createPrescription,
+  updatePrescription,
   getMedicines,
   type User,
   type Medicine,
   type PrescriptionItemInput,
-  uploadMedicalHistoryAttachments,
 } from './api'
 
 type MedicineRow = Omit<PrescriptionItemInput, 'medicineId' | 'quantity'> & {
@@ -62,10 +73,10 @@ const emptyMedicine = (key: number): MedicineRow => ({
   instruction: '',
 })
 
-const MAX_ATTACHMENTS = 10
-const MAX_ATTACHMENT_SIZE = 5 * 1024 * 1024
+const MAX_MEDIA_FILES = 10
+const MAX_MEDIA_FILE_SIZE = 5 * 1024 * 1024
 const MAX_VIDEO_SIZE = 100 * 1024 * 1024
-const ACCEPTED_ATTACHMENT_TYPES = [
+const ACCEPTED_MEDIA_TYPES = [
   'image/jpeg',
   'image/png',
   'application/pdf',
@@ -84,14 +95,59 @@ const INSTRUCTION_OPTIONS = [
   'Bôi ngoài da',
 ]
 
+export interface InitialPrescriptionData {
+  symptoms: string
+  diagnosis: string
+  treatment: string
+  advice: string
+  note: string
+  images: Array<{ id: string; fileName: string }>
+  pdfs: Array<{ id: string; fileName: string }>
+  videos: Array<{ id: string; fileName: string }>
+  prescription: null | {
+    id: string
+    items: Array<{
+      medicineId: string
+      medicineName: string
+      quantity: number | null
+      instruction: string
+      medicine: null | {
+        id: string
+        name: string
+        strength: string
+        unit: string
+        totalQty: number
+        isActive: boolean
+        salePrice: number | string
+      }
+    }>
+    invoice: null | {
+      serviceFee: number | string
+      serviceFeeLabel: string
+      otherFee1: number | string
+      otherFee1Label: string
+      otherFee2: number | string
+      otherFee2Label: string
+      otherFee3: number | string
+      otherFee3Label: string
+    }
+  }
+}
+
 export function Prescriptions({
   patient,
   examinationQueueId,
+  initialData,
   formId = 'prescription-form',
+  onSaved,
+  onUploadingChange,
 }: {
   patient: User
   examinationQueueId?: string
+  initialData?: InitialPrescriptionData | null
   formId?: string
+  onSaved?: () => void
+  onUploadingChange?: (uploading: boolean) => void
 }) {
   const doctorName = useAuthStore((state) => state.auth.user?.fullName ?? '')
   const queryClient = useQueryClient()
@@ -100,7 +156,13 @@ export function Prescriptions({
   const [treatment, setTreatment] = useState('')
   const [note, setNote] = useState('')
   const [advice, setAdvice] = useState('')
-  const [attachments, setAttachments] = useState<File[]>([])
+  const [media, setMedia] = useState<
+    Array<UploadedImage | UploadedPdf | UploadedVideo>
+  >([])
+  const draftMediaRef = useRef<
+    Array<UploadedImage | UploadedPdf | UploadedVideo>
+  >([])
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false)
   const [nextKey, setNextKey] = useState(2)
   const [items, setItems] = useState<MedicineRow[]>([emptyMedicine(1)])
   const [serviceFee, setServiceFee] = useState(0)
@@ -112,36 +174,124 @@ export function Prescriptions({
   const [otherFee2Label, setOtherFee2Label] = useState('')
   const [otherFee3Label, setOtherFee3Label] = useState('')
 
+  useEffect(() => {
+    return () => {
+      const draftFiles = draftMediaRef.current
+      draftMediaRef.current = []
+      void (async () => {
+        for (const file of draftFiles) {
+          try {
+            await deleteMediaFile(file)
+          } catch {
+            // Closing the dialog must continue even if draft cleanup fails.
+          }
+        }
+      })()
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!initialData?.prescription) return
+    const prescription = initialData.prescription
+    const invoice = prescription.invoice
+    setSymptoms(initialData.symptoms ?? '')
+    setDiagnosis(initialData.diagnosis ?? '')
+    setTreatment(initialData.treatment ?? '')
+    setAdvice(initialData.advice ?? '')
+    setNote(initialData.note ?? '')
+    setMedia([
+      ...(initialData.images ?? []).map((file) => ({
+        ...file,
+        url: `${API_URL}/images/${file.fileName}`,
+        name: file.fileName,
+        mimeType: 'image/webp',
+        size: 0,
+      })),
+      ...(initialData.pdfs ?? []).map((file) => ({
+        ...file,
+        url: `${API_URL}/pdfs/${file.fileName}`,
+        name: file.fileName,
+        mimeType: 'application/pdf',
+        size: 0,
+      })),
+      ...(initialData.videos ?? []).map((file) => ({
+        ...file,
+        url: `${API_URL}/videos/${file.fileName}/master.m3u8`,
+        name: file.fileName,
+        mimeType: 'application/vnd.apple.mpegurl',
+        size: 0,
+      })),
+    ])
+    const savedItems = prescription.items.map((item, index) => ({
+      key: index + 1,
+      medicineId: item.medicineId,
+      medicineName: item.medicineName,
+      quantity: item.quantity ?? undefined,
+      instruction: item.instruction ?? '',
+      selectedMedicine: item.medicine
+        ? {
+            ...item.medicine,
+            salePrice: Number(item.medicine.salePrice ?? 0),
+            totalQty: Number(item.medicine.totalQty ?? 0) + Number(item.quantity ?? 0),
+          }
+        : undefined,
+    }))
+    setItems(savedItems.length ? savedItems : [emptyMedicine(1)])
+    setNextKey(Math.max(savedItems.length + 1, 2))
+    setServiceFee(Number(invoice?.serviceFee ?? 0))
+    setServiceFeeLabel(invoice?.serviceFeeLabel ?? '')
+    setOtherFee1(Number(invoice?.otherFee1 ?? 0))
+    setOtherFee1Label(invoice?.otherFee1Label ?? '')
+    setOtherFee2(Number(invoice?.otherFee2 ?? 0))
+    setOtherFee2Label(invoice?.otherFee2Label ?? '')
+    setOtherFee3(Number(invoice?.otherFee3 ?? 0))
+    setOtherFee3Label(invoice?.otherFee3Label ?? '')
+  }, [initialData])
+
   const masterData = useQuery({
     queryKey: ['master-data', 'consultation-fee'],
     queryFn: () => GetMasterDatas({ page: 1, key: 'CONSULTATION_FEE' }),
   })
   const consultationFee = Number(
-    masterData.data?.data.find((item) => item.key === 'CONSULTATION_FEE')?.value ?? 0
+    masterData.data?.data.find((item) => item.key === 'CONSULTATION_FEE')
+      ?.value ?? 0
   )
   const medicineFee = items.reduce((sum, item) => {
-    return sum + Number(item.selectedMedicine?.salePrice ?? 0) * (item.quantity ?? 0)
+    return (
+      sum + Number(item.selectedMedicine?.salePrice ?? 0) * (item.quantity ?? 0)
+    )
   }, 0)
-  const invoiceTotal = consultationFee + medicineFee + serviceFee + otherFee1 + otherFee2 + otherFee3
+  const invoiceTotal =
+    consultationFee +
+    medicineFee +
+    serviceFee +
+    otherFee1 +
+    otherFee2 +
+    otherFee3
 
   const save = useMutation({
     mutationFn: async () => {
-      const history = await createMedicalHistory({
-        examinationQueueId,
-        userId: patient.id,
-        examinedAt: new Date().toISOString(),
-        symptoms: symptoms.trim() || undefined,
-        diagnosis: diagnosis.trim(),
-        treatment: treatment.trim() || undefined,
-        advice: advice.trim() || undefined,
-        doctorName: doctorName.trim(),
-        note: note.trim() || undefined,
-      })
-      if (attachments.length) {
-        await uploadMedicalHistoryAttachments(history.id, attachments)
-      }
-      await createPrescription({
-        medicalHistoryId: history.id,
+      const payload = {
+        medicalHistory: {
+          examinationQueueId,
+          userId: patient.id,
+          examinedAt: new Date().toISOString(),
+          symptoms: symptoms.trim() || undefined,
+          diagnosis: diagnosis.trim(),
+          treatment: treatment.trim() || undefined,
+          advice: advice.trim() || undefined,
+          doctorName: doctorName.trim(),
+          note: note.trim() || undefined,
+          image: media
+            .filter((file) => file.mimeType.startsWith('image/'))
+            .map((file) => file.url),
+          pdf: media
+            .filter((file) => file.mimeType === 'application/pdf')
+            .map((file) => file.url),
+          video: media
+            .filter((file) => file.mimeType.startsWith('video/'))
+            .map((file) => file.url),
+        },
         serviceFee,
         serviceFeeLabel,
         otherFee1,
@@ -150,24 +300,32 @@ export function Prescriptions({
         otherFee1Label,
         otherFee2Label,
         otherFee3Label,
-        items: items.map(({ key: _key, selectedMedicine: _selected, ...item }) => ({
-          ...item,
-          medicineId: item.medicineId!,
-          medicineName: item.medicineName.trim(),
-          quantity: item.quantity!,
-          instruction: item.instruction?.trim() || undefined,
-        })),
-      })
+        items: items.map(
+          ({ key: _key, selectedMedicine: _selected, ...item }) => ({
+            ...item,
+            medicineId: item.medicineId!,
+            medicineName: item.medicineName.trim(),
+            quantity: item.quantity!,
+            instruction: item.instruction?.trim() || undefined,
+          })
+        ),
+      }
+      if (initialData?.prescription?.id) {
+        await updatePrescription(initialData.prescription.id, {
+          items: payload.items,
+        })
+      } else {
+        await createPrescription(payload)
+      }
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['examination-queue'] })
+    onSuccess: () => {
       toast.success('Đã lưu chẩn đoán và kê đơn thuốc')
       setSymptoms('')
       setDiagnosis('')
       setTreatment('')
       setNote('')
       setAdvice('')
-      setAttachments([])
+      setMedia([])
       setItems([emptyMedicine(nextKey)])
       setServiceFee(0)
       setServiceFeeLabel('')
@@ -178,6 +336,11 @@ export function Prescriptions({
       setOtherFee2Label('')
       setOtherFee3Label('')
       setNextKey((value) => value + 1)
+      draftMediaRef.current = []
+      onSaved?.()
+      void queryClient.invalidateQueries({
+        queryKey: ['examination-queue', 'list'],
+      })
     },
     onError: (error) =>
       toast.error(
@@ -197,16 +360,14 @@ export function Prescriptions({
     setNextKey((value) => value + 1)
   }
 
-  const addAttachments = (files: FileList | null) => {
+  const addMedia = async (files: FileList | null) => {
     if (!files) return
     const selected = Array.from(files)
     const invalid = selected.find((file) => {
       const maxSize = file.type.startsWith('video/')
         ? MAX_VIDEO_SIZE
-        : MAX_ATTACHMENT_SIZE
-      return (
-        !ACCEPTED_ATTACHMENT_TYPES.includes(file.type) || file.size > maxSize
-      )
+        : MAX_MEDIA_FILE_SIZE
+      return !ACCEPTED_MEDIA_TYPES.includes(file.type) || file.size > maxSize
     })
     if (invalid) {
       toast.error(
@@ -214,11 +375,55 @@ export function Prescriptions({
       )
       return
     }
-    if (attachments.length + selected.length > MAX_ATTACHMENTS) {
-      toast.error(`Chỉ được tải lên tối đa ${MAX_ATTACHMENTS} tệp`)
+    if (media.length + selected.length > MAX_MEDIA_FILES) {
+      toast.error(`Chỉ được tải lên tối đa ${MAX_MEDIA_FILES} tệp`)
       return
     }
-    setAttachments((current) => [...current, ...selected])
+    setIsUploadingMedia(true)
+    onUploadingChange?.(true)
+    try {
+      const uploaded = await Promise.all(
+        selected.map((file) => {
+          if (file.type.startsWith('image/')) return uploadImage(file)
+          if (file.type === 'application/pdf') return uploadPdf(file)
+          return uploadVideo(file)
+        })
+      )
+      draftMediaRef.current.push(...uploaded)
+      setMedia((current) => [...current, ...uploaded])
+    } catch (error) {
+      toast.error(typeof error === 'string' ? error : 'Không thể tải tệp lên')
+    } finally {
+      setIsUploadingMedia(false)
+      onUploadingChange?.(false)
+    }
+  }
+
+  const removeMedia = async (
+    file: UploadedImage | UploadedPdf | UploadedVideo
+  ) => {
+    setIsUploadingMedia(true)
+    onUploadingChange?.(true)
+    try {
+      await deleteMediaFile(file)
+      draftMediaRef.current = draftMediaRef.current.filter(
+        (item) => item.id !== file.id || item.fileName !== file.fileName
+      )
+      setMedia((current) =>
+        current.filter(
+          (item) => item.id !== file.id || item.fileName !== file.fileName
+        )
+      )
+      void queryClient.invalidateQueries({
+        queryKey: ['examination-queue', 'list'],
+      })
+      toast.success('Đã xóa tệp')
+    } catch (error) {
+      toast.error(typeof error === 'string' ? error : 'Không thể xóa tệp')
+    } finally {
+      setIsUploadingMedia(false)
+      onUploadingChange?.(false)
+    }
   }
 
   const getQuantityError = (item: MedicineRow) => {
@@ -236,6 +441,7 @@ export function Prescriptions({
 
   const isValid = Boolean(
     patient.id &&
+    !isUploadingMedia &&
     doctorName.trim() &&
     diagnosis.trim() &&
     items.every(
@@ -348,14 +554,14 @@ export function Prescriptions({
             </Field>
             <div className='grid gap-3 md:col-span-2'>
               <div>
-                <Label htmlFor='diagnosis-attachments'>Tệp chẩn đoán</Label>
+                <Label htmlFor='diagnosis-media'>Tệp chẩn đoán</Label>
                 <p className='mt-1 text-xs text-muted-foreground'>
-                  Tối đa {MAX_ATTACHMENTS} tệp. Ảnh/PDF không quá 5 MB; video
+                  Tối đa {MAX_MEDIA_FILES} tệp. Ảnh/PDF không quá 5 MB; video
                   MP4, WebM hoặc MOV không quá 100 MB.
                 </p>
               </div>
               <label
-                htmlFor='diagnosis-attachments'
+                htmlFor='diagnosis-media'
                 className='flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed p-6 text-center transition-colors hover:bg-muted/50'
               >
                 <ImagePlus className='size-7 text-muted-foreground' />
@@ -363,31 +569,31 @@ export function Prescriptions({
                   Chọn ảnh, PDF hoặc video
                 </span>
                 <span className='text-xs text-muted-foreground'>
-                  Đã chọn {attachments.length}/{MAX_ATTACHMENTS} tệp
+                  {isUploadingMedia
+                    ? 'Đang tải tệp...'
+                    : `Đã tải ${media.length}/${MAX_MEDIA_FILES} tệp`}
                 </span>
               </label>
               <Input
-                id='diagnosis-attachments'
+                id='diagnosis-media'
                 className='sr-only'
                 type='file'
                 accept='image/jpeg,image/png,application/pdf,video/mp4,video/webm,video/quicktime'
                 multiple
+                disabled={isUploadingMedia}
                 onChange={(event) => {
-                  addAttachments(event.target.files)
+                  event.currentTarget.blur()
+                  void addMedia(event.target.files)
                   event.target.value = ''
                 }}
               />
-              {attachments.length > 0 && (
+              {media.length > 0 && (
                 <div className='grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5'>
-                  {attachments.map((file, index) => (
-                    <AttachmentPreview
-                      key={`${file.name}-${file.lastModified}-${index}`}
-                      file={file}
-                      onRemove={() =>
-                        setAttachments((current) =>
-                          current.filter((_, fileIndex) => fileIndex !== index)
-                        )
-                      }
+                  {media.map((file, index) => (
+                    <MediaPreview
+                      key={`${file.url}-${index}`}
+                      media={file}
+                      onRemove={() => void removeMedia(file)}
                     />
                   ))}
                 </div>
@@ -510,25 +716,65 @@ export function Prescriptions({
           </CardHeader>
           <CardContent className='grid gap-6 pt-6'>
             <div className='grid gap-3 sm:grid-cols-2'>
-              <AutomaticFee label='Phí khám' value={consultationFee} note='Theo cấu hình phòng khám' />
-              <AutomaticFee label='Phí thuốc' value={medicineFee} note={`${items.filter((item) => item.medicineId).length} loại thuốc`} />
+              <AutomaticFee
+                label='Phí khám'
+                value={consultationFee}
+                note='Theo cấu hình phòng khám'
+              />
+              <AutomaticFee
+                label='Phí thuốc'
+                value={medicineFee}
+                note={`${items.filter((item) => item.medicineId).length} loại thuốc`}
+              />
             </div>
 
             <div className='grid gap-3'>
               <div>
                 <p className='text-sm font-medium'>Khoản thu bổ sung</p>
-                <p className='text-xs text-muted-foreground'>Nhập nội dung và số tiền nếu có.</p>
+                <p className='text-xs text-muted-foreground'>
+                  Nhập nội dung và số tiền nếu có.
+                </p>
               </div>
-              <OtherFeeField index='service' title='Dịch vụ thêm' label={serviceFeeLabel} amount={serviceFee} onLabelChange={setServiceFeeLabel} onAmountChange={setServiceFee} />
-              <OtherFeeField index={1} title='Khoản khác 1' label={otherFee1Label} amount={otherFee1} onLabelChange={setOtherFee1Label} onAmountChange={setOtherFee1} />
-              <OtherFeeField index={2} title='Khoản khác 2' label={otherFee2Label} amount={otherFee2} onLabelChange={setOtherFee2Label} onAmountChange={setOtherFee2} />
-              <OtherFeeField index={3} title='Khoản khác 3' label={otherFee3Label} amount={otherFee3} onLabelChange={setOtherFee3Label} onAmountChange={setOtherFee3} />
+              <OtherFeeField
+                index='service'
+                title='Dịch vụ thêm'
+                label={serviceFeeLabel}
+                amount={serviceFee}
+                onLabelChange={setServiceFeeLabel}
+                onAmountChange={setServiceFee}
+              />
+              <OtherFeeField
+                index={1}
+                title='Khoản khác 1'
+                label={otherFee1Label}
+                amount={otherFee1}
+                onLabelChange={setOtherFee1Label}
+                onAmountChange={setOtherFee1}
+              />
+              <OtherFeeField
+                index={2}
+                title='Khoản khác 2'
+                label={otherFee2Label}
+                amount={otherFee2}
+                onLabelChange={setOtherFee2Label}
+                onAmountChange={setOtherFee2}
+              />
+              <OtherFeeField
+                index={3}
+                title='Khoản khác 3'
+                label={otherFee3Label}
+                amount={otherFee3}
+                onLabelChange={setOtherFee3Label}
+                onAmountChange={setOtherFee3}
+              />
             </div>
 
             <div className='flex flex-col gap-1 rounded-lg bg-primary px-5 py-4 text-primary-foreground sm:flex-row sm:items-center sm:justify-between'>
               <div>
                 <p className='font-medium'>Tổng thanh toán</p>
-                <p className='text-xs opacity-80'>Đã bao gồm tất cả khoản phí</p>
+                <p className='text-xs opacity-80'>
+                  Đã bao gồm tất cả khoản phí
+                </p>
               </div>
               <p className='text-2xl font-bold tabular-nums'>
                 {invoiceTotal.toLocaleString('vi-VN')} ₫
@@ -541,24 +787,73 @@ export function Prescriptions({
   )
 }
 
-function AutomaticFee({ label, value, note }: { label: string; value: number; note: string }) {
+function deleteMediaFile(
+  file: UploadedImage | UploadedPdf | UploadedVideo
+): Promise<void> {
+  if (file.mimeType.startsWith('image/')) return deleteImage(file.fileName)
+  if (file.mimeType === 'application/pdf') return deletePdf(file.fileName)
+  return deleteVideo(file.fileName)
+}
+
+function AutomaticFee({
+  label,
+  value,
+  note,
+}: {
+  label: string
+  value: number
+  note: string
+}) {
   return (
     <div className='rounded-lg border bg-muted/30 p-4'>
       <p className='text-sm text-muted-foreground'>{label}</p>
-      <p className='mt-1 text-xl font-semibold tabular-nums'>{value.toLocaleString('vi-VN')} ₫</p>
+      <p className='mt-1 text-xl font-semibold tabular-nums'>
+        {value.toLocaleString('vi-VN')} ₫
+      </p>
       <p className='mt-1 text-xs text-muted-foreground'>{note}</p>
     </div>
   )
 }
 
-function OtherFeeField({ index, title, label, amount, onLabelChange, onAmountChange }: { index: number | string; title: string; label: string; amount: number; onLabelChange: (value: string) => void; onAmountChange: (value: number) => void }) {
+function OtherFeeField({
+  index,
+  title,
+  label,
+  amount,
+  onLabelChange,
+  onAmountChange,
+}: {
+  index: number | string
+  title: string
+  label: string
+  amount: number
+  onLabelChange: (value: string) => void
+  onAmountChange: (value: number) => void
+}) {
   return (
     <div className='grid gap-2 rounded-lg border p-3 sm:grid-cols-[8rem_minmax(0,1fr)_12rem] sm:items-center'>
       <Label htmlFor={`other-fee-label-${index}`}>{title}</Label>
-      <Input id={`other-fee-label-${index}`} value={label} maxLength={255} placeholder='Nội dung khoản thu' onChange={(event) => onLabelChange(event.target.value)} />
+      <Input
+        id={`other-fee-label-${index}`}
+        value={label}
+        maxLength={255}
+        placeholder='Nội dung khoản thu'
+        onChange={(event) => onLabelChange(event.target.value)}
+      />
       <div className='relative'>
-        <Input type='text' inputMode='numeric' value={amount.toLocaleString('vi-VN')} className='pe-10 text-end tabular-nums' onChange={(event) => { const digits = event.target.value.replace(/\D/g, ''); onAmountChange(digits ? Number(digits) : 0) }} />
-        <span className='pointer-events-none absolute inset-y-0 end-3 flex items-center text-sm text-muted-foreground'>₫</span>
+        <Input
+          type='text'
+          inputMode='numeric'
+          value={amount.toLocaleString('vi-VN')}
+          className='pe-10 text-end tabular-nums'
+          onChange={(event) => {
+            const digits = event.target.value.replace(/\D/g, '')
+            onAmountChange(digits ? Number(digits) : 0)
+          }}
+        />
+        <span className='pointer-events-none absolute inset-y-0 end-3 flex items-center text-sm text-muted-foreground'>
+          ₫
+        </span>
       </div>
     </div>
   )
@@ -604,8 +899,12 @@ function MedicinePicker({
         className='w-[var(--radix-popover-trigger-width)] p-0'
         align='start'
       >
-          <Command shouldFilter={false}>
-          <CommandInput value={search} onValueChange={setSearch} placeholder='Tìm tên thuốc...' />
+        <Command shouldFilter={false}>
+          <CommandInput
+            value={search}
+            onValueChange={setSearch}
+            placeholder='Tìm tên thuốc...'
+          />
           <CommandList>
             <CommandEmpty>Không tìm thấy thuốc.</CommandEmpty>
             <CommandGroup>
@@ -642,34 +941,31 @@ function MedicinePicker({
   )
 }
 
-function AttachmentPreview({
-  file,
+function MediaPreview({
+  media,
   onRemove,
 }: {
-  file: File
+  media: UploadedImage | UploadedPdf | UploadedVideo
   onRemove: () => void
 }) {
-  const isPdf = file.type === 'application/pdf'
-  const isVideo = file.type.startsWith('video/')
-  const url = useMemo(() => URL.createObjectURL(file), [file])
-
-  useEffect(() => {
-    return () => URL.revokeObjectURL(url)
-  }, [url])
+  const isPdf = media.mimeType === 'application/pdf'
+  const isVideo =
+    media.mimeType.startsWith('video/') ||
+    media.mimeType === 'application/vnd.apple.mpegurl'
 
   return (
     <div className='group relative aspect-square overflow-hidden rounded-lg border bg-muted'>
       {isPdf ? (
         <div className='flex size-full flex-col items-center justify-center gap-2 p-3 text-center'>
           <FileText className='size-9 text-red-500' />
-          <span className='line-clamp-2 text-xs font-medium'>{file.name}</span>
+          <span className='line-clamp-2 text-xs font-medium'>{media.name}</span>
           <span className='text-xs text-muted-foreground'>
-            {(file.size / 1024 / 1024).toFixed(1)} MB
+            {(media.size / 1024 / 1024).toFixed(1)} MB
           </span>
         </div>
       ) : isVideo ? (
         <video
-          src={url}
+          src={media.url}
           className='size-full object-cover'
           controls
           preload='metadata'
@@ -677,7 +973,11 @@ function AttachmentPreview({
           Trình duyệt không hỗ trợ phát video.
         </video>
       ) : (
-        <img src={url} alt={file.name} className='size-full object-cover' />
+        <img
+          src={media.url}
+          alt={media.name}
+          className='size-full object-cover'
+        />
       )}
       <Button
         type='button'
@@ -687,10 +987,10 @@ function AttachmentPreview({
         onClick={onRemove}
       >
         <X className='size-4' />
-        <span className='sr-only'>Xóa tệp {file.name}</span>
+        <span className='sr-only'>Xóa tệp {media.name}</span>
       </Button>
       <div className='absolute inset-x-0 bottom-0 truncate bg-black/60 px-2 py-1 text-xs text-white'>
-        {file.name}
+        {media.name}
       </div>
     </div>
   )

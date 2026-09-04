@@ -3,7 +3,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   ClipboardCheck,
   ListOrdered,
-  Megaphone,
   Plus,
   Stethoscope,
 } from 'lucide-react'
@@ -19,7 +18,6 @@ import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
 import {
-  callNext,
   changeQueueStatus,
   checkIn,
   getQueue,
@@ -71,14 +69,6 @@ export function ExaminationQueue() {
 
   const refresh = () =>
     queryClient.invalidateQueries({ queryKey: ['examination-queue'] })
-  const callNextMutation = useMutation({
-    mutationFn: () => callNext(queueDate),
-    onSuccess: () => {
-      toast.success('Đã gọi bệnh nhân tiếp theo')
-      refresh()
-    },
-    onError: showQueueError,
-  })
   const statusMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: QueueStatus }) =>
       changeQueueStatus(id, status),
@@ -138,14 +128,9 @@ export function ExaminationQueue() {
               }}
               minDate={today()}
             />
-            <Button variant='outline' onClick={() => setCreateOpen(true)}>
-              <Plus /> Tiếp nhận
-            </Button>
-            <Button
-              onClick={() => callNextMutation.mutate()}
-              disabled={callNextMutation.isPending}
-            >
-              <Megaphone /> Gọi tiếp theo
+            <Button onClick={() => setCreateOpen(true)}>
+              Tiếp nhận
+              <Plus className='size-4' />
             </Button>
           </div>
         </div>

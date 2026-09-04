@@ -35,6 +35,9 @@ export interface MedicalHistoryInput {
   advice?: string
   doctorName: string
   note?: string
+  image?: string[]
+  pdf?: string[]
+  video?: string[]
 }
 
 export interface PrescriptionItemInput {
@@ -65,25 +68,9 @@ export const getMedicines = async (search = ''): Promise<Medicine[]> => {
     }))
 }
 
-export const createMedicalHistory = (
-  data: MedicalHistoryInput
-): Promise<{ id: string }> => axios.post('/medical-histories', data)
-
-export const uploadMedicalHistoryAttachments = (
-  medicalHistoryId: string,
-  files: File[]
-): Promise<void> => {
-  const formData = new FormData()
-  files.forEach((file) => formData.append('files', file))
-  return axios.post(
-    `/medical-histories/${medicalHistoryId}/attachments`,
-    formData,
-    { headers: { 'Content-Type': 'multipart/form-data' } }
-  )
-}
-
 export const createPrescription = (data: {
-  medicalHistoryId: string
+  medicalHistory?: MedicalHistoryInput
+  medicalHistoryId?: string
   items: PrescriptionItemInput[]
   serviceFee?: number
   serviceFeeLabel?: string
@@ -94,3 +81,8 @@ export const createPrescription = (data: {
   otherFee2Label?: string
   otherFee3Label?: string
 }): Promise<void> => axios.post('/prescriptions', data)
+
+export const updatePrescription = (
+  id: string,
+  data: { items: PrescriptionItemInput[] }
+): Promise<void> => axios.patch(`/prescriptions/${id}`, data)

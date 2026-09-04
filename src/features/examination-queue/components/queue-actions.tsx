@@ -22,7 +22,7 @@ export function QueueActions({
   return (
     <>
       <div className='flex flex-wrap justify-end gap-1'>
-        {invoice && (
+        {item.status === 'COMPLETED' && invoice && (
           <Button size='sm' variant='outline' onClick={() => printInvoice(item)}>
             <Printer /> In hóa đơn
           </Button>
@@ -69,6 +69,7 @@ export function QueueActions({
         onOpenChange={setPrescriptionOpen}
         patient={item.patient}
         queueId={item.id}
+        initialData={item.medicalHistory}
       />
     </>
   )

@@ -37,11 +37,33 @@ export interface QueueEntry {
   patient: QueueUser
   doctor: QueueUser | null
   medicalHistory: null | {
+    id: string
+    symptoms: string
+    diagnosis: string
+    treatment: string
+    advice: string
+    doctorName: string
+    note: string
+    images: Array<{ id: string; fileName: string }>
+    pdfs: Array<{ id: string; fileName: string }>
+    videos: Array<{ id: string; fileName: string }>
     prescription: null | {
+      id: string
       items: Array<{
+        id: string
+        medicineId: string
         medicineName: string
         quantity: number | null
-        medicine: null | { salePrice: number | string }
+        instruction: string
+        medicine: null | {
+          id: string
+          name: string
+          strength: string
+          unit: string
+          totalQty: number
+          isActive: boolean
+          salePrice: number | string
+        }
       }>
       invoice: null | {
         issuedAt: string
@@ -81,6 +103,55 @@ export interface QueueDashboard {
     medicineCost: number
   }
 }
+
+export interface UploadedMedia {
+  id: string
+  fileName: string
+  url: string
+  name: string
+  mimeType: string
+  size: number
+}
+
+export type UploadedImage = UploadedMedia
+export type UploadedPdf = UploadedMedia
+export type UploadedVideo = UploadedMedia
+
+interface UploadMediaResponse extends UploadedMedia {
+  status: boolean
+}
+
+const uploadMedia = async (
+  resource: 'images' | 'pdfs' | 'videos',
+  field: 'image' | 'pdf' | 'video',
+  file: File
+): Promise<UploadedMedia> => {
+  const formData = new FormData()
+  formData.append(field, file)
+  const response = await axios.post<unknown, UploadMediaResponse>(
+    `/${resource}/upload`,
+    formData,
+    { headers: { 'Content-Type': 'multipart/form-data' } }
+  )
+  const { id, fileName, url, name, mimeType, size } = response
+  return { id, fileName, url, name, mimeType, size }
+}
+
+const deleteMedia = (resource: 'images' | 'pdfs' | 'videos', id: string) =>
+  axios.delete(`/${resource}/${encodeURIComponent(id)}`) as Promise<void>
+
+export const uploadImage = (file: File): Promise<UploadedImage> =>
+  uploadMedia('images', 'image', file)
+export const uploadPdf = (file: File): Promise<UploadedPdf> =>
+  uploadMedia('pdfs', 'pdf', file)
+export const uploadVideo = (file: File): Promise<UploadedVideo> =>
+  uploadMedia('videos', 'video', file)
+export const deleteImage = (fileName: string): Promise<void> =>
+  deleteMedia('images', fileName)
+export const deletePdf = (fileName: string): Promise<void> =>
+  deleteMedia('pdfs', fileName)
+export const deleteVideo = (fileName: string): Promise<void> =>
+  deleteMedia('videos', fileName)
 
 export interface MedicalHistory {
   id: string
@@ -142,9 +213,6 @@ export const createQueueEntry = (data: {
   reason?: string
   note?: string
 }): Promise<void> => axios.post('/examination-queue', data)
-
-export const callNext = (queueDate: string): Promise<void> =>
-  axios.post('/examination-queue/call-next', { queueDate })
 
 export const checkIn = (id: string): Promise<void> =>
   axios.post(`/examination-queue/${id}/check-in`, {})
