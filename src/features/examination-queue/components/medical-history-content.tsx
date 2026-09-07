@@ -33,7 +33,7 @@ export function MedicalHistoryContent({
         <div key={history.id} className='space-y-2 rounded-lg border p-4'>
           <div className='flex flex-wrap justify-between gap-2'>
             <strong>
-              {new Date(history.examinedAt).toLocaleString('vi-VN')}
+              {new Date(history.createdAt).toLocaleString('vi-VN')}
             </strong>
             <span className='text-sm text-muted-foreground'>
               {history.doctorName}

@@ -155,7 +155,7 @@ export const deleteVideo = (fileName: string): Promise<void> =>
 
 export interface MedicalHistory {
   id: string
-  examinedAt: string
+  createdAt: string
   symptoms: string
   diagnosis: string
   treatment: string

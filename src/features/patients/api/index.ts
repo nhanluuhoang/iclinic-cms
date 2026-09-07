@@ -59,11 +59,6 @@ export interface PatientDtoRequest {
   note?: string
 }
 
-export interface PatientResponse {
-  status: boolean
-  data: Patient
-}
-
 export interface PatientsResponse {
   status: boolean
   data: Patient[]
@@ -78,10 +73,6 @@ const GetPatients = (params?: PatientParams): Promise<PatientsResponse> => {
   return axios.get('/patient', { params })
 }
 
-const GetPatient = (id: string): Promise<PatientResponse> => {
-  return axios.get(`/patient/${id}`)
-}
-
 const UpdatePatient = (id: string, data: PatientDtoRequest): Promise<void> => {
   return axios.patch(`/patient/${id}`, data)
 }
@@ -90,4 +81,4 @@ const DeletePatient = (id: string): Promise<void> => {
   return axios.delete(`/patient/${id}`)
 }
 
-export { CreatePatient, GetPatients, GetPatient, UpdatePatient, DeletePatient }
+export { CreatePatient, GetPatients, UpdatePatient, DeletePatient }

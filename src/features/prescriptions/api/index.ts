@@ -28,16 +28,15 @@ interface Page<T> {
 export interface MedicalHistoryInput {
   examinationQueueId?: string
   userId: string
-  examinedAt: string
   symptoms?: string
   diagnosis: string
   treatment?: string
   advice?: string
   doctorName: string
   note?: string
-  image?: string[]
-  pdf?: string[]
-  video?: string[]
+  images?: string[]
+  pdfs?: string[]
+  videos?: string[]
 }
 
 export interface PrescriptionItemInput {
@@ -45,13 +44,6 @@ export interface PrescriptionItemInput {
   medicineName: string
   quantity: number
   instruction?: string
-}
-
-export const getPatients = async (): Promise<User[]> => {
-  const response = await axios.get<unknown, Page<User>>('/users', {
-    params: { page: 1, limit: 100 },
-  })
-  return response.data.filter((user) => user.role === 'PATIENT')
 }
 
 export const getMedicines = async (search = ''): Promise<Medicine[]> => {
@@ -69,9 +61,9 @@ export const getMedicines = async (search = ''): Promise<Medicine[]> => {
 }
 
 export const createPrescription = (data: {
-  medicalHistory?: MedicalHistoryInput
-  medicalHistoryId?: string
-  items: PrescriptionItemInput[]
+  medicalHistory: MedicalHistoryInput
+  prescriptionItems: PrescriptionItemInput[]
+  consultationFee: number
   serviceFee?: number
   serviceFeeLabel?: string
   otherFee1?: number
@@ -80,9 +72,10 @@ export const createPrescription = (data: {
   otherFee1Label?: string
   otherFee2Label?: string
   otherFee3Label?: string
-}): Promise<void> => axios.post('/prescriptions', data)
+}): Promise<void> => axios.post('/medical-histories', data)
 
 export const updatePrescription = (
-  id: string,
-  data: { items: PrescriptionItemInput[] }
-): Promise<void> => axios.patch(`/prescriptions/${id}`, data)
+  medicalHistoryId: string,
+  data: { prescriptionItems: PrescriptionItemInput[] }
+): Promise<void> =>
+  axios.patch(`/medical-histories/${medicalHistoryId}`, data)

@@ -96,6 +96,7 @@ const INSTRUCTION_OPTIONS = [
 ]
 
 export interface InitialPrescriptionData {
+  id: string
   symptoms: string
   diagnosis: string
   treatment: string
@@ -275,23 +276,23 @@ export function Prescriptions({
         medicalHistory: {
           examinationQueueId,
           userId: patient.id,
-          examinedAt: new Date().toISOString(),
           symptoms: symptoms.trim() || undefined,
           diagnosis: diagnosis.trim(),
           treatment: treatment.trim() || undefined,
           advice: advice.trim() || undefined,
           doctorName: doctorName.trim(),
           note: note.trim() || undefined,
-          image: media
+          images: media
             .filter((file) => file.mimeType.startsWith('image/'))
-            .map((file) => file.url),
-          pdf: media
+            .map((file) => file.fileName),
+          pdfs: media
             .filter((file) => file.mimeType === 'application/pdf')
-            .map((file) => file.url),
-          video: media
+            .map((file) => file.fileName),
+          videos: media
             .filter((file) => file.mimeType.startsWith('video/'))
-            .map((file) => file.url),
+            .map((file) => file.fileName),
         },
+        consultationFee,
         serviceFee,
         serviceFeeLabel,
         otherFee1,
@@ -300,7 +301,7 @@ export function Prescriptions({
         otherFee1Label,
         otherFee2Label,
         otherFee3Label,
-        items: items.map(
+        prescriptionItems: items.map(
           ({ key: _key, selectedMedicine: _selected, ...item }) => ({
             ...item,
             medicineId: item.medicineId!,
@@ -311,8 +312,8 @@ export function Prescriptions({
         ),
       }
       if (initialData?.prescription?.id) {
-        await updatePrescription(initialData.prescription.id, {
-          items: payload.items,
+        await updatePrescription(initialData.id, {
+          prescriptionItems: payload.prescriptionItems,
         })
       } else {
         await createPrescription(payload)
@@ -339,7 +340,7 @@ export function Prescriptions({
       draftMediaRef.current = []
       onSaved?.()
       void queryClient.invalidateQueries({
-        queryKey: ['examination-queue', 'list'],
+        queryKey: ['examination-queue'],
       })
     },
     onError: (error) =>
