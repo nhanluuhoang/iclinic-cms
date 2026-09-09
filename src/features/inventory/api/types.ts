@@ -25,12 +25,18 @@ export interface StockBatch {
   qtyReceived: number
   qtyRemaining: number
   unitCost: number
+  note: string
   /** Truy ngược về phiếu nhập đã tạo ra lô này. */
   receiptId: string
   receiptCode: string
   supplierName: string
   receivedAt: string
 }
+
+export type StockBatchUpdateInput = Pick<
+  StockBatch,
+  'batchNo' | 'mfgDate' | 'expiryDate' | 'note'
+>
 
 /** Tồn kho tổng hợp theo thuốc, kèm danh sách lô để xem chi tiết. */
 export interface StockSummary {
@@ -112,6 +118,8 @@ export interface GoodsIssueLine {
 export interface GoodsIssue {
   id: string
   code: string
+  userId?: string
+  prescriptionId?: string
   recipientName: string
   issuedAt: string
   note: string
@@ -122,6 +130,8 @@ export interface GoodsIssue {
 export interface GoodsIssueSummary {
   id: string
   code: string
+  userId?: string
+  prescriptionId?: string
   recipientName: string
   issuedAt: string
   note: string
@@ -129,6 +139,8 @@ export interface GoodsIssueSummary {
 }
 
 export interface GoodsIssueInput {
+  userId?: string
+  prescriptionId?: string
   recipientName: string
   issuedAt: string
   note: string

@@ -1,8 +1,17 @@
+import { DotsHorizontalIcon } from '@radix-ui/react-icons'
 import { useQuery } from '@tanstack/react-query'
 import { type ColumnDef } from '@tanstack/react-table'
-import { Trash2 } from 'lucide-react'
+import { Edit, Trash2 } from 'lucide-react'
 import { useApiSearch } from '@/hooks/use-api-search'
 import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { DataTableColumnHeader } from '@/components/data-table'
 import { UrlDataTable } from '@/components/data-table/url-data-table'
 import { GetBatches, type StockBatch } from '../api'
@@ -16,23 +25,47 @@ import {
 import { ExpiryBadge } from './expiry-badge'
 import { useInventory } from './inventory-provider'
 
-function DisposeButton({ batch }: { batch: StockBatch }) {
+function BatchActions({ batch }: { batch: StockBatch }) {
   const { setOpen, setCurrentBatch } = useInventory()
 
   return (
-    <Button
-      variant='ghost'
-      size='icon'
-      className='size-8 text-red-600 hover:text-red-700 dark:text-red-400'
-      title='Huỷ toàn bộ tồn của lô này'
-      onClick={() => {
-        setCurrentBatch(batch)
-        setOpen('batch-dispose')
-      }}
-    >
-      <Trash2 className='size-4' />
-      <span className='sr-only'>Huỷ lô</span>
-    </Button>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant='ghost'
+          className='flex h-8 w-8 p-0 data-[state=open]:bg-muted'
+        >
+          <DotsHorizontalIcon className='h-4 w-4' />
+          <span className='sr-only'>Mở menu</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align='end' className='w-[160px]'>
+        <DropdownMenuItem
+          onClick={() => {
+            setCurrentBatch(batch)
+            setOpen('batch-update')
+          }}
+        >
+          Sửa
+          <DropdownMenuShortcut>
+            <Edit size={16} />
+          </DropdownMenuShortcut>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          className='!text-red-500'
+          onClick={() => {
+            setCurrentBatch(batch)
+            setOpen('batch-dispose')
+          }}
+        >
+          Hủy lô
+          <DropdownMenuShortcut>
+            <Trash2 size={16} />
+          </DropdownMenuShortcut>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 
@@ -131,7 +164,7 @@ const columns: ColumnDef<StockBatch>[] = [
   },
   {
     id: 'actions',
-    cell: ({ row }) => <DisposeButton batch={row.original} />,
+    cell: ({ row }) => <BatchActions batch={row.original} />,
   },
 ]
 

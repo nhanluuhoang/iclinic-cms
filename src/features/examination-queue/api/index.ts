@@ -66,6 +66,7 @@ export interface QueueEntry {
         }
       }>
       invoice: null | {
+        invoiceCode: string
         issuedAt: string
         consultationFee: number | string
         serviceFee: number | string
@@ -102,6 +103,20 @@ export interface QueueDashboard {
     medicineRevenue: number
     medicineCost: number
   }
+  medicineUsage: Array<{
+    medicineId: string | null
+    medicineName: string
+    unit: string
+    quantity: number
+  }>
+  monthlyRevenue: Array<{
+    month: number
+    invoiceCount: number
+    totalAmount: number
+    consultationRevenue: number
+    medicineRevenue: number
+    medicineCost: number
+  }>
 }
 
 export interface UploadedMedia {
@@ -195,6 +210,16 @@ export const getQueue = (params: {
 
 export const getQueueDashboard = (queueDate: string): Promise<QueueDashboard> =>
   axios.get('/examination-queue/dashboard', { params: { queueDate } })
+
+export const getMonthlyQueueDashboard = (
+  month: string
+): Promise<QueueDashboard> =>
+  axios.get('/examination-queue/dashboard', { params: { month } })
+
+export const getYearlyQueueDashboard = (
+  year: string
+): Promise<QueueDashboard> =>
+  axios.get('/examination-queue/dashboard', { params: { year } })
 
 export const getPatients = async (search = ''): Promise<QueueUser[]> => {
   const response = await axios.get<

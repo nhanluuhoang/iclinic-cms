@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { DisposeBatch } from '../api'
 import { formatNumber } from '../utils'
+import { BatchUpdateDialog } from './batch-update-dialog'
 import { useInventory } from './inventory-provider'
 import { IssueMutateDialog } from './issue-mutate-dialog'
 import { ReceiptMutateDrawer } from './receipt-mutate-drawer'
@@ -56,6 +57,17 @@ export function InventoryDialogs() {
           if (!v) setOpen(null)
         }}
       />
+
+      {currentBatch && (
+        <BatchUpdateDialog
+          key={`batch-update-${currentBatch.id}`}
+          batch={currentBatch}
+          open={open === 'batch-update'}
+          onOpenChange={(v) => {
+            if (!v) closeAndClear(() => setCurrentBatch(null))
+          }}
+        />
+      )}
 
       {currentBatch && (
         <ConfirmDialog

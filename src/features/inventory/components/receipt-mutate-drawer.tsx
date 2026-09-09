@@ -354,12 +354,12 @@ export function ReceiptMutateDrawer({
                       </div>
                     </div>
 
-                    <div className='grid gap-3 sm:grid-cols-2 lg:grid-cols-8'>
+                    <div className='grid gap-3 sm:grid-cols-2 lg:grid-cols-12'>
                       <FormField
                         control={form.control}
                         name={`lines.${index}.medicineId`}
                         render={({ field }) => (
-                          <FormItem className='min-w-0 lg:col-span-2'>
+                          <FormItem className='min-w-0 lg:col-span-6'>
                             <FormLabel className='text-xs'>Thuốc</FormLabel>
                             <MedicinePicker onChange={field.onChange} />
                             <FormMessage />
@@ -370,7 +370,7 @@ export function ReceiptMutateDrawer({
                         control={form.control}
                         name={`lines.${index}.batchNo`}
                         render={({ field }) => (
-                          <FormItem>
+                          <FormItem className='lg:col-span-6'>
                             <FormLabel className='text-xs'>Số lô</FormLabel>
                             <FormControl>
                               <Input
@@ -387,7 +387,7 @@ export function ReceiptMutateDrawer({
                         control={form.control}
                         name={`lines.${index}.mfgDate`}
                         render={({ field }) => (
-                          <FormItem>
+                          <FormItem className='lg:col-span-3'>
                             <FormLabel className='text-xs'>Ngày SX</FormLabel>
                             <DatePickerInput
                               value={field.value}
@@ -401,7 +401,7 @@ export function ReceiptMutateDrawer({
                         control={form.control}
                         name={`lines.${index}.expiryDate`}
                         render={({ field }) => (
-                          <FormItem>
+                          <FormItem className='lg:col-span-3'>
                             <FormLabel className='text-xs'>Hạn dùng</FormLabel>
                             <DatePickerInput
                               value={field.value}
@@ -419,7 +419,7 @@ export function ReceiptMutateDrawer({
                         control={form.control}
                         name={`lines.${index}.qty`}
                         render={({ field }) => (
-                          <FormItem>
+                          <FormItem className='lg:col-span-2'>
                             <FormLabel className='text-xs'>Số lượng</FormLabel>
                             <FormControl>
                               <Input
@@ -443,7 +443,7 @@ export function ReceiptMutateDrawer({
                         control={form.control}
                         name={`lines.${index}.unitCost`}
                         render={({ field }) => (
-                          <FormItem className='lg:col-span-2'>
+                          <FormItem className='lg:col-span-4'>
                             <FormLabel className='text-xs'>
                               Đơn giá nhập (₫)
                             </FormLabel>

@@ -56,15 +56,20 @@ export const transitions: Partial<
   Record<QueueStatus, Array<{ label: string; status: QueueStatus }>>
 > = {
   WAITING: [
-    { label: 'Gọi khám', status: 'CALLED' },
+    { label: 'Gọi khám', status: 'IN_EXAMINATION' },
+    { label: 'Bỏ qua', status: 'SKIPPED' },
     { label: 'Hủy', status: 'CANCELLED' },
   ],
   CALLED: [
-    { label: 'Bắt đầu khám', status: 'IN_EXAMINATION' },
+    { label: 'Tiếp tục khám', status: 'IN_EXAMINATION' },
     { label: 'Bỏ qua', status: 'SKIPPED' },
     { label: 'Trở lại chờ', status: 'WAITING' },
   ],
-  IN_EXAMINATION: [{ label: 'Hoàn tất', status: 'COMPLETED' }],
+  IN_EXAMINATION: [
+    { label: 'Hoàn tất', status: 'COMPLETED' },
+    { label: 'Quay lại', status: 'WAITING' },
+    { label: 'Hủy', status: 'CANCELLED' },
+  ],
   SKIPPED: [{ label: 'Trở lại chờ', status: 'WAITING' }],
   BOOKED: [
     { label: 'Hủy', status: 'CANCELLED' },

@@ -11,6 +11,10 @@ import {
   ShieldCheck,
   Settings,
   ListOrdered,
+  ClipboardList,
+  CalendarRange,
+  ChartColumn,
+  History,
 } from 'lucide-react'
 import { type SidebarData } from '../types'
 
@@ -33,6 +37,11 @@ export const sidebarData: SidebarData = {
           title: 'Bệnh nhân',
           url: '/patients',
           icon: HeartPulse,
+        },
+        {
+          title: 'Lịch sử khám bệnh',
+          url: '/medical-histories',
+          icon: History,
         },
       ],
     },
@@ -59,15 +68,30 @@ export const sidebarData: SidebarData = {
           url: '/inventory',
           icon: Warehouse,
         },
+        {
+          title: 'Mẫu đơn thuốc',
+          url: '/prescription-templates',
+          icon: ClipboardList,
+        },
       ],
     },
     {
       title: 'Thống kê',
       items: [
         {
-          title: 'Thống kê',
+          title: 'Thống kê ngày',
           url: '/dashboards',
           icon: LayoutDashboard,
+        },
+        {
+          title: 'Thống kê tháng',
+          url: '/monthly-statistics',
+          icon: CalendarRange,
+        },
+        {
+          title: 'Thống kê năm',
+          url: '/yearly-statistics',
+          icon: ChartColumn,
         },
       ],
     },

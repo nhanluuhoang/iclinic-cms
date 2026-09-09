@@ -6,6 +6,7 @@ type InventoryDialogType =
   | 'receipt-create'
   | 'stocktake-create'
   | 'issue-create'
+  | 'batch-update'
   | 'batch-dispose'
 
 type InventoryContextType = {

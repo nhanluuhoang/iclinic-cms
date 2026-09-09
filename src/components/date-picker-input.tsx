@@ -86,13 +86,13 @@ export function DatePickerInput({
   }
 
   return (
-    <div className={cn('flex gap-2', className)}>
+    <div className={cn('relative', className)}>
       <Input
         id={id}
         value={inputValue}
         inputMode='numeric'
         placeholder='dd/mm/yyyy'
-        className={inputClassName}
+        className={cn('pr-10', inputClassName)}
         onChange={(event) => setInputValue(event.target.value)}
         onBlur={commitInput}
         onKeyDown={(event) => {
@@ -106,9 +106,9 @@ export function DatePickerInput({
         <PopoverTrigger asChild>
           <Button
             type='button'
-            variant='outline'
+            variant='ghost'
             size='icon'
-            className='shrink-0'
+            className='absolute top-0 right-0 h-full shrink-0 rounded-l-none text-muted-foreground hover:text-foreground'
             aria-label='Mở lịch chọn ngày'
           >
             <CalendarIcon className='size-4' />

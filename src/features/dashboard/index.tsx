@@ -1,22 +1,23 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import {
-  CalendarDays,
-  Banknote,
-  Package,
-  Pill,
-  Users,
-} from 'lucide-react'
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts'
+import { Banknote, CalendarDays, Package, Pill, Users } from 'lucide-react'
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { DatePickerInput } from '@/components/date-picker-input'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { Header } from '@/components/layout/header'
@@ -25,44 +26,135 @@ import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
 import {
   getQueueDashboard,
+  getMonthlyQueueDashboard,
   type QueueDashboard,
-  type QueueStatus,
 } from '@/features/examination-queue/api'
+import {
+  formatDashboardMoney as formatMoney,
+  getCurrentMonth,
+  getToday,
+  MONTH_OPTIONS,
+  YEAR_OPTIONS,
+} from './utils'
 
-const today = () => {
-  const date = new Date()
-  const offset = date.getTimezoneOffset()
-  return new Date(date.getTime() - offset * 60_000).toISOString().slice(0, 10)
+function DailyRevenueChart({
+  dashboard,
+  periodLabel,
+}: {
+  dashboard?: QueueDashboard
+  periodLabel: string
+}) {
+  const chartData = [
+    {
+      name: 'Thuốc',
+      value: dashboard?.billing.medicineRevenue ?? 0,
+      color: '#2f66d8',
+    },
+    {
+      name: 'Khám',
+      value: dashboard?.billing.consultationRevenue ?? 0,
+      color: '#32b890',
+    },
+  ]
+
+  if (!chartData.some((item) => item.value > 0)) {
+    return (
+      <div className='flex h-[320px] flex-col items-center justify-center gap-1'>
+        <span className='text-sm text-muted-foreground'>
+          Tổng thu {periodLabel}
+        </span>
+        <strong className='text-xl tabular-nums'>
+          {formatMoney(dashboard?.billing.totalAmount ?? 0)} VNĐ
+        </strong>
+      </div>
+    )
+  }
+
+  return (
+    <>
+      <div className='relative'>
+        <ResponsiveContainer width='100%' height={300}>
+          <PieChart>
+            <Pie
+              data={chartData}
+              dataKey='value'
+              nameKey='name'
+              cx='50%'
+              cy='48%'
+              innerRadius={58}
+              outerRadius={125}
+              paddingAngle={2}
+              stroke='hsl(var(--card))'
+              strokeWidth={3}
+              labelLine={{ stroke: 'hsl(var(--foreground))' }}
+              label={({ value }) => formatMoney(Number(value))}
+            >
+              {chartData.map((entry) => (
+                <Cell key={entry.name} fill={entry.color} />
+              ))}
+            </Pie>
+            <Tooltip
+              formatter={(value) => [
+                `${formatMoney(Number(value))} VNĐ`,
+                'Doanh thu',
+              ]}
+              contentStyle={{
+                background: 'hsl(var(--popover))',
+                border: '1px solid hsl(var(--border))',
+                borderRadius: 8,
+              }}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+        <div className='pointer-events-none absolute top-[48%] left-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center'>
+          <span className='text-xs text-muted-foreground'>
+            Tổng thu {periodLabel}
+          </span>
+          <strong className='text-sm whitespace-nowrap tabular-nums'>
+            {formatMoney(dashboard?.billing.totalAmount ?? 0)} VNĐ
+          </strong>
+        </div>
+      </div>
+      <div className='flex items-center justify-center gap-4 text-sm'>
+        {chartData.map((entry) => (
+          <div key={entry.name} className='flex items-center gap-2'>
+            <span
+              className='size-2.5 rounded-sm'
+              style={{ backgroundColor: entry.color }}
+            />
+            <span>{entry.name}</span>
+          </div>
+        ))}
+      </div>
+    </>
+  )
 }
-
-const statusMeta: Array<{
-  status: QueueStatus
-  label: string
-  color: string
-}> = [
-  { status: 'BOOKED', label: 'Đã đặt lịch', color: '#3b82f6' },
-  { status: 'WAITING', label: 'Đang chờ', color: '#f59e0b' },
-  { status: 'CALLED', label: 'Đã gọi', color: '#8b5cf6' },
-  { status: 'IN_EXAMINATION', label: 'Đang khám', color: '#06b6d4' },
-  { status: 'COMPLETED', label: 'Hoàn tất', color: '#22c55e' },
-  { status: 'CANCELLED', label: 'Đã hủy', color: '#ef4444' },
-  { status: 'SKIPPED', label: 'Bỏ qua', color: '#64748b' },
-  { status: 'NO_SHOW', label: 'Vắng mặt', color: '#f97316' },
-]
 
 function SummaryCards({ dashboard }: { dashboard?: QueueDashboard }) {
   const cards = [
     {
-      label: 'Tổng lượt khám', value: dashboard?.billing.invoiceCount ?? 0, icon: Users, money: false,
+      label: 'Tổng lượt khám',
+      value: dashboard?.billing.invoiceCount ?? 0,
+      icon: Users,
+      money: false,
     },
     {
-      label: 'Tổng thu', value: dashboard?.billing.totalAmount ?? 0, icon: Banknote, money: true,
+      label: 'Tổng thu',
+      value: dashboard?.billing.totalAmount ?? 0,
+      icon: Banknote,
+      money: true,
     },
     {
-      label: 'Tiền thuốc bán ra', value: dashboard?.billing.medicineRevenue ?? 0, icon: Pill, money: true,
+      label: 'Tiền thuốc bán ra',
+      value: dashboard?.billing.medicineRevenue ?? 0,
+      icon: Pill,
+      money: true,
     },
     {
-      label: 'Giá vốn thuốc', value: dashboard?.billing.medicineCost ?? 0, icon: Package, money: true,
+      label: 'Giá vốn thuốc',
+      value: dashboard?.billing.medicineCost ?? 0,
+      icon: Package,
+      money: true,
     },
   ]
 
@@ -76,9 +168,7 @@ function SummaryCards({ dashboard }: { dashboard?: QueueDashboard }) {
           </CardHeader>
           <CardContent>
             <p className='text-2xl font-bold tabular-nums'>
-              {card.money
-                ? `${new Intl.NumberFormat('vi-VN').format(card.value)} ₫`
-                : card.value}
+              {card.money ? `${formatMoney(card.value)} VNĐ` : card.value}
             </p>
           </CardContent>
         </Card>
@@ -87,16 +177,27 @@ function SummaryCards({ dashboard }: { dashboard?: QueueDashboard }) {
   )
 }
 
-export function Dashboard() {
-  const [date, setDate] = useState(today)
+function StatisticsPage({ period }: { period: 'day' | 'month' }) {
+  const isMonthly = period === 'month'
+  const [selectedPeriod, setSelectedPeriod] = useState(
+    isMonthly ? getCurrentMonth : getToday
+  )
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['dashboard', date],
-    queryFn: () => getQueueDashboard(date),
+    queryKey: ['dashboard', period, selectedPeriod, isMonthly],
+    queryFn: () =>
+      isMonthly
+        ? getMonthlyQueueDashboard(selectedPeriod)
+        : getQueueDashboard(selectedPeriod),
+    enabled: isMonthly
+      ? /^\d{4}-\d{2}$/.test(selectedPeriod)
+      : /^\d{4}-\d{2}-\d{2}$/.test(selectedPeriod),
   })
-  const chartData = statusMeta.map((item) => ({
-    ...item,
-    total: data?.counts[item.status] ?? 0,
-  }))
+  const periodLabel = isMonthly ? 'trong tháng' : 'trong ngày'
+  const totalMedicineQuantity =
+    data?.medicineUsage.reduce(
+      (total, medicine) => total + medicine.quantity,
+      0
+    ) ?? 0
 
   return (
     <>
@@ -113,14 +214,58 @@ export function Dashboard() {
           <div>
             <h1 className='text-2xl font-bold tracking-tight'>Thống kê</h1>
             <p className='text-muted-foreground'>
-              Tổng quan hoạt động khám bệnh theo ngày.
+              Tổng quan hoạt động khám bệnh {periodLabel}.
             </p>
           </div>
-          <div className='w-full space-y-1.5 sm:w-52'>
+          <div className='w-full space-y-1.5 sm:w-auto'>
             <label className='flex items-center gap-1.5 text-sm font-medium'>
-              <CalendarDays className='size-4' /> Ngày thống kê
+              <CalendarDays className='size-4' />{' '}
+              {isMonthly ? 'Tháng thống kê' : 'Ngày thống kê'}
             </label>
-            <DatePickerInput value={date} onChange={setDate} />
+            {isMonthly ? (
+              <div className='grid grid-cols-[minmax(0,1fr)_1px_minmax(0,1fr)] items-center gap-2 rounded-lg border bg-card p-1.5 shadow-sm sm:flex'>
+                <Select
+                  value={selectedPeriod.slice(5, 7)}
+                  onValueChange={(month) =>
+                    setSelectedPeriod(`${selectedPeriod.slice(0, 4)}-${month}`)
+                  }
+                >
+                  <SelectTrigger className='w-full min-w-0 border-0 shadow-none sm:w-36'>
+                    <SelectValue placeholder='Chọn tháng' />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MONTH_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div className='my-1 w-px bg-border' />
+                <Select
+                  value={selectedPeriod.slice(0, 4)}
+                  onValueChange={(year) =>
+                    setSelectedPeriod(`${year}-${selectedPeriod.slice(5, 7)}`)
+                  }
+                >
+                  <SelectTrigger className='w-full min-w-0 border-0 shadow-none sm:w-36'>
+                    <SelectValue placeholder='Chọn năm' />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {YEAR_OPTIONS.map((year) => (
+                      <SelectItem key={year} value={String(year)}>
+                        Năm {year}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <DatePickerInput
+                value={selectedPeriod}
+                onChange={setSelectedPeriod}
+              />
+            )}
           </div>
         </div>
 
@@ -134,61 +279,76 @@ export function Dashboard() {
           <SummaryCards dashboard={data} />
         </div>
 
-        <div className='grid gap-4 lg:grid-cols-3'>
-          <Card className='lg:col-span-2'>
-            <CardHeader>
-              <CardTitle>Phân bổ trạng thái</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width='100%' height={320}>
-                <BarChart data={chartData} margin={{ left: -20 }}>
-                  <CartesianGrid vertical={false} strokeDasharray='3 3' />
-                  <XAxis
-                    dataKey='label'
-                    tickLine={false}
-                    axisLine={false}
-                    fontSize={12}
-                    interval={0}
-                    angle={-20}
-                    textAnchor='end'
-                    height={65}
-                  />
-                  <YAxis allowDecimals={false} tickLine={false} axisLine={false} />
-                  <Tooltip cursor={{ fill: 'hsl(var(--muted))' }} />
-                  <Bar dataKey='total' name='Số lượt' fill='currentColor' radius={[4, 4, 0, 0]} className='fill-primary' />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Đang phục vụ</CardTitle>
-            </CardHeader>
-            <CardContent className='space-y-3'>
-              {data?.serving.length ? (
-                data.serving.map((entry) => (
-                  <div key={entry.id} className='rounded-md border p-3'>
-                    <div className='flex items-center justify-between gap-2'>
-                      <p className='font-medium'>{entry.patient.fullName}</p>
-                      <span className='text-sm font-semibold tabular-nums'>
-                        #{entry.queueNumber ?? '—'}
-                      </span>
-                    </div>
-                    <p className='mt-1 text-xs text-muted-foreground'>
-                      {entry.doctor?.fullName ?? 'Chưa phân công bác sĩ'}
-                    </p>
-                  </div>
-                ))
-              ) : (
-                <p className='text-sm text-muted-foreground'>
-                  Không có bệnh nhân đang phục vụ trong ngày này.
-                </p>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Thống kê {periodLabel}</CardTitle>
+          </CardHeader>
+          <CardContent className='grid gap-6 lg:grid-cols-2 lg:divide-x'>
+            <div>
+              <h3 className='mb-2 text-sm font-medium'>Cơ cấu doanh thu</h3>
+              <DailyRevenueChart dashboard={data} periodLabel={periodLabel} />
+            </div>
+            <div className='min-w-0 lg:pl-6'>
+              <div className='mb-4 flex flex-wrap items-center justify-between gap-2'>
+                <h3 className='text-sm font-medium'>
+                  Thuốc sử dụng {periodLabel}
+                </h3>
+                <div className='rounded-md bg-primary/10 px-3 py-1.5 text-sm text-primary'>
+                  Tổng số lượng:{' '}
+                  <strong className='tabular-nums'>
+                    {formatMoney(totalMedicineQuantity)}
+                  </strong>
+                </div>
+              </div>
+              <div className='max-h-[340px] overflow-auto rounded-md border'>
+                <Table>
+                  <TableHeader className='sticky top-0 bg-card'>
+                    <TableRow>
+                      <TableHead>Thuốc</TableHead>
+                      <TableHead>Đơn vị</TableHead>
+                      <TableHead className='text-right'>Số lượng</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {data?.medicineUsage.length ? (
+                      data.medicineUsage.map((medicine) => (
+                        <TableRow
+                          key={medicine.medicineId ?? medicine.medicineName}
+                        >
+                          <TableCell className='max-w-64 truncate font-medium'>
+                            {medicine.medicineName}
+                          </TableCell>
+                          <TableCell>{medicine.unit || '-'}</TableCell>
+                          <TableCell className='text-right font-semibold tabular-nums'>
+                            {formatMoney(medicine.quantity)}
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell
+                          colSpan={3}
+                          className='h-24 text-center text-muted-foreground'
+                        >
+                          Chưa có thuốc được sử dụng {periodLabel} này.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </Main>
     </>
   )
+}
+
+export function Dashboard() {
+  return <StatisticsPage period='day' />
+}
+
+export function MonthlyDashboard() {
+  return <StatisticsPage period='month' />
 }

@@ -74,8 +74,21 @@ export const createPrescription = (data: {
   otherFee3Label?: string
 }): Promise<void> => axios.post('/medical-histories', data)
 
+export interface UpdatePrescriptionInput {
+  medicalHistory?: Partial<MedicalHistoryInput>
+  prescriptionItems?: PrescriptionItemInput[]
+  consultationFee?: number
+  serviceFee?: number
+  serviceFeeLabel?: string
+  otherFee1?: number
+  otherFee2?: number
+  otherFee3?: number
+  otherFee1Label?: string
+  otherFee2Label?: string
+  otherFee3Label?: string
+}
+
 export const updatePrescription = (
   medicalHistoryId: string,
-  data: { prescriptionItems: PrescriptionItemInput[] }
-): Promise<void> =>
-  axios.patch(`/medical-histories/${medicalHistoryId}`, data)
+  data: UpdatePrescriptionInput
+): Promise<void> => axios.patch(`/medical-histories/${medicalHistoryId}`, data)

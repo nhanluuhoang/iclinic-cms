@@ -21,10 +21,14 @@ import { Route as authSignInRouteImport } from './routes/(auth)/sign-in'
 import { Route as authResetPasswordRouteImport } from './routes/(auth)/reset-password'
 import { Route as authForgotPasswordRouteImport } from './routes/(auth)/forgot-password'
 import { Route as AuthenticatedSettingsRouteRouteImport } from './routes/_authenticated/settings/route'
+import { Route as AuthenticatedYearlyStatisticsIndexRouteImport } from './routes/_authenticated/yearly-statistics/index'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
+import { Route as AuthenticatedPrescriptionTemplatesIndexRouteImport } from './routes/_authenticated/prescription-templates/index'
 import { Route as AuthenticatedPostsIndexRouteImport } from './routes/_authenticated/posts/index'
 import { Route as AuthenticatedPatientsIndexRouteImport } from './routes/_authenticated/patients/index'
+import { Route as AuthenticatedMonthlyStatisticsIndexRouteImport } from './routes/_authenticated/monthly-statistics/index'
 import { Route as AuthenticatedMedicinesIndexRouteImport } from './routes/_authenticated/medicines/index'
+import { Route as AuthenticatedMedicalHistoriesIndexRouteImport } from './routes/_authenticated/medical-histories/index'
 import { Route as AuthenticatedMasterDataIndexRouteImport } from './routes/_authenticated/master-data/index'
 import { Route as AuthenticatedInventoryIndexRouteImport } from './routes/_authenticated/inventory/index'
 import { Route as AuthenticatedHelpCenterIndexRouteImport } from './routes/_authenticated/help-center/index'
@@ -93,11 +97,23 @@ const AuthenticatedSettingsRouteRoute =
     path: '/settings',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedYearlyStatisticsIndexRoute =
+  AuthenticatedYearlyStatisticsIndexRouteImport.update({
+    id: '/yearly-statistics/',
+    path: '/yearly-statistics/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSettingsIndexRoute =
   AuthenticatedSettingsIndexRouteImport.update({
     id: '/',
     path: '/',
     getParentRoute: () => AuthenticatedSettingsRouteRoute,
+  } as any)
+const AuthenticatedPrescriptionTemplatesIndexRoute =
+  AuthenticatedPrescriptionTemplatesIndexRouteImport.update({
+    id: '/prescription-templates/',
+    path: '/prescription-templates/',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedPostsIndexRoute = AuthenticatedPostsIndexRouteImport.update({
   id: '/posts/',
@@ -110,10 +126,22 @@ const AuthenticatedPatientsIndexRoute =
     path: '/patients/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedMonthlyStatisticsIndexRoute =
+  AuthenticatedMonthlyStatisticsIndexRouteImport.update({
+    id: '/monthly-statistics/',
+    path: '/monthly-statistics/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedMedicinesIndexRoute =
   AuthenticatedMedicinesIndexRouteImport.update({
     id: '/medicines/',
     path: '/medicines/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedMedicalHistoriesIndexRoute =
+  AuthenticatedMedicalHistoriesIndexRouteImport.update({
+    id: '/medical-histories/',
+    path: '/medical-histories/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedMasterDataIndexRoute =
@@ -178,10 +206,14 @@ export interface FileRoutesByFullPath {
   '/help-center/': typeof AuthenticatedHelpCenterIndexRoute
   '/inventory/': typeof AuthenticatedInventoryIndexRoute
   '/master-data/': typeof AuthenticatedMasterDataIndexRoute
+  '/medical-histories/': typeof AuthenticatedMedicalHistoriesIndexRoute
   '/medicines/': typeof AuthenticatedMedicinesIndexRoute
+  '/monthly-statistics/': typeof AuthenticatedMonthlyStatisticsIndexRoute
   '/patients/': typeof AuthenticatedPatientsIndexRoute
   '/posts/': typeof AuthenticatedPostsIndexRoute
+  '/prescription-templates/': typeof AuthenticatedPrescriptionTemplatesIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
+  '/yearly-statistics/': typeof AuthenticatedYearlyStatisticsIndexRoute
 }
 export interface FileRoutesByTo {
   '/forgot-password': typeof authForgotPasswordRoute
@@ -201,10 +233,14 @@ export interface FileRoutesByTo {
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
   '/inventory': typeof AuthenticatedInventoryIndexRoute
   '/master-data': typeof AuthenticatedMasterDataIndexRoute
+  '/medical-histories': typeof AuthenticatedMedicalHistoriesIndexRoute
   '/medicines': typeof AuthenticatedMedicinesIndexRoute
+  '/monthly-statistics': typeof AuthenticatedMonthlyStatisticsIndexRoute
   '/patients': typeof AuthenticatedPatientsIndexRoute
   '/posts': typeof AuthenticatedPostsIndexRoute
+  '/prescription-templates': typeof AuthenticatedPrescriptionTemplatesIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
+  '/yearly-statistics': typeof AuthenticatedYearlyStatisticsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -227,10 +263,14 @@ export interface FileRoutesById {
   '/_authenticated/help-center/': typeof AuthenticatedHelpCenterIndexRoute
   '/_authenticated/inventory/': typeof AuthenticatedInventoryIndexRoute
   '/_authenticated/master-data/': typeof AuthenticatedMasterDataIndexRoute
+  '/_authenticated/medical-histories/': typeof AuthenticatedMedicalHistoriesIndexRoute
   '/_authenticated/medicines/': typeof AuthenticatedMedicinesIndexRoute
+  '/_authenticated/monthly-statistics/': typeof AuthenticatedMonthlyStatisticsIndexRoute
   '/_authenticated/patients/': typeof AuthenticatedPatientsIndexRoute
   '/_authenticated/posts/': typeof AuthenticatedPostsIndexRoute
+  '/_authenticated/prescription-templates/': typeof AuthenticatedPrescriptionTemplatesIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
+  '/_authenticated/yearly-statistics/': typeof AuthenticatedYearlyStatisticsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -253,10 +293,14 @@ export interface FileRouteTypes {
     | '/help-center/'
     | '/inventory/'
     | '/master-data/'
+    | '/medical-histories/'
     | '/medicines/'
+    | '/monthly-statistics/'
     | '/patients/'
     | '/posts/'
+    | '/prescription-templates/'
     | '/settings/'
+    | '/yearly-statistics/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/forgot-password'
@@ -276,10 +320,14 @@ export interface FileRouteTypes {
     | '/help-center'
     | '/inventory'
     | '/master-data'
+    | '/medical-histories'
     | '/medicines'
+    | '/monthly-statistics'
     | '/patients'
     | '/posts'
+    | '/prescription-templates'
     | '/settings'
+    | '/yearly-statistics'
   id:
     | '__root__'
     | '/_authenticated'
@@ -301,10 +349,14 @@ export interface FileRouteTypes {
     | '/_authenticated/help-center/'
     | '/_authenticated/inventory/'
     | '/_authenticated/master-data/'
+    | '/_authenticated/medical-histories/'
     | '/_authenticated/medicines/'
+    | '/_authenticated/monthly-statistics/'
     | '/_authenticated/patients/'
     | '/_authenticated/posts/'
+    | '/_authenticated/prescription-templates/'
     | '/_authenticated/settings/'
+    | '/_authenticated/yearly-statistics/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -406,12 +458,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsRouteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/yearly-statistics/': {
+      id: '/_authenticated/yearly-statistics/'
+      path: '/yearly-statistics'
+      fullPath: '/yearly-statistics/'
+      preLoaderRoute: typeof AuthenticatedYearlyStatisticsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/settings/': {
       id: '/_authenticated/settings/'
       path: '/'
       fullPath: '/settings/'
       preLoaderRoute: typeof AuthenticatedSettingsIndexRouteImport
       parentRoute: typeof AuthenticatedSettingsRouteRoute
+    }
+    '/_authenticated/prescription-templates/': {
+      id: '/_authenticated/prescription-templates/'
+      path: '/prescription-templates'
+      fullPath: '/prescription-templates/'
+      preLoaderRoute: typeof AuthenticatedPrescriptionTemplatesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/posts/': {
       id: '/_authenticated/posts/'
@@ -427,11 +493,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPatientsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/monthly-statistics/': {
+      id: '/_authenticated/monthly-statistics/'
+      path: '/monthly-statistics'
+      fullPath: '/monthly-statistics/'
+      preLoaderRoute: typeof AuthenticatedMonthlyStatisticsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/medicines/': {
       id: '/_authenticated/medicines/'
       path: '/medicines'
       fullPath: '/medicines/'
       preLoaderRoute: typeof AuthenticatedMedicinesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/medical-histories/': {
+      id: '/_authenticated/medical-histories/'
+      path: '/medical-histories'
+      fullPath: '/medical-histories/'
+      preLoaderRoute: typeof AuthenticatedMedicalHistoriesIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/master-data/': {
@@ -510,9 +590,13 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedHelpCenterIndexRoute: typeof AuthenticatedHelpCenterIndexRoute
   AuthenticatedInventoryIndexRoute: typeof AuthenticatedInventoryIndexRoute
   AuthenticatedMasterDataIndexRoute: typeof AuthenticatedMasterDataIndexRoute
+  AuthenticatedMedicalHistoriesIndexRoute: typeof AuthenticatedMedicalHistoriesIndexRoute
   AuthenticatedMedicinesIndexRoute: typeof AuthenticatedMedicinesIndexRoute
+  AuthenticatedMonthlyStatisticsIndexRoute: typeof AuthenticatedMonthlyStatisticsIndexRoute
   AuthenticatedPatientsIndexRoute: typeof AuthenticatedPatientsIndexRoute
   AuthenticatedPostsIndexRoute: typeof AuthenticatedPostsIndexRoute
+  AuthenticatedPrescriptionTemplatesIndexRoute: typeof AuthenticatedPrescriptionTemplatesIndexRoute
+  AuthenticatedYearlyStatisticsIndexRoute: typeof AuthenticatedYearlyStatisticsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -525,9 +609,17 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedHelpCenterIndexRoute: AuthenticatedHelpCenterIndexRoute,
   AuthenticatedInventoryIndexRoute: AuthenticatedInventoryIndexRoute,
   AuthenticatedMasterDataIndexRoute: AuthenticatedMasterDataIndexRoute,
+  AuthenticatedMedicalHistoriesIndexRoute:
+    AuthenticatedMedicalHistoriesIndexRoute,
   AuthenticatedMedicinesIndexRoute: AuthenticatedMedicinesIndexRoute,
+  AuthenticatedMonthlyStatisticsIndexRoute:
+    AuthenticatedMonthlyStatisticsIndexRoute,
   AuthenticatedPatientsIndexRoute: AuthenticatedPatientsIndexRoute,
   AuthenticatedPostsIndexRoute: AuthenticatedPostsIndexRoute,
+  AuthenticatedPrescriptionTemplatesIndexRoute:
+    AuthenticatedPrescriptionTemplatesIndexRoute,
+  AuthenticatedYearlyStatisticsIndexRoute:
+    AuthenticatedYearlyStatisticsIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

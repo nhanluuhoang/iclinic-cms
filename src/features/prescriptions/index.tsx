@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { API_URL } from '@/config'
 import {
   Check,
   ChevronsUpDown,
@@ -12,7 +13,6 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth-store'
-import { API_URL } from '@/config'
 import { cn } from '@/lib/utils'
 import { useDebounce } from '@/hooks/use-debounce'
 import { Button } from '@/components/ui/button'
@@ -38,8 +38,14 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { GetMasterDatas } from '@/features/master-data/api'
 import {
   deleteImage,
   deletePdf,
@@ -51,6 +57,11 @@ import {
   type UploadedPdf,
   type UploadedVideo,
 } from '@/features/examination-queue/api'
+import { GetMasterDatas } from '@/features/master-data/api'
+import {
+  getPrescriptionTemplates,
+  type PrescriptionTemplate,
+} from '@/features/prescription-templates/api'
 import {
   createPrescription,
   updatePrescription,
@@ -135,6 +146,75 @@ export interface InitialPrescriptionData {
   }
 }
 
+function PrescriptionTemplatePicker({
+  onSelect,
+}: {
+  onSelect: (template: PrescriptionTemplate) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const [search, setSearch] = useState('')
+  const debouncedSearch = useDebounce(search, 300)
+  const { data: templates = [], isLoading } = useQuery({
+    queryKey: ['prescription-templates', 'search', debouncedSearch],
+    queryFn: () => getPrescriptionTemplates(debouncedSearch),
+    enabled: open,
+  })
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          type='button'
+          variant='outline'
+          className='w-full justify-between font-normal'
+        >
+          Chọn mẫu để áp dụng
+          <ChevronsUpDown className='size-4 opacity-50' />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent
+        className='w-[var(--radix-popover-trigger-width)] p-0'
+        align='start'
+      >
+        <Command shouldFilter={false}>
+          <CommandInput
+            value={search}
+            onValueChange={setSearch}
+            placeholder='Tìm tên mẫu hoặc tên thuốc...'
+          />
+          <CommandList>
+            <CommandEmpty>
+              {isLoading ? 'Đang tìm...' : 'Không tìm thấy mẫu đơn.'}
+            </CommandEmpty>
+            <CommandGroup>
+              {templates.map((template) => (
+                <CommandItem
+                  key={template.id}
+                  value={template.id}
+                  onSelect={() => {
+                    onSelect(template)
+                    setOpen(false)
+                    setSearch('')
+                  }}
+                >
+                  <div className='min-w-0'>
+                    <p className='truncate font-medium'>{template.name}</p>
+                    <p className='truncate text-xs text-muted-foreground'>
+                      {template.items
+                        .map((item) => item.medicineName)
+                        .join(', ')}
+                    </p>
+                  </div>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  )
+}
+
 export function Prescriptions({
   patient,
   examinationQueueId,
@@ -151,6 +231,10 @@ export function Prescriptions({
   onUploadingChange?: (uploading: boolean) => void
 }) {
   const doctorName = useAuthStore((state) => state.auth.user?.fullName ?? '')
+  const servicePlan = useAuthStore(
+    (state) => state.auth.user?.tenant?.servicePlan ?? 'BASIC'
+  )
+  const canUseDiagnosisMedia = servicePlan !== 'BASIC'
   const queryClient = useQueryClient()
   const [symptoms, setSymptoms] = useState('')
   const [diagnosis, setDiagnosis] = useState('')
@@ -233,7 +317,8 @@ export function Prescriptions({
         ? {
             ...item.medicine,
             salePrice: Number(item.medicine.salePrice ?? 0),
-            totalQty: Number(item.medicine.totalQty ?? 0) + Number(item.quantity ?? 0),
+            totalQty:
+              Number(item.medicine.totalQty ?? 0) + Number(item.quantity ?? 0),
           }
         : undefined,
     }))
@@ -251,12 +336,41 @@ export function Prescriptions({
 
   const masterData = useQuery({
     queryKey: ['master-data', 'consultation-fee'],
-    queryFn: () => GetMasterDatas({ page: 1, key: 'CONSULTATION_FEE' }),
+    queryFn: () => GetMasterDatas({ page: 1 }),
   })
+  const templateMedicines = useQuery({
+    queryKey: ['prescription-template-medicines'],
+    queryFn: () => getMedicines(),
+  })
+
+  const applyTemplate = (template: PrescriptionTemplate) => {
+    const catalog = templateMedicines.data ?? []
+    const rows = template.items.map((item, index) => ({
+      key: nextKey + index,
+      medicineId: item.medicineId,
+      medicineName: item.medicineName,
+      quantity: item.quantity,
+      instruction: item.instruction,
+      selectedMedicine: catalog.find(
+        (medicine) => medicine.id === item.medicineId
+      ),
+    }))
+    setItems(rows.length ? rows : [emptyMedicine(nextKey)])
+    setNextKey((value) => value + Math.max(rows.length, 1))
+    toast.success(`Đã áp dụng mẫu ${template.name}`)
+  }
   const consultationFee = Number(
     masterData.data?.data.find((item) => item.key === 'CONSULTATION_FEE')
       ?.value ?? 0
   )
+  const instructionOptions = (
+    masterData.data?.data.find(
+      (item) => item.key === 'MEDICINE_INSTRUCTION_OPTIONS'
+    )?.value ?? INSTRUCTION_OPTIONS.join('\n')
+  )
+    .split(/\r?\n/)
+    .map((value) => value.trim())
+    .filter(Boolean)
   const medicineFee = items.reduce((sum, item) => {
     return (
       sum + Number(item.selectedMedicine?.salePrice ?? 0) * (item.quantity ?? 0)
@@ -282,15 +396,17 @@ export function Prescriptions({
           advice: advice.trim() || undefined,
           doctorName: doctorName.trim(),
           note: note.trim() || undefined,
-          images: media
-            .filter((file) => file.mimeType.startsWith('image/'))
-            .map((file) => file.fileName),
-          pdfs: media
-            .filter((file) => file.mimeType === 'application/pdf')
-            .map((file) => file.fileName),
-          videos: media
-            .filter((file) => file.mimeType.startsWith('video/'))
-            .map((file) => file.fileName),
+          ...(canUseDiagnosisMedia && {
+            images: media
+              .filter((file) => file.mimeType.startsWith('image/'))
+              .map((file) => file.fileName),
+            pdfs: media
+              .filter((file) => file.mimeType === 'application/pdf')
+              .map((file) => file.fileName),
+            videos: media
+              .filter((file) => file.mimeType.startsWith('video/'))
+              .map((file) => file.fileName),
+          }),
         },
         consultationFee,
         serviceFee,
@@ -312,9 +428,7 @@ export function Prescriptions({
         ),
       }
       if (initialData?.prescription?.id) {
-        await updatePrescription(initialData.id, {
-          prescriptionItems: payload.prescriptionItems,
-        })
+        await updatePrescription(initialData.id, payload)
       } else {
         await createPrescription(payload)
       }
@@ -553,62 +667,74 @@ export function Prescriptions({
                 placeholder='Chế độ ăn uống, sinh hoạt và lịch tái khám...'
               />
             </Field>
-            <div className='grid gap-3 md:col-span-2'>
-              <div>
-                <Label htmlFor='diagnosis-media'>Tệp chẩn đoán</Label>
-                <p className='mt-1 text-xs text-muted-foreground'>
-                  Tối đa {MAX_MEDIA_FILES} tệp. Ảnh/PDF không quá 5 MB; video
-                  MP4, WebM hoặc MOV không quá 100 MB.
-                </p>
-              </div>
-              <label
-                htmlFor='diagnosis-media'
-                className='flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed p-6 text-center transition-colors hover:bg-muted/50'
-              >
-                <ImagePlus className='size-7 text-muted-foreground' />
-                <span className='text-sm font-medium'>
-                  Chọn ảnh, PDF hoặc video
-                </span>
-                <span className='text-xs text-muted-foreground'>
-                  {isUploadingMedia
-                    ? 'Đang tải tệp...'
-                    : `Đã tải ${media.length}/${MAX_MEDIA_FILES} tệp`}
-                </span>
-              </label>
-              <Input
-                id='diagnosis-media'
-                className='sr-only'
-                type='file'
-                accept='image/jpeg,image/png,application/pdf,video/mp4,video/webm,video/quicktime'
-                multiple
-                disabled={isUploadingMedia}
-                onChange={(event) => {
-                  event.currentTarget.blur()
-                  void addMedia(event.target.files)
-                  event.target.value = ''
-                }}
-              />
-              {media.length > 0 && (
-                <div className='grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5'>
-                  {media.map((file, index) => (
-                    <MediaPreview
-                      key={`${file.url}-${index}`}
-                      media={file}
-                      onRemove={() => void removeMedia(file)}
-                    />
-                  ))}
+            {canUseDiagnosisMedia ? (
+              <div className='grid gap-3 md:col-span-2'>
+                <div>
+                  <Label htmlFor='diagnosis-media'>Tệp chẩn đoán</Label>
+                  <p className='mt-1 text-xs text-muted-foreground'>
+                    Tối đa {MAX_MEDIA_FILES} tệp. Ảnh/PDF không quá 5 MB; video
+                    MP4, WebM hoặc MOV không quá 100 MB.
+                  </p>
                 </div>
-              )}
-            </div>
+                <label
+                  htmlFor='diagnosis-media'
+                  className='flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed p-6 text-center transition-colors hover:bg-muted/50'
+                >
+                  <ImagePlus className='size-7 text-muted-foreground' />
+                  <span className='text-sm font-medium'>
+                    Chọn ảnh, PDF hoặc video
+                  </span>
+                  <span className='text-xs text-muted-foreground'>
+                    {isUploadingMedia
+                      ? 'Đang tải tệp...'
+                      : `Đã tải ${media.length}/${MAX_MEDIA_FILES} tệp`}
+                  </span>
+                </label>
+                <Input
+                  id='diagnosis-media'
+                  className='sr-only'
+                  type='file'
+                  accept='image/jpeg,image/png,application/pdf,video/mp4,video/webm,video/quicktime'
+                  multiple
+                  disabled={isUploadingMedia}
+                  onChange={(event) => {
+                    event.currentTarget.blur()
+                    void addMedia(event.target.files)
+                    event.target.value = ''
+                  }}
+                />
+                {media.length > 0 && (
+                  <div className='grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5'>
+                    {media.map((file, index) => (
+                      <MediaPreview
+                        key={`${file.url}-${index}`}
+                        media={file}
+                        onRemove={() => void removeMedia(file)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className='rounded-lg border border-dashed p-4 text-sm text-muted-foreground md:col-span-2'>
+                Đính kèm hình ảnh, PDF và video thuộc gói Plus hoặc Pro.
+              </div>
+            )}
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Đơn thuốc</CardTitle>
-            <CardDescription>
-              Tìm kiếm và chọn thuốc trong danh mục.
-            </CardDescription>
+          <CardHeader className='gap-3 sm:flex-row sm:items-end sm:justify-between'>
+            <div>
+              <CardTitle>Đơn thuốc</CardTitle>
+              <CardDescription>
+                Tìm kiếm và chọn thuốc trong danh mục.
+              </CardDescription>
+            </div>
+            <div className='grid min-w-56 gap-1.5'>
+              <Label htmlFor='prescription-template'>Mẫu đơn thuốc</Label>
+              <PrescriptionTemplatePicker onSelect={applyTemplate} />
+            </div>
           </CardHeader>
           <CardContent className='grid gap-4'>
             {items.map((item, index) => (
@@ -677,21 +803,34 @@ export function Prescriptions({
                     className='grid-rows-[auto_2.25rem_1rem] content-start md:col-span-2 lg:col-span-1'
                     label='Hướng dẫn sử dụng'
                   >
-                    <div>
-                      <Input
-                        list={`instruction-options-${item.key}`}
-                        value={item.instruction}
-                        onChange={(e) =>
-                          updateItem(item.key, { instruction: e.target.value })
-                        }
-                        placeholder='Chọn hoặc nhập hướng dẫn'
-                      />
-                      <datalist id={`instruction-options-${item.key}`}>
-                        {INSTRUCTION_OPTIONS.map((instruction) => (
-                          <option key={instruction} value={instruction} />
+                    <Select
+                      value={item.instruction || '__none__'}
+                      onValueChange={(value) =>
+                        updateItem(item.key, {
+                          instruction: value === '__none__' ? '' : value,
+                        })
+                      }
+                    >
+                      <SelectTrigger className='w-full'>
+                        <SelectValue placeholder='Chọn hướng dẫn sử dụng' />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value='__none__'>
+                          Không có hướng dẫn
+                        </SelectItem>
+                        {item.instruction &&
+                          !instructionOptions.includes(item.instruction) && (
+                            <SelectItem value={item.instruction}>
+                              {item.instruction}
+                            </SelectItem>
+                          )}
+                        {instructionOptions.map((instruction) => (
+                          <SelectItem key={instruction} value={instruction}>
+                            {instruction}
+                          </SelectItem>
                         ))}
-                      </datalist>
-                    </div>
+                      </SelectContent>
+                    </Select>
                     <span aria-hidden='true' />
                   </Field>
                 </div>

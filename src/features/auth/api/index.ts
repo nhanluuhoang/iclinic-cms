@@ -20,6 +20,9 @@ export interface ProfileData {
   dateOfBirth?: string
   gender?: number
   isSuperAdmin: boolean
+  tenant?: {
+    servicePlan: 'BASIC' | 'PLUS' | 'PRO'
+  } | null
 }
 
 export interface ForgotPasswordRequest {

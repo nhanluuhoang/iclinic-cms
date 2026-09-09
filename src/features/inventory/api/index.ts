@@ -10,6 +10,7 @@ import {
   type GoodsIssueSummary,
   type InventoryStats,
   type StockBatch,
+  type StockBatchUpdateInput,
   type StockSummary,
   type StockTake,
   type StockTakeInput,
@@ -31,6 +32,7 @@ interface ApiBatch {
   qtyReceived: number
   qtyRemaining: number
   unitCost: number | string
+  note: string
   medicine: Pick<Medicine, 'code' | 'name' | 'unit'>
   receiptLine: null | {
     receipt: {
@@ -80,6 +82,8 @@ interface ApiStockTake {
 interface ApiGoodsIssue {
   id: string
   code: string
+  userId?: string
+  prescriptionId?: string
   recipientName: string
   issuedAt: string
   note: string
@@ -117,6 +121,7 @@ const mapBatch = (batch: ApiBatch): StockBatch => ({
   qtyReceived: batch.qtyReceived,
   qtyRemaining: batch.qtyRemaining,
   unitCost: Number(batch.unitCost),
+  note: batch.note,
   receiptId: batch.receiptLine?.receipt.id ?? '',
   receiptCode: batch.receiptLine?.receipt.code ?? '',
   supplierName: batch.receiptLine?.receipt.supplierName ?? '',
@@ -127,12 +132,17 @@ const GetBatches = async (search = ''): Promise<StockBatch[]> =>
   (await getAll<ApiBatch>('/stock-batches', search)).map(mapBatch)
 
 const SearchBatches = async (search: string): Promise<StockBatch[]> => {
-  const page = await axios.get<unknown, Page<ApiBatch>>(
-    '/stock-batches',
-    { params: { page: 1, limit: 50, search: search || undefined } }
-  )
+  const page = await axios.get<unknown, Page<ApiBatch>>('/stock-batches', {
+    params: { page: 1, limit: 50, search: search || undefined },
+  })
   return page.data.map(mapBatch)
 }
+
+const UpdateBatch = (id: string, data: StockBatchUpdateInput): Promise<void> =>
+  axios.patch(`/stock-batches/${id}`, {
+    ...data,
+    mfgDate: data.mfgDate || undefined,
+  })
 
 const GetStock = async (search = ''): Promise<StockSummary[]> => {
   const [medicines, batches] = await Promise.all([
@@ -236,10 +246,7 @@ interface ApiGoodsIssueSummary {
 }
 
 const GetReceipts = async (search = ''): Promise<GoodsReceiptSummary[]> => {
-  const summaries = await getAll<ApiReceiptSummary>(
-    '/goods-receipts',
-    search
-  )
+  const summaries = await getAll<ApiReceiptSummary>('/goods-receipts', search)
   return summaries.map(({ _count, ...receipt }) => ({
     ...receipt,
     lineCount: _count.lines,
@@ -247,9 +254,7 @@ const GetReceipts = async (search = ''): Promise<GoodsReceiptSummary[]> => {
 }
 
 const GetReceipt = async (id: string): Promise<GoodsReceipt> =>
-  mapReceipt(
-    await axios.get<unknown, ApiReceipt>(`/goods-receipts/${id}`)
-  )
+  mapReceipt(await axios.get<unknown, ApiReceipt>(`/goods-receipts/${id}`))
 
 const CreateReceipt = (data: GoodsReceiptInput): Promise<void> =>
   axios.post('/goods-receipts', {
@@ -261,9 +266,7 @@ const CreateReceipt = (data: GoodsReceiptInput): Promise<void> =>
     })),
   })
 
-const GetGoodsIssues = async (
-  search = ''
-): Promise<GoodsIssueSummary[]> => {
+const GetGoodsIssues = async (search = ''): Promise<GoodsIssueSummary[]> => {
   const summaries = await getAll<ApiGoodsIssueSummary>('/goods-issues', search)
   return summaries.map(({ _count, ...issue }) => ({
     ...issue,
@@ -338,6 +341,7 @@ export {
   GetStock,
   GetBatches,
   SearchBatches,
+  UpdateBatch,
   GetStats,
   GetReceipts,
   GetReceipt,
