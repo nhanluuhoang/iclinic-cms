@@ -8,6 +8,7 @@ interface AuthUser {
   dateOfBirth?: string
   gender?: number
   isSuperAdmin: boolean
+  role?: string
   tenant?: {
     servicePlan: 'BASIC' | 'PLUS' | 'PRO'
   } | null

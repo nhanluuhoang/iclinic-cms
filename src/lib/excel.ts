@@ -1,37 +1,67 @@
-import * as XLSX from 'xlsx'
+import ExcelJS from 'exceljs'
 
 export type ExcelRow = Record<string, unknown>
 
-export const downloadExcel = (
+export const downloadExcel = async (
   rows: ExcelRow[],
   sheetName: string,
   fileName: string
 ) => {
-  const worksheet = XLSX.utils.json_to_sheet(rows)
-  const workbook = XLSX.utils.book_new()
-  XLSX.utils.book_append_sheet(workbook, worksheet, sheetName)
-  XLSX.writeFile(workbook, fileName)
+  const workbook = new ExcelJS.Workbook()
+  const worksheet = workbook.addWorksheet(sheetName)
+  const headers = [...new Set(rows.flatMap((row) => Object.keys(row)))]
+  worksheet.columns = headers.map((header) => ({ header, key: header }))
+  rows.forEach((row) =>
+    worksheet.addRow(
+      Object.fromEntries(
+        Object.entries(row).map(([key, value]) => [key, safeExcelValue(value)])
+      )
+    )
+  )
+  const buffer = await workbook.xlsx.writeBuffer()
+  const url = URL.createObjectURL(new Blob([buffer as BlobPart]))
+  const link = document.createElement('a')
+  link.href = url
+  link.download = fileName
+  link.click()
+  URL.revokeObjectURL(url)
 }
 
 export const readExcel = async (file: File): Promise<ExcelRow[]> => {
-  const workbook = XLSX.read(await file.arrayBuffer(), {
-    type: 'array',
-    cellDates: true,
+  if (file.size > 5 * 1024 * 1024) {
+    throw new Error('File Excel không được vượt quá 5 MB.')
+  }
+  const workbook = new ExcelJS.Workbook()
+  await workbook.xlsx.load(await file.arrayBuffer())
+  const worksheet = workbook.worksheets[0]
+  if (!worksheet) throw new Error('File Excel không có sheet dữ liệu.')
+  const headers = (worksheet.getRow(1).values as unknown[])
+    .slice(1)
+    .map((value) => excelText(value))
+  const rows: ExcelRow[] = []
+  worksheet.eachRow((row, rowNumber) => {
+    if (rowNumber === 1) return
+    const values = row.values as unknown[]
+    const result = Object.fromEntries(
+      headers.map((header, index) => [header, values[index + 1] ?? ''])
+    )
+    if (Object.values(result).some((value) => excelText(value)))
+      rows.push(result)
   })
-  const sheetName = workbook.SheetNames[0]
-  if (!sheetName) throw new Error('File Excel không có sheet dữ liệu.')
-  return XLSX.utils.sheet_to_json<ExcelRow>(workbook.Sheets[sheetName], {
-    defval: '',
-  })
+  return rows
 }
 
 export const excelText = (value: unknown) => String(value ?? '').trim()
 
+const safeExcelValue = (value: unknown) =>
+  typeof value === 'string' && /^[=+\-@]/.test(value.trimStart())
+    ? `'${value}`
+    : value
+
 export const excelNumber = (value: unknown, field: string, row: number) => {
   const result = Number(value)
-  if (!Number.isFinite(result)) {
+  if (!Number.isFinite(result))
     throw new Error(`Dòng ${row}: ${field} phải là số.`)
-  }
   return result
 }
 

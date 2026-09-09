@@ -17,7 +17,7 @@ export function AppSidebar() {
   const { collapsible, variant } = useLayout()
   const { user } = useAuthStore((state) => state.auth)
 
-  const userRoles = user?.role || []
+  const userRoles = user?.role ? [user.role] : []
 
   const checkRole = (roles?: string[]) => {
     if (!roles || roles.length === 0) return true

@@ -1,9 +1,9 @@
 import { useEffect } from 'react'
-import { Info } from 'lucide-react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQueryClient } from '@tanstack/react-query'
+import { Info } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -208,7 +208,10 @@ export function PatientsMutateDialog({
     if (values.note.trim()) payload.note = values.note.trim()
     // Chỉ gửi password khi thực sự có giá trị. Gửi '' khi sửa có thể bị backend
     // hiểu là "đặt mật khẩu thành rỗng".
-    if (values.password) payload.password = values.password
+    if (values.password) {
+      payload.password = values.password
+      if (!isEdit) payload.passwordConfirmation = values.confirmPassword
+    }
 
     try {
       if (isEdit && currentRow) {

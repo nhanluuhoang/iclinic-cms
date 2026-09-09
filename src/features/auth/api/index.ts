@@ -20,13 +20,14 @@ export interface ProfileData {
   dateOfBirth?: string
   gender?: number
   isSuperAdmin: boolean
+  role?: string
   tenant?: {
     servicePlan: 'BASIC' | 'PLUS' | 'PRO'
   } | null
 }
 
 export interface ForgotPasswordRequest {
-  userName: string
+  email: string
 }
 
 export interface ResetPasswordRequest {

@@ -1,6 +1,12 @@
 import { useState } from 'react'
 import { ClipboardList, Printer, UserRoundCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { type QueueEntry, type QueueStatus } from '../api'
 import { transitions } from '../data/data'
 import { PrescriptionDialog } from './prescription-dialog'
@@ -23,13 +29,27 @@ export function QueueActions({
     <>
       <div className='flex flex-wrap justify-end gap-1'>
         {item.status === 'COMPLETED' && invoice && (
-          <Button
-            size='sm'
-            variant='outline'
-            onClick={() => printInvoice(item)}
-          >
-            <Printer /> In hóa đơn
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size='sm' variant='outline'>
+                <Printer /> In hóa đơn
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align='end'>
+              <DropdownMenuItem onClick={() => printInvoice(item, 'A4')}>
+                Khổ A4
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => printInvoice(item, 'A5')}>
+                Khổ A5
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => printInvoice(item, '80mm')}>
+                Máy in nhiệt 80 mm
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => printInvoice(item, '58mm')}>
+                Máy in nhiệt 58 mm
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
         {item.status === 'BOOKED' && (
           <Button
@@ -81,7 +101,54 @@ export function QueueActions({
   )
 }
 
-function printInvoice(item: QueueEntry) {
+type InvoicePaperSize = 'A4' | 'A5' | '80mm' | '58mm'
+
+const invoicePaperConfig: Record<
+  InvoicePaperSize,
+  {
+    pageSize: string
+    width: string
+    minHeight: string
+    padding: string
+    popupWidth: number
+    thermal: boolean
+  }
+> = {
+  A4: {
+    pageSize: 'A4',
+    width: '210mm',
+    minHeight: '297mm',
+    padding: '18mm',
+    popupWidth: 900,
+    thermal: false,
+  },
+  A5: {
+    pageSize: 'A5',
+    width: '148mm',
+    minHeight: '210mm',
+    padding: '10mm',
+    popupWidth: 700,
+    thermal: false,
+  },
+  '80mm': {
+    pageSize: '80mm auto',
+    width: '80mm',
+    minHeight: 'auto',
+    padding: '4mm',
+    popupWidth: 420,
+    thermal: true,
+  },
+  '58mm': {
+    pageSize: '58mm auto',
+    width: '58mm',
+    minHeight: 'auto',
+    padding: '3mm',
+    popupWidth: 340,
+    thermal: true,
+  },
+}
+
+function printInvoice(item: QueueEntry, paperSize: InvoicePaperSize) {
   const prescription = item.medicalHistory?.prescription
   const invoice = prescription?.invoice
   if (!prescription || !invoice) return
@@ -102,6 +169,7 @@ function printInvoice(item: QueueEntry) {
     `${Number(value).toLocaleString('vi-VN')} VNĐ`
   const issuedAt = new Date(invoice.issuedAt)
   const invoiceCode = invoice.invoiceCode
+  const paper = invoicePaperConfig[paperSize]
   const extraFees = [
     [invoice.serviceFeeLabel?.trim() || 'Phí dịch vụ', invoice.serviceFee],
     [invoice.otherFee1Label?.trim() || 'Phí khác 1', invoice.otherFee1],
@@ -119,9 +187,9 @@ function printInvoice(item: QueueEntry) {
             <strong>${escapeHtml(line.medicineName)}</strong>
             ${line.instruction ? `<div class="muted">${escapeHtml(line.instruction)}</div>` : ''}
           </td>
-          <td class="center">${escapeHtml(line.medicine?.unit || '-')}</td>
+          <td class="center optional-column">${escapeHtml(line.medicine?.unit || '-')}</td>
           <td class="number">${quantity.toLocaleString('vi-VN')}</td>
-          <td class="number">${money(unitPrice)}</td>
+          <td class="number optional-column">${money(unitPrice)}</td>
           <td class="number">${money(unitPrice * quantity)}</td>
         </tr>
       `
@@ -138,8 +206,13 @@ function printInvoice(item: QueueEntry) {
     )
     .join('')
 
-  const popup = window.open('', '_blank', 'width=800,height=900')
+  const popup = window.open(
+    '',
+    '_blank',
+    `width=${paper.popupWidth},height=900`
+  )
   if (!popup) return
+  popup.opener = null
   popup.document.write(`
     <!doctype html>
     <html lang="vi">
@@ -156,10 +229,10 @@ function printInvoice(item: QueueEntry) {
             font: 14px/1.45 Arial, sans-serif;
           }
           .page {
-            width: 210mm;
-            min-height: 297mm;
+            width: ${paper.width};
+            min-height: ${paper.minHeight};
             margin: 20px auto;
-            padding: 18mm;
+            padding: ${paper.padding};
             background: #fff;
             box-shadow: 0 4px 24px rgba(0, 0, 0, .08);
           }
@@ -227,7 +300,23 @@ function printInvoice(item: QueueEntry) {
             font-weight: 600;
             cursor: pointer;
           }
-          @page { size: A4; margin: 0; }
+          ${
+            paper.thermal
+              ? `
+          body { font-size: 11px; }
+          .header { display: block; padding-bottom: 8px; }
+          .invoice-meta, h1 { margin-top: 8px; text-align: left; }
+          .patient { display: block; margin: 10px 0; padding: 8px; }
+          .patient p { margin-bottom: 3px; }
+          th, td { padding: 5px 3px; font-size: 10px; }
+          .optional-column { display: none; }
+          .summary { width: 100%; margin-top: 12px; }
+          .signatures { gap: 12px; margin-top: 24px; }
+          .signature-space { height: 40px; }
+          `
+              : ''
+          }
+          @page { size: ${paper.pageSize}; margin: 0; }
           @media print {
             body { background: #fff; }
             .page { margin: 0; box-shadow: none; }
@@ -261,14 +350,14 @@ function printInvoice(item: QueueEntry) {
               <tr>
                 <th class="center">STT</th>
                 <th>Thuốc</th>
-                <th class="center">Đơn vị</th>
+                <th class="center optional-column">Đơn vị</th>
                 <th class="number">SL</th>
-                <th class="number">Đơn giá</th>
+                <th class="number optional-column">Đơn giá</th>
                 <th class="number">Thành tiền</th>
               </tr>
             </thead>
             <tbody>
-              ${medicineRows || '<tr><td colspan="6" class="center muted">Không có thuốc</td></tr>'}
+              ${medicineRows || `<tr><td colspan="${paper.thermal ? 4 : 6}" class="center muted">Không có thuốc</td></tr>`}
             </tbody>
           </table>
 

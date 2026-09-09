@@ -30,7 +30,7 @@ export function ReceiptsExcelActions() {
       const receipts = await Promise.all(
         summaries.map((receipt) => GetReceipt(receipt.id))
       )
-      downloadExcel(
+      await downloadExcel(
         receipts.flatMap((receipt) =>
           receipt.lines.map((line) => ({
             receiptCode: receipt.code,

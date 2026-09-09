@@ -104,7 +104,7 @@ function MedicinePicker({
   })
 
   return (
-    <div className='relative min-w-0 space-y-1.5 lg:space-y-0'>
+    <div className='min-w-0 space-y-1.5'>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
@@ -183,7 +183,10 @@ function MedicinePicker({
         </PopoverContent>
       </Popover>
       {selected && (
-        <p className='block w-max text-xs whitespace-nowrap text-muted-foreground lg:absolute lg:top-full lg:left-0 lg:mt-1.5'>
+        <p
+          className='truncate text-xs text-muted-foreground'
+          title={`${selected.code} · ${selected.activeIngredient} · ${selected.manufacturer} · ĐVT: ${selected.unit}`}
+        >
           {selected.code} · {selected.activeIngredient} ·{' '}
           {selected.manufacturer} · ĐVT: {selected.unit}
         </p>
@@ -354,7 +357,7 @@ export function ReceiptMutateDrawer({
                       </div>
                     </div>
 
-                    <div className='grid gap-3 sm:grid-cols-2 lg:grid-cols-12'>
+                    <div className='grid items-start gap-3 sm:grid-cols-2 lg:grid-cols-12'>
                       <FormField
                         control={form.control}
                         name={`lines.${index}.medicineId`}

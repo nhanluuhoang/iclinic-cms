@@ -1,3 +1,4 @@
+import { API_URL } from '@/config'
 import { axios } from '@/lib/axios'
 
 export type QueueStatus =
@@ -149,7 +150,14 @@ const uploadMedia = async (
     { headers: { 'Content-Type': 'multipart/form-data' } }
   )
   const { id, fileName, url, name, mimeType, size } = response
-  return { id, fileName, url, name, mimeType, size }
+  return {
+    id,
+    fileName,
+    url: url.startsWith('http') ? url : `${API_URL}${url}`,
+    name,
+    mimeType,
+    size,
+  }
 }
 
 const deleteMedia = (resource: 'images' | 'pdfs' | 'videos', id: string) =>

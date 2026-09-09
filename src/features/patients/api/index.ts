@@ -50,6 +50,7 @@ export interface Patient {
  */
 export interface PatientDtoRequest {
   password?: string
+  passwordConfirmation?: string
   fullName: string
   email?: string
   phone?: string
