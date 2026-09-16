@@ -38,7 +38,10 @@ function MedicinesContent() {
           </div>
           <div className='flex flex-wrap items-center gap-2'>
             <MedicinesExcelActions />
-            <Button onClick={() => setOpen('medicine-create')}>
+            <Button
+              data-tour='create-medicine'
+              onClick={() => setOpen('medicine-create')}
+            >
               Thêm danh mục
               <Plus className='size-4' />
             </Button>

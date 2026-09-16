@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { DeletePatient } from '../api'
 import { PatientHistoryDialog } from './patient-history-dialog'
+import { PrescriptionDialog } from '@/features/examination-queue/components/prescription-dialog'
 import { PatientsMutateDialog } from './patients-mutate-dialog'
 import { usePatients } from './patients-provider'
 
@@ -57,6 +58,15 @@ export function PatientsDialogs() {
               if (!v) closeAndClear()
             }}
             patient={currentRow}
+          />
+
+          <PrescriptionDialog
+            open={open === 'prescription'}
+            onOpenChange={(v) => {
+              if (!v) closeAndClear()
+            }}
+            patient={{ ...currentRow, role: 'PATIENT' }}
+            initialData={null}
           />
 
           <ConfirmDialog

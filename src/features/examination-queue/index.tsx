@@ -1,11 +1,6 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import {
-  ClipboardCheck,
-  ListOrdered,
-  Plus,
-  Stethoscope,
-} from 'lucide-react'
+import { ClipboardCheck, ListOrdered, Plus, Stethoscope } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { useDebounce } from '@/hooks/use-debounce'
@@ -128,7 +123,10 @@ export function ExaminationQueue() {
               }}
               minDate={today()}
             />
-            <Button onClick={() => setCreateOpen(true)}>
+            <Button
+              data-tour='create-queue'
+              onClick={() => setCreateOpen(true)}
+            >
               Tiếp nhận
               <Plus className='size-4' />
             </Button>

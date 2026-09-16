@@ -24,6 +24,15 @@ liệu từ server dùng debounce 300 ms. Các bảng dùng chung nằm trong
 
 ## State
 
+- CMS có trang `/landing-config` cho tenant admin chỉnh thương hiệu, hero, bác sĩ phụ trách, dịch vụ, giờ đặt lịch, liên hệ, SEO và trạng thái công khai; dữ liệu dùng API `GET/PUT /landing-config`.
+
+- Authenticated layout hiển thị cảnh báo nhỏ ở đầu CMS khi gói trả phí còn tối đa 7 ngày hoặc đã hết hạn; dữ liệu lấy từ `subscriptionEndsAt` của tenant trong profile, không dùng hạn trial.
+
+- CMS co product tour 6 buoc trong authenticated layout: tu dong mo mot lan cho
+  moi tai khoan, ghi nho bang localStorage va co nut dau hoi de mo lai.
+- Menu profile co 2 tour nghiep vu: quy trinh kham benh (tao benh nhan, tiep nhan,
+  ke toa, xuat hoa don) va quan ly kho (danh muc, nhap, kiem ke, xuat hang).
+
 - Có các nghiệp vụ bệnh nhân, danh mục thuốc, kho thuốc và thứ tự khám; trang demo
   Tasks và route `/tasks` đã được xóa.
 - `/medicines` là feature danh mục thuốc độc lập. `/inventory` quản lý tồn kho,

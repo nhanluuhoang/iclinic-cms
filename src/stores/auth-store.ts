@@ -11,6 +11,10 @@ interface AuthUser {
   role?: string
   tenant?: {
     servicePlan: 'BASIC' | 'PLUS' | 'PRO'
+    subscriptionStatus: 'TRIAL' | 'ACTIVE' | 'EXPIRED' | 'SUSPENDED'
+    trialStartedAt?: string | null
+    trialEndsAt?: string | null
+    subscriptionEndsAt?: string | null
   } | null
 }
 

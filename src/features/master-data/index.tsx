@@ -305,14 +305,14 @@ export function MasterData() {
           <ProfileDropdown />
         </div>
       </Header>
-      <Main className='flex flex-1 flex-col gap-6'>
+      <Main className='mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6'>
         <div>
           <h2 className='text-2xl font-bold tracking-tight'>Cấu hình</h2>
           <p className='text-muted-foreground'>
             Thiết lập các giá trị mặc định của phòng khám.
           </p>
         </div>
-        <div className='w-full max-w-3xl'>
+        <div className='w-full'>
           {isLoading ? (
             <p className='text-sm text-muted-foreground'>
               Đang tải cấu hình...

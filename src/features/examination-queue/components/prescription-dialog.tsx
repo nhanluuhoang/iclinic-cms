@@ -25,7 +25,7 @@ export function PrescriptionDialog({
   open: boolean
   onOpenChange: (open: boolean) => void
   patient: QueueUser
-  queueId: string
+  queueId?: string
   initialData: QueueEntry['medicalHistory']
 }) {
   const [view, setView] = useState<View>('prescription')

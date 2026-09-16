@@ -1,10 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
-import {
-  ClipboardCheck,
-  PackageMinus,
-  PackagePlus,
-} from 'lucide-react'
+import { ClipboardCheck, PackageMinus, PackagePlus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { LanguageSwitcher } from '@/components/language-switcher'
@@ -21,8 +17,8 @@ import {
 } from './components/inventory-provider'
 import { InventoryStats } from './components/inventory-stats'
 import { IssuesTab } from './components/issues-tab'
-import { ReceiptsTab } from './components/receipts-tab'
 import { ReceiptsExcelActions } from './components/receipts-excel-actions'
+import { ReceiptsTab } from './components/receipts-tab'
 import { StockTab } from './components/stock-tab'
 import { StockTakesTab } from './components/stocktakes-tab'
 import { inventoryTabs, type InventoryTab } from './data/data'
@@ -70,7 +66,10 @@ function PrimaryButtons({ tab }: { tab: InventoryTab }) {
 
   if (tab === 'stocktakes') {
     return (
-      <Button onClick={() => setOpen('stocktake-create')}>
+      <Button
+        data-tour='create-stocktake'
+        onClick={() => setOpen('stocktake-create')}
+      >
         Kiểm kê
         <ClipboardCheck className='size-4' />
       </Button>
@@ -79,7 +78,7 @@ function PrimaryButtons({ tab }: { tab: InventoryTab }) {
 
   if (tab === 'issues') {
     return (
-      <Button onClick={() => setOpen('issue-create')}>
+      <Button data-tour='create-issue' onClick={() => setOpen('issue-create')}>
         <PackageMinus className='size-4' />
         Xuất hàng
       </Button>
@@ -90,7 +89,10 @@ function PrimaryButtons({ tab }: { tab: InventoryTab }) {
     return (
       <div className='flex flex-wrap items-center gap-2'>
         <ReceiptsExcelActions />
-        <Button onClick={() => setOpen('receipt-create')}>
+        <Button
+          data-tour='create-receipt'
+          onClick={() => setOpen('receipt-create')}
+        >
           <PackagePlus className='size-4' />
           Nhập hàng
         </Button>

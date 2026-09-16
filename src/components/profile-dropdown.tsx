@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router'
+import { BookOpen, PackageOpen } from 'lucide-react'
 import useDialogState from '@/hooks/use-dialog-state'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -40,6 +41,36 @@ export function ProfileDropdown() {
           <DropdownMenuGroup>
             <DropdownMenuItem asChild>
               <Link to='/settings'>Profile</Link>
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuLabel className='text-xs text-muted-foreground'>
+            Hướng dẫn sử dụng
+          </DropdownMenuLabel>
+          <DropdownMenuGroup>
+            <DropdownMenuItem
+              onSelect={() =>
+                window.dispatchEvent(
+                  new CustomEvent('iclinic:start-tour', {
+                    detail: 'patient-workflow',
+                  })
+                )
+              }
+            >
+              <BookOpen />
+              Quy trình khám bệnh
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onSelect={() =>
+                window.dispatchEvent(
+                  new CustomEvent('iclinic:start-tour', {
+                    detail: 'inventory-workflow',
+                  })
+                )
+              }
+            >
+              <PackageOpen />
+              Quy trình quản lý kho
             </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />

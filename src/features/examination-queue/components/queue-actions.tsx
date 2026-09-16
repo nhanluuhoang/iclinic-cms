@@ -31,7 +31,7 @@ export function QueueActions({
         {item.status === 'COMPLETED' && invoice && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button size='sm' variant='outline'>
+              <Button size='sm' variant='outline' data-tour='print-invoice'>
                 <Printer /> In hóa đơn
               </Button>
             </DropdownMenuTrigger>
@@ -66,6 +66,7 @@ export function QueueActions({
             <Button
               size='sm'
               variant='outline'
+              data-tour='create-prescription'
               onClick={() => setPrescriptionOpen(true)}
             >
               <ClipboardList /> Kê toa

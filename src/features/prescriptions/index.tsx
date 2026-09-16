@@ -456,6 +456,9 @@ export function Prescriptions({
       void queryClient.invalidateQueries({
         queryKey: ['examination-queue'],
       })
+      void queryClient.invalidateQueries({
+        queryKey: ['medical-histories', patient.id],
+      })
     },
     onError: (error) =>
       toast.error(
