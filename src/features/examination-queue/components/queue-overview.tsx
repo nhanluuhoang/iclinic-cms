@@ -1,9 +1,13 @@
 import { CalendarClock, CheckCircle2, Clock3, Stethoscope } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { type QueueDashboard } from '../api'
+import { type QueueOverview as QueueOverviewData } from '../api'
 import { QueueHighlight } from './queue-highlight'
 
-export function QueueOverview({ dashboard }: { dashboard?: QueueDashboard }) {
+export function QueueOverview({
+  dashboard,
+}: {
+  dashboard?: QueueOverviewData
+}) {
   const counts = dashboard?.counts ?? {}
   const stats = [
     { label: 'Đã đặt lịch', value: counts.BOOKED ?? 0, icon: CalendarClock },

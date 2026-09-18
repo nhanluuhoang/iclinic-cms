@@ -16,9 +16,9 @@ export function MasterDataDialogs() {
       queryClient.invalidateQueries({ queryKey: ['master-data'] })
       setOpen(null)
       setCurrentRow(null)
-      toast.success('Master data deleted successfully')
+      toast.success('Đã xóa cấu hình chung')
     } catch (_error) {
-      toast.error('Failed to delete master data.')
+      toast.error('Không thể xóa cấu hình chung')
     }
   }
 
@@ -41,9 +41,9 @@ export function MasterDataDialogs() {
           setOpen(null)
           setCurrentRow(null)
         }}
-        title='Delete Master Data'
-        desc='Are you sure you want to delete this master data? This action cannot be undone.'
-        confirmText='Delete'
+        title='Xóa cấu hình chung'
+        desc='Bạn có chắc muốn xóa cấu hình này? Thao tác không thể hoàn tác.'
+        confirmText='Xóa'
         destructive
         handleConfirm={onDeleteConfirm}
       />

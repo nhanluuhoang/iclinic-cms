@@ -120,6 +120,67 @@ export interface QueueDashboard {
   }>
 }
 
+export type DashboardStatistics = Pick<
+  QueueDashboard,
+  'billing' | 'medicineUsage' | 'monthlyRevenue'
+> & {
+  hasData: boolean
+  periodStart: string
+  periodEnd: string
+  status: 'PROVISIONAL' | 'FINAL' | null
+  computedAt: string | null
+  queueMetrics: {
+    totalVisits: number
+    completed: number
+    cancelled: number
+    noShow: number
+    completionRate: number
+    cancellationRate: number
+    noShowRate: number
+    averageWaitMinutes: number
+    averageExaminationMinutes: number
+  }
+  patientMetrics: {
+    uniquePatients: number
+    newPatients: number
+    returningPatients: number
+    returningRate: number
+  }
+  inventoryAlerts: {
+    outOfStockCount: number
+    lowStockCount: number
+    expiringBatchCount: number
+    expiringStockValue: number
+    outOfStock: Array<InventoryStockAlert>
+    lowStock: Array<InventoryStockAlert>
+    expiringBatches: Array<{
+      medicineId: string
+      medicineName: string
+      unit: string
+      batchId: string
+      batchNo: string
+      expiryDate: string
+      daysUntilExpiry: number
+      quantity: number
+      stockValue: number
+      status: 'EXPIRED' | 'WITHIN_30_DAYS' | 'WITHIN_60_DAYS' | 'WITHIN_90_DAYS'
+    }>
+  }
+}
+
+interface InventoryStockAlert {
+  medicineId: string
+  medicineName: string
+  unit: string
+  quantity: number
+  minStock: number
+}
+
+export type QueueOverview = Pick<
+  QueueDashboard,
+  'queueDate' | 'serving' | 'next' | 'counts'
+>
+
 export interface UploadedMedia {
   id: string
   fileName: string
@@ -140,14 +201,15 @@ interface UploadMediaResponse extends UploadedMedia {
 const uploadMedia = async (
   resource: 'images' | 'pdfs' | 'videos',
   field: 'image' | 'pdf' | 'video',
-  file: File
+  file: File,
+  query?: Record<string, string>
 ): Promise<UploadedMedia> => {
   const formData = new FormData()
   formData.append(field, file)
   const response = await axios.post<unknown, UploadMediaResponse>(
     `/${resource}/upload`,
     formData,
-    { headers: { 'Content-Type': 'multipart/form-data' } }
+    { headers: { 'Content-Type': 'multipart/form-data' }, params: query }
   )
   const { id, fileName, url, name, mimeType, size } = response
   return {
@@ -163,8 +225,11 @@ const uploadMedia = async (
 const deleteMedia = (resource: 'images' | 'pdfs' | 'videos', id: string) =>
   axios.delete(`/${resource}/${encodeURIComponent(id)}`) as Promise<void>
 
-export const uploadImage = (file: File): Promise<UploadedImage> =>
-  uploadMedia('images', 'image', file)
+export const uploadImage = (
+  file: File,
+  resource: 'PATIENT' | 'POST' = 'PATIENT'
+): Promise<UploadedImage> =>
+  uploadMedia('images', 'image', file, { resource })
 export const uploadPdf = (file: File): Promise<UploadedPdf> =>
   uploadMedia('pdfs', 'pdf', file)
 export const uploadVideo = (file: File): Promise<UploadedVideo> =>
@@ -219,15 +284,18 @@ export const getQueue = (params: {
 export const getQueueDashboard = (queueDate: string): Promise<QueueDashboard> =>
   axios.get('/examination-queue/dashboard', { params: { queueDate } })
 
+export const getQueueOverview = (queueDate: string): Promise<QueueOverview> =>
+  axios.get('/examination-queue/overview', { params: { queueDate } })
+
 export const getMonthlyQueueDashboard = (
   month: string
-): Promise<QueueDashboard> =>
-  axios.get('/examination-queue/dashboard', { params: { month } })
+): Promise<DashboardStatistics> =>
+  axios.get('/statistics/monthly', { params: { month } })
 
 export const getYearlyQueueDashboard = (
   year: string
-): Promise<QueueDashboard> =>
-  axios.get('/examination-queue/dashboard', { params: { year } })
+): Promise<DashboardStatistics> =>
+  axios.get('/statistics/yearly', { params: { year } })
 
 export const getPatients = async (search = ''): Promise<QueueUser[]> => {
   const response = await axios.get<

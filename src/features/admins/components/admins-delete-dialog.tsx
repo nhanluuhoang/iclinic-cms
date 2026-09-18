@@ -26,7 +26,7 @@ export function AdminsDeleteDialog({
     if (value.trim() !== currentRow.email) return
 
     onOpenChange(false)
-    showSubmittedData(currentRow, 'The following admin has been deleted:')
+    showSubmittedData(currentRow, 'Đã xóa quản trị viên:')
   }
 
   return (
@@ -41,20 +41,20 @@ export function AdminsDeleteDialog({
             className='me-1 inline-block stroke-destructive'
             size={18}
           />{' '}
-          Delete Admin
+          Xóa quản trị viên
         </span>
       }
       desc={
         <div className='space-y-4'>
           <p className='mb-2'>
-            Are you sure you want to delete{' '}
+            Bạn có chắc muốn xóa{' '}
             <span className='font-bold'>{currentRow.email}</span>?
             <br />
-            This action will permanently remove the admin with the role of{' '}
+            Thao tác này sẽ xóa vĩnh viễn quản trị viên có vai trò{' '}
             <span className='font-bold'>
-              {currentRow.isSuperAdmin ? 'Super Admin' : 'Admin'}
+              {currentRow.isSuperAdmin ? 'Quản trị hệ thống' : 'Quản trị viên'}
             </span>{' '}
-            from the system. This cannot be undone.
+            khỏi hệ thống và không thể hoàn tác.
           </p>
 
           <Label className='my-2'>
@@ -62,19 +62,19 @@ export function AdminsDeleteDialog({
             <Input
               value={value}
               onChange={(e) => setValue(e.target.value)}
-              placeholder='Enter email to confirm deletion.'
+              placeholder='Nhập email để xác nhận xóa.'
             />
           </Label>
 
           <Alert variant='destructive'>
-            <AlertTitle>Warning!</AlertTitle>
+            <AlertTitle>Cảnh báo!</AlertTitle>
             <AlertDescription>
-              Please be careful, this operation can not be rolled back.
+              Hãy kiểm tra kỹ, thao tác này không thể hoàn tác.
             </AlertDescription>
           </Alert>
         </div>
       }
-      confirmText='Delete'
+      confirmText='Xóa'
       destructive
     />
   )

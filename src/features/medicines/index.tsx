@@ -1,6 +1,6 @@
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { LanguageSwitcher } from '@/components/language-switcher'
+// import { LanguageSwitcher } from '@/components/language-switcher'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
@@ -20,7 +20,7 @@ function MedicinesContent() {
     <>
       <Header fixed>
         <div className='ms-auto flex items-center space-x-4'>
-          <LanguageSwitcher />
+          {/* <LanguageSwitcher /> */}
           <ThemeSwitch />
           <ProfileDropdown />
         </div>

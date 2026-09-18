@@ -1,5 +1,7 @@
 import { useState } from 'react'
+import { USER_ROLES } from '@/config/access-control'
 import { ClipboardList, Printer, UserRoundCheck } from 'lucide-react'
+import { useAuthStore } from '@/stores/auth-store'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -23,6 +25,8 @@ export function QueueActions({
   onCheckIn: () => void
 }) {
   const [prescriptionOpen, setPrescriptionOpen] = useState(false)
+  const canPrescribe =
+    useAuthStore((state) => state.auth.user?.role) === USER_ROLES.DOCTOR
   const invoice = item.medicalHistory?.prescription?.invoice
 
   return (
@@ -61,7 +65,7 @@ export function QueueActions({
             <UserRoundCheck /> Check-in
           </Button>
         )}
-        {item.status === 'IN_EXAMINATION' && (
+        {item.status === 'IN_EXAMINATION' && canPrescribe && (
           <>
             <Button
               size='sm'
@@ -91,13 +95,15 @@ export function QueueActions({
           </Button>
         ))}
       </div>
-      <PrescriptionDialog
-        open={prescriptionOpen}
-        onOpenChange={setPrescriptionOpen}
-        patient={item.patient}
-        queueId={item.id}
-        initialData={item.medicalHistory}
-      />
+      {canPrescribe && (
+        <PrescriptionDialog
+          open={prescriptionOpen}
+          onOpenChange={setPrescriptionOpen}
+          patient={item.patient}
+          queueId={item.id}
+          initialData={item.medicalHistory}
+        />
+      )}
     </>
   )
 }

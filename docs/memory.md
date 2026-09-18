@@ -1,5 +1,12 @@
 # Memory
 
+Role `ASSISTANT` cannot access the three statistics pages or prescribe in the CMS;
+the backend create/update medical-history APIs remain restricted to `DOCTOR`.
+Monthly and yearly statistics read precomputed snapshots from `/statistics/monthly`
+and `/statistics/yearly`; only daily statistics still use the queue dashboard API.
+Monthly/yearly views include visit outcomes and durations, new/returning patients,
+and low-stock/expiring-batch alerts from those snapshots.
+
 ## User
 
 Nói tiếng Việt, muốn trả lời bằng tiếng Việt. Làm sản phẩm quản lý dược `iclinic`.
@@ -24,9 +31,21 @@ liệu từ server dùng debounce 300 ms. Các bảng dùng chung nằm trong
 
 ## State
 
-- CMS có trang `/landing-config` cho tenant admin chỉnh thương hiệu, hero, bác sĩ phụ trách, dịch vụ, giờ đặt lịch, liên hệ, SEO và trạng thái công khai; dữ liệu dùng API `GET/PUT /landing-config`.
+- Các nhãn, nút, placeholder, thông báo và trang lỗi còn dùng tiếng Anh trong CMS đã được chuẩn hóa sang tiếng Việt, gồm thành phần dùng chung, đăng nhập, quản trị viên, cấu hình chung, bài viết, menu và thiết lập.
+
+- Tenant admin có mục “Thông tin phòng khám” tại `/settings/tenant`: sửa tên và địa chỉ; xem mã tenant, subdomain, tên gói, trạng thái và hạn thuê bao. Các vai trò khác không thấy menu và bị chặn route.
+- Menu cài đặt tài khoản dùng nhãn “Hồ sơ cá nhân” và có trang `/settings/change-password`; đổi mật khẩu yêu cầu mật khẩu hiện tại. Sidebar đổi “Master Data” thành “Cấu hình chung” và có trang `/clinic-days-off`, lưu ngày nghỉ lặp hằng năm dạng `MM-DD` trong master data.
+- Trang `/settings` dùng dữ liệu thật từ auth store, hiển thị đầy đủ hồ sơ và lưu họ tên, email, điện thoại, giới tính, ngày sinh, địa chỉ, ghi chú qua `PATCH /auth/profile`; tên đăng nhập chỉ đọc.
+
+- CMS có trang `/landing-config` cho tenant admin chỉnh thương hiệu, phần giới thiệu đầu trang, bác sĩ phụ trách, dịch vụ, giờ đặt lịch, liên hệ, SEO và trạng thái công khai; dữ liệu dùng API `GET/PUT /landing-config`.
+- Trang `/posts` quản lý bài viết theo tenant bằng API `/posts`: tạo, sửa, xóa, tìm kiếm, lọc bản nháp/công khai. Popup tạo/sửa nằm giữa màn hình như trang Bệnh nhân; nội dung dùng Tiptap với toolbar định dạng tối giản và lưu HTML.
+- Ảnh đại diện bài viết dùng `POST /images/upload?resource=POST`, có vùng chọn file, trạng thái tải, preview 16:9 và gợi ý 1200 × 675 px (JPG/PNG/WebP, tối đa 5 MB); URL public dùng `/images/thumbnail/:fileName`. Ảnh kê toa tiếp tục upload mặc định với resource `PATIENT`.
+- Trang `/landing-config` cho chọn tối đa 3 bài đã công khai để hiển thị trên home, lưu theo thứ tự chọn qua `featuredPostIds`.
+- Trang quản lý banner và route `/banners` đã được xóa khỏi CMS.
 
 - Authenticated layout hiển thị cảnh báo nhỏ ở đầu CMS khi gói trả phí còn tối đa 7 ngày hoặc đã hết hạn; dữ liệu lấy từ `subscriptionEndsAt` của tenant trong profile, không dùng hạn trial.
+
+- Landing config uses flat typed API fields rather than a JSON object. Clinic name and address are read-only values sourced from `Tenant`, and brand colors provide both a native color picker and a HEX input.
 
 - CMS co product tour 6 buoc trong authenticated layout: tu dong mo mot lan cho
   moi tai khoan, ghi nho bang localStorage va co nut dau hoi de mo lai.

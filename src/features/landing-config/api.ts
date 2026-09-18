@@ -1,23 +1,34 @@
 import { axios } from '@/lib/axios'
 
-export interface LandingConfig {
-  branding: {
-    name: string
-    tagline: string
-    logoUrl: string
-    primaryColor: string
-    accentColor: string
-  }
-  hero: { title: string; highlightedText: string; description: string; imageUrl: string }
-  doctor: { name: string; specialty: string; description: string; imageUrl: string }
+export interface LandingConfigFields {
+  tagline: string
+  logoUrl: string
+  primaryColor: string
+  accentColor: string
+  heroTitle: string
+  heroHighlightedText: string
+  heroDescription: string
+  heroImageUrl: string
+  doctorName: string
+  doctorSpecialty: string
+  doctorDescription: string
+  doctorImageUrl: string
   services: string[]
-  booking: { workingHours: string; slots: string[] }
-  contact: { phone: string; address: string; mapUrl: string }
-  seo: { title: string; description: string }
+  featuredPostIds: string[]
+  bookingWorkingHours: string
+  bookingSlots: string[]
+  contactPhone: string
+  contactMapUrl: string
+  seoTitle: string
+  seoDescription: string
 }
 
-export interface LandingConfigResponse {
-  config: LandingConfig | Record<string, never>
+export interface LandingConfigResponse extends LandingConfigFields {
+  tenant: {
+    name: string
+    address: string | null
+    subdomain: string
+  }
   isPublished: boolean
   version: number
 }
@@ -25,7 +36,6 @@ export interface LandingConfigResponse {
 export const getLandingConfig = () =>
   axios.get<unknown, LandingConfigResponse>('/landing-config')
 
-export const updateLandingConfig = (data: {
-  config: LandingConfig
-  isPublished: boolean
-}) => axios.put<unknown, LandingConfigResponse>('/landing-config', data)
+export const updateLandingConfig = (
+  data: LandingConfigFields & { isPublished: boolean }
+) => axios.put<unknown, LandingConfigResponse>('/landing-config', data)

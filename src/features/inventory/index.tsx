@@ -3,7 +3,7 @@ import { getRouteApi } from '@tanstack/react-router'
 import { ClipboardCheck, PackageMinus, PackagePlus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { LanguageSwitcher } from '@/components/language-switcher'
+// import { LanguageSwitcher } from '@/components/language-switcher'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
@@ -116,7 +116,7 @@ function InventoryContent() {
     <>
       <Header fixed>
         <div className='ms-auto flex items-center space-x-4'>
-          <LanguageSwitcher />
+          {/* <LanguageSwitcher /> */}
           <ThemeSwitch />
           <ProfileDropdown />
         </div>

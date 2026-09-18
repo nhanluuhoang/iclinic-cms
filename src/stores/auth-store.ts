@@ -1,22 +1,7 @@
 import { create } from 'zustand'
+import type { ProfileData } from '@/features/auth/api'
 
-interface AuthUser {
-  id: string
-  email: string
-  phone?: string
-  fullName?: string
-  dateOfBirth?: string
-  gender?: number
-  isSuperAdmin: boolean
-  role?: string
-  tenant?: {
-    servicePlan: 'BASIC' | 'PLUS' | 'PRO'
-    subscriptionStatus: 'TRIAL' | 'ACTIVE' | 'EXPIRED' | 'SUSPENDED'
-    trialStartedAt?: string | null
-    trialEndsAt?: string | null
-    subscriptionEndsAt?: string | null
-  } | null
-}
+type AuthUser = ProfileData
 
 interface AuthState {
   auth: {

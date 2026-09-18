@@ -14,11 +14,11 @@ export function ForgotPassword() {
       <Card className='gap-4'>
         <CardHeader>
           <CardTitle className='text-lg tracking-tight'>
-            Forgot Password
+            Quên mật khẩu
           </CardTitle>
           <CardDescription>
-            Enter your registered email and <br /> we will send you a link to
-            reset your password.
+            Nhập email đã đăng ký, chúng tôi sẽ gửi cho bạn <br /> liên kết đặt
+            lại mật khẩu.
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -21,7 +21,7 @@ import { Route as errors503RouteImport } from './routes/(errors)/503'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedSettingsRouteRouteImport } from './routes/_authenticated/settings/route'
 import { Route as AuthenticatedAdminsIndexRouteImport } from './routes/_authenticated/admins/index'
-import { Route as AuthenticatedBannersIndexRouteImport } from './routes/_authenticated/banners/index'
+import { Route as AuthenticatedClinicDaysOffIndexRouteImport } from './routes/_authenticated/clinic-days-off/index'
 import { Route as AuthenticatedDashboardsIndexRouteImport } from './routes/_authenticated/dashboards/index'
 import { Route as AuthenticatedErrorsErrorRouteImport } from './routes/_authenticated/errors/$error'
 import { Route as AuthenticatedHelpCenterIndexRouteImport } from './routes/_authenticated/help-center/index'
@@ -35,6 +35,8 @@ import { Route as AuthenticatedPatientsIndexRouteImport } from './routes/_authen
 import { Route as AuthenticatedPostsIndexRouteImport } from './routes/_authenticated/posts/index'
 import { Route as AuthenticatedPrescriptionTemplatesIndexRouteImport } from './routes/_authenticated/prescription-templates/index'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
+import { Route as AuthenticatedSettingsChangePasswordRouteImport } from './routes/_authenticated/settings/change-password'
+import { Route as AuthenticatedSettingsTenantRouteImport } from './routes/_authenticated/settings/tenant'
 import { Route as AuthenticatedYearlyStatisticsIndexRouteImport } from './routes/_authenticated/yearly-statistics/index'
 
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
@@ -98,10 +100,10 @@ const AuthenticatedAdminsIndexRoute =
     path: '/admins/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedBannersIndexRoute =
-  AuthenticatedBannersIndexRouteImport.update({
-    id: '/banners/',
-    path: '/banners/',
+const AuthenticatedClinicDaysOffIndexRoute =
+  AuthenticatedClinicDaysOffIndexRouteImport.update({
+    id: '/clinic-days-off/',
+    path: '/clinic-days-off/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedDashboardsIndexRoute =
@@ -181,6 +183,18 @@ const AuthenticatedSettingsIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedSettingsRouteRoute,
   } as any)
+const AuthenticatedSettingsChangePasswordRoute =
+  AuthenticatedSettingsChangePasswordRouteImport.update({
+    id: '/change-password',
+    path: '/change-password',
+    getParentRoute: () => AuthenticatedSettingsRouteRoute,
+  } as any)
+const AuthenticatedSettingsTenantRoute =
+  AuthenticatedSettingsTenantRouteImport.update({
+    id: '/tenant',
+    path: '/tenant',
+    getParentRoute: () => AuthenticatedSettingsRouteRoute,
+  } as any)
 const AuthenticatedYearlyStatisticsIndexRoute =
   AuthenticatedYearlyStatisticsIndexRouteImport.update({
     id: '/yearly-statistics/',
@@ -200,8 +214,10 @@ export interface FileRoutesByFullPath {
   '/500': typeof errors500Route
   '/503': typeof errors503Route
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
+  '/settings/change-password': typeof AuthenticatedSettingsChangePasswordRoute
+  '/settings/tenant': typeof AuthenticatedSettingsTenantRoute
   '/admins/': typeof AuthenticatedAdminsIndexRoute
-  '/banners/': typeof AuthenticatedBannersIndexRoute
+  '/clinic-days-off/': typeof AuthenticatedClinicDaysOffIndexRoute
   '/dashboards/': typeof AuthenticatedDashboardsIndexRoute
   '/help-center/': typeof AuthenticatedHelpCenterIndexRoute
   '/inventory/': typeof AuthenticatedInventoryIndexRoute
@@ -227,8 +243,10 @@ export interface FileRoutesByTo {
   '/503': typeof errors503Route
   '/': typeof AuthenticatedIndexRoute
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
+  '/settings/change-password': typeof AuthenticatedSettingsChangePasswordRoute
+  '/settings/tenant': typeof AuthenticatedSettingsTenantRoute
   '/admins': typeof AuthenticatedAdminsIndexRoute
-  '/banners': typeof AuthenticatedBannersIndexRoute
+  '/clinic-days-off': typeof AuthenticatedClinicDaysOffIndexRoute
   '/dashboards': typeof AuthenticatedDashboardsIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
   '/inventory': typeof AuthenticatedInventoryIndexRoute
@@ -257,8 +275,10 @@ export interface FileRoutesById {
   '/(errors)/503': typeof errors503Route
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/errors/$error': typeof AuthenticatedErrorsErrorRoute
+  '/_authenticated/settings/change-password': typeof AuthenticatedSettingsChangePasswordRoute
+  '/_authenticated/settings/tenant': typeof AuthenticatedSettingsTenantRoute
   '/_authenticated/admins/': typeof AuthenticatedAdminsIndexRoute
-  '/_authenticated/banners/': typeof AuthenticatedBannersIndexRoute
+  '/_authenticated/clinic-days-off/': typeof AuthenticatedClinicDaysOffIndexRoute
   '/_authenticated/dashboards/': typeof AuthenticatedDashboardsIndexRoute
   '/_authenticated/help-center/': typeof AuthenticatedHelpCenterIndexRoute
   '/_authenticated/inventory/': typeof AuthenticatedInventoryIndexRoute
@@ -287,8 +307,10 @@ export interface FileRouteTypes {
     | '/500'
     | '/503'
     | '/errors/$error'
+    | '/settings/change-password'
+    | '/settings/tenant'
     | '/admins/'
-    | '/banners/'
+    | '/clinic-days-off/'
     | '/dashboards/'
     | '/help-center/'
     | '/inventory/'
@@ -314,8 +336,10 @@ export interface FileRouteTypes {
     | '/503'
     | '/'
     | '/errors/$error'
+    | '/settings/change-password'
+    | '/settings/tenant'
     | '/admins'
-    | '/banners'
+    | '/clinic-days-off'
     | '/dashboards'
     | '/help-center'
     | '/inventory'
@@ -343,8 +367,10 @@ export interface FileRouteTypes {
     | '/(errors)/503'
     | '/_authenticated/'
     | '/_authenticated/errors/$error'
+    | '/_authenticated/settings/change-password'
+    | '/_authenticated/settings/tenant'
     | '/_authenticated/admins/'
-    | '/_authenticated/banners/'
+    | '/_authenticated/clinic-days-off/'
     | '/_authenticated/dashboards/'
     | '/_authenticated/help-center/'
     | '/_authenticated/inventory/'
@@ -458,11 +484,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/banners/': {
-      id: '/_authenticated/banners/'
-      path: '/banners'
-      fullPath: '/banners/'
-      preLoaderRoute: typeof AuthenticatedBannersIndexRouteImport
+    '/_authenticated/clinic-days-off/': {
+      id: '/_authenticated/clinic-days-off/'
+      path: '/clinic-days-off'
+      fullPath: '/clinic-days-off/'
+      preLoaderRoute: typeof AuthenticatedClinicDaysOffIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dashboards/': {
@@ -556,6 +582,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsIndexRouteImport
       parentRoute: typeof AuthenticatedSettingsRouteRoute
     }
+    '/_authenticated/settings/change-password': {
+      id: '/_authenticated/settings/change-password'
+      path: '/change-password'
+      fullPath: '/settings/change-password'
+      preLoaderRoute: typeof AuthenticatedSettingsChangePasswordRouteImport
+      parentRoute: typeof AuthenticatedSettingsRouteRoute
+    }
+    '/_authenticated/settings/tenant': {
+      id: '/_authenticated/settings/tenant'
+      path: '/tenant'
+      fullPath: '/settings/tenant'
+      preLoaderRoute: typeof AuthenticatedSettingsTenantRouteImport
+      parentRoute: typeof AuthenticatedSettingsRouteRoute
+    }
     '/_authenticated/yearly-statistics/': {
       id: '/_authenticated/yearly-statistics/'
       path: '/yearly-statistics'
@@ -567,11 +607,16 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedSettingsRouteRouteChildren {
+  AuthenticatedSettingsChangePasswordRoute: typeof AuthenticatedSettingsChangePasswordRoute
+  AuthenticatedSettingsTenantRoute: typeof AuthenticatedSettingsTenantRoute
   AuthenticatedSettingsIndexRoute: typeof AuthenticatedSettingsIndexRoute
 }
 
 const AuthenticatedSettingsRouteRouteChildren: AuthenticatedSettingsRouteRouteChildren =
   {
+    AuthenticatedSettingsChangePasswordRoute:
+      AuthenticatedSettingsChangePasswordRoute,
+    AuthenticatedSettingsTenantRoute: AuthenticatedSettingsTenantRoute,
     AuthenticatedSettingsIndexRoute: AuthenticatedSettingsIndexRoute,
   }
 
@@ -585,7 +630,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedErrorsErrorRoute: typeof AuthenticatedErrorsErrorRoute
   AuthenticatedAdminsIndexRoute: typeof AuthenticatedAdminsIndexRoute
-  AuthenticatedBannersIndexRoute: typeof AuthenticatedBannersIndexRoute
+  AuthenticatedClinicDaysOffIndexRoute: typeof AuthenticatedClinicDaysOffIndexRoute
   AuthenticatedDashboardsIndexRoute: typeof AuthenticatedDashboardsIndexRoute
   AuthenticatedHelpCenterIndexRoute: typeof AuthenticatedHelpCenterIndexRoute
   AuthenticatedInventoryIndexRoute: typeof AuthenticatedInventoryIndexRoute
@@ -605,7 +650,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedErrorsErrorRoute: AuthenticatedErrorsErrorRoute,
   AuthenticatedAdminsIndexRoute: AuthenticatedAdminsIndexRoute,
-  AuthenticatedBannersIndexRoute: AuthenticatedBannersIndexRoute,
+  AuthenticatedClinicDaysOffIndexRoute: AuthenticatedClinicDaysOffIndexRoute,
   AuthenticatedDashboardsIndexRoute: AuthenticatedDashboardsIndexRoute,
   AuthenticatedHelpCenterIndexRoute: AuthenticatedHelpCenterIndexRoute,
   AuthenticatedInventoryIndexRoute: AuthenticatedInventoryIndexRoute,

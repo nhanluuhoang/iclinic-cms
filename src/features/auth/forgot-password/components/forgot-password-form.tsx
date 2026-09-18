@@ -19,7 +19,7 @@ import { ForgotPassword } from '../../api'
 
 const formSchema = z.object({
   email: z.email({
-    error: (iss) => (iss.input === '' ? 'Please enter your email' : undefined),
+    error: (iss) => (iss.input === '' ? 'Vui lòng nhập email' : undefined),
   }),
 })
 
@@ -39,13 +39,13 @@ export function ForgotPasswordForm({
     await ForgotPassword(data)
 
     toast.promise(sleep(2000), {
-      loading: 'Sending email...',
+      loading: 'Đang gửi email...',
       success: () => {
         setIsLoading(false)
         form.reset()
-        return `Email sent to ${data.email}`
+        return `Đã gửi email đến ${data.email}`
       },
-      error: 'Error',
+      error: 'Không thể gửi email',
     })
   }
 
@@ -70,7 +70,7 @@ export function ForgotPasswordForm({
           )}
         />
         <Button className='mt-2' disabled={isLoading}>
-          Continue
+          Tiếp tục
           {isLoading ? <Loader2 className='animate-spin' /> : <ArrowRight />}
         </Button>
       </form>

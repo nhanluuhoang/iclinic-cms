@@ -19,7 +19,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { DatePickerInput } from '@/components/date-picker-input'
-import { LanguageSwitcher } from '@/components/language-switcher'
+// import { LanguageSwitcher } from '@/components/language-switcher'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
@@ -27,8 +27,10 @@ import { ThemeSwitch } from '@/components/theme-switch'
 import {
   getQueueDashboard,
   getMonthlyQueueDashboard,
+  type DashboardStatistics,
   type QueueDashboard,
 } from '@/features/examination-queue/api'
+import { OperationalStatistics } from './operational-statistics'
 import {
   formatDashboardMoney as formatMoney,
   getCurrentMonth,
@@ -41,7 +43,7 @@ function DailyRevenueChart({
   dashboard,
   periodLabel,
 }: {
-  dashboard?: QueueDashboard
+  dashboard?: QueueDashboard | DashboardStatistics
   periodLabel: string
 }) {
   const chartData = [
@@ -99,10 +101,13 @@ function DailyRevenueChart({
                 'Doanh thu',
               ]}
               contentStyle={{
-                background: 'hsl(var(--popover))',
-                border: '1px solid hsl(var(--border))',
+                background: 'var(--popover)',
+                border: '1px solid var(--border)',
                 borderRadius: 8,
+                color: 'var(--popover-foreground)',
               }}
+              itemStyle={{ color: 'var(--popover-foreground)' }}
+              labelStyle={{ color: 'var(--popover-foreground)' }}
             />
           </PieChart>
         </ResponsiveContainer>
@@ -130,7 +135,11 @@ function DailyRevenueChart({
   )
 }
 
-function SummaryCards({ dashboard }: { dashboard?: QueueDashboard }) {
+function SummaryCards({
+  dashboard,
+}: {
+  dashboard?: QueueDashboard | DashboardStatistics
+}) {
   const cards = [
     {
       label: 'Tổng lượt khám',
@@ -182,12 +191,14 @@ function StatisticsPage({ period }: { period: 'day' | 'month' }) {
   const [selectedPeriod, setSelectedPeriod] = useState(
     isMonthly ? getCurrentMonth : getToday
   )
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError } = useQuery<
+    QueueDashboard | DashboardStatistics
+  >({
     queryKey: ['dashboard', period, selectedPeriod, isMonthly],
-    queryFn: () =>
+    queryFn: async () =>
       isMonthly
-        ? getMonthlyQueueDashboard(selectedPeriod)
-        : getQueueDashboard(selectedPeriod),
+        ? await getMonthlyQueueDashboard(selectedPeriod)
+        : await getQueueDashboard(selectedPeriod),
     enabled: isMonthly
       ? /^\d{4}-\d{2}$/.test(selectedPeriod)
       : /^\d{4}-\d{2}-\d{2}$/.test(selectedPeriod),
@@ -203,7 +214,7 @@ function StatisticsPage({ period }: { period: 'day' | 'month' }) {
     <>
       <Header fixed>
         <div className='ms-auto flex items-center space-x-4'>
-          <LanguageSwitcher />
+          {/* <LanguageSwitcher /> */}
           <ThemeSwitch />
           <ProfileDropdown />
         </div>
@@ -340,6 +351,12 @@ function StatisticsPage({ period }: { period: 'day' | 'month' }) {
             </div>
           </CardContent>
         </Card>
+
+        {isMonthly && (
+          <OperationalStatistics
+            data={data as DashboardStatistics | undefined}
+          />
+        )}
       </Main>
     </>
   )

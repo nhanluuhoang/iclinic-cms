@@ -89,7 +89,7 @@ export function MasterDataTable({
       <DataTableToolbar
         table={table}
         showSearch={true}
-        searchPlaceholder='Search by key...'
+        searchPlaceholder='Tìm theo khóa...'
       />
       <div className='overflow-hidden rounded-md border text-nowrap'>
         <Table className='min-w-xl'>
@@ -118,7 +118,7 @@ export function MasterDataTable({
                   colSpan={columns.length}
                   className='h-24 text-center'
                 >
-                  Loading...
+                  Đang tải...
                 </TableCell>
               </TableRow>
             ) : table.getRowModel().rows?.length ? (
@@ -143,7 +143,7 @@ export function MasterDataTable({
                   colSpan={columns.length}
                   className='h-24 text-center'
                 >
-                  No results.
+                  Không có kết quả.
                 </TableCell>
               </TableRow>
             )}

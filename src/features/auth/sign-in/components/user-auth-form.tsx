@@ -23,12 +23,12 @@ import { Login, Profile } from '@/features/auth/api'
 const formSchema = z.object({
   userName: z.string({
     error: (iss) =>
-      iss.input === '' ? 'Please enter your user name' : undefined,
+      iss.input === '' ? 'Vui lòng nhập tên đăng nhập' : undefined,
   }),
   password: z
     .string()
-    .min(6, 'Please enter your password')
-    .max(255, 'Password is too long'),
+    .min(6, 'Mật khẩu phải có ít nhất 6 ký tự')
+    .max(255, 'Mật khẩu không được vượt quá 255 ký tự'),
 })
 
 interface UserAuthFormProps extends React.HTMLAttributes<HTMLFormElement> {
@@ -47,8 +47,8 @@ export function UserAuthForm({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      userName: 'doctor.demo',
-      password: 'IClinic@123',
+      userName: '',
+      password: '',
     },
   })
 
@@ -61,9 +61,9 @@ export function UserAuthForm({
 
       const targetPath = redirectTo || '/'
       navigate({ to: targetPath, replace: true })
-      toast.success(`Welcome back, ${profile.data.fullName}!`)
+      toast.success(`Chào mừng trở lại, ${profile.data.fullName}!`)
     } catch {
-      toast.error('Sign in failed. Please check your credentials.')
+      toast.error('Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.')
     } finally {
       setIsLoading(false)
     }
@@ -81,7 +81,7 @@ export function UserAuthForm({
           name='userName'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>User name</FormLabel>
+              <FormLabel>Tên đăng nhập</FormLabel>
               <FormControl>
                 <Input placeholder='name@example.com' {...field} />
               </FormControl>
@@ -94,7 +94,7 @@ export function UserAuthForm({
           name='password'
           render={({ field }) => (
             <FormItem className='relative'>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>Mật khẩu</FormLabel>
               <FormControl>
                 <PasswordInput placeholder='********' {...field} />
               </FormControl>
@@ -103,14 +103,14 @@ export function UserAuthForm({
                 to='/forgot-password'
                 className='absolute end-0 -top-0.5 text-sm font-medium text-muted-foreground hover:opacity-75'
               >
-                Forgot password?
+                Quên mật khẩu?
               </Link>
             </FormItem>
           )}
         />
         <Button className='mt-2' disabled={isLoading}>
           {isLoading ? <Loader2 className='animate-spin' /> : <LogIn />}
-          Sign in
+          Đăng nhập
         </Button>
       </form>
     </Form>

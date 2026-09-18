@@ -7,7 +7,7 @@ import { useDebounce } from '@/hooks/use-debounce'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { DatePickerInput } from '@/components/date-picker-input'
-import { LanguageSwitcher } from '@/components/language-switcher'
+// import { LanguageSwitcher } from '@/components/language-switcher'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
@@ -16,7 +16,7 @@ import {
   changeQueueStatus,
   checkIn,
   getQueue,
-  getQueueDashboard,
+  getQueueOverview,
   type QueueStatus,
 } from './api'
 import { CreateQueueDialog } from './components/create-queue-dialog'
@@ -59,7 +59,7 @@ export function ExaminationQueue() {
   })
   const dashboard = useQuery({
     queryKey: ['examination-queue', 'dashboard', queueDate],
-    queryFn: () => getQueueDashboard(queueDate),
+    queryFn: () => getQueueOverview(queueDate),
   })
 
   const refresh = () =>
@@ -98,7 +98,7 @@ export function ExaminationQueue() {
     <>
       <Header fixed>
         <div className='ms-auto flex items-center space-x-4'>
-          <LanguageSwitcher />
+          {/* <LanguageSwitcher /> */}
           <ThemeSwitch />
           <ProfileDropdown />
         </div>

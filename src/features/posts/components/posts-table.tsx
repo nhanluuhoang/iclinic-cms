@@ -53,7 +53,7 @@ export function PostsTable({ data, total, isLoading }: PostsTableProps) {
     globalFilter: { enabled: true, key: 'title' },
     columnFilters: [
       {
-        columnId: 'isPublic',
+        columnId: 'isPublished',
         searchKey: 'isPublic',
         serialize: (val) => {
           const a = val as string[]
@@ -91,7 +91,7 @@ export function PostsTable({ data, total, isLoading }: PostsTableProps) {
     onGlobalFilterChange,
     onColumnFiltersChange,
     onExpandedChange: setExpanded,
-    getRowCanExpand: () => true,
+    getRowCanExpand: () => false,
   })
 
   const pageCount = table.getPageCount()
@@ -107,8 +107,8 @@ export function PostsTable({ data, total, isLoading }: PostsTableProps) {
         searchPlaceholder='Filter by title...'
         filters={[
           {
-            columnId: 'isPublic',
-            title: 'Status',
+            columnId: 'isPublished',
+            title: 'Trạng thái',
             options: postStatuses.map((s) => ({
               ...s,
               value: String(s.value),
@@ -168,9 +168,9 @@ export function PostsTable({ data, total, isLoading }: PostsTableProps) {
                           <h4 className='mb-2 text-center text-sm font-semibold'>
                             Ảnh trong bài viết
                           </h4>
-                          {row.original.postImages.length > 0 ? (
-                            <ul className='grid grid-cols-1 gap-2 justify-items-center md:grid-cols-2 lg:grid-cols-3'>
-                              {row.original.postImages.map((pir) => (
+                          {(row.original.postImages?.length ?? 0) > 0 ? (
+                            <ul className='grid grid-cols-1 justify-items-center gap-2 md:grid-cols-2 lg:grid-cols-3'>
+                              {row.original.postImages?.map((pir) => (
                                 <li
                                   key={pir.imageId}
                                   className='flex items-center justify-center gap-2 text-sm text-muted-foreground'
@@ -200,7 +200,7 @@ export function PostsTable({ data, total, isLoading }: PostsTableProps) {
                   colSpan={columns.length}
                   className='h-24 text-center'
                 >
-                  No results.
+                  Không tìm thấy kết quả.
                 </TableCell>
               </TableRow>
             )}

@@ -26,17 +26,18 @@ export const SUPER_ADMIN_ROLES: UserRole[] = [USER_ROLES.SUPER_ADMIN]
 const routeRoles: Array<{ path: string; roles: UserRole[] }> = [
   { path: '/admins', roles: SUPER_ADMIN_ROLES },
   { path: '/landing-config', roles: TENANT_ADMIN_ROLES },
-  { path: '/banners', roles: TENANT_ADMIN_ROLES },
   { path: '/posts', roles: TENANT_ADMIN_ROLES },
+  { path: '/settings/tenant', roles: TENANT_ADMIN_ROLES },
   { path: '/master-data', roles: CLINICAL_ADMIN_ROLES },
+  { path: '/clinic-days-off', roles: CLINICAL_ADMIN_ROLES },
   { path: '/prescription-templates', roles: CLINICAL_ADMIN_ROLES },
   { path: '/patients', roles: STAFF_ROLES },
   { path: '/medical-histories', roles: STAFF_ROLES },
   { path: '/medicines', roles: STAFF_ROLES },
   { path: '/inventory', roles: STAFF_ROLES },
-  { path: '/dashboards', roles: STAFF_ROLES },
-  { path: '/monthly-statistics', roles: STAFF_ROLES },
-  { path: '/yearly-statistics', roles: STAFF_ROLES },
+  { path: '/dashboards', roles: CLINICAL_ADMIN_ROLES },
+  { path: '/monthly-statistics', roles: CLINICAL_ADMIN_ROLES },
+  { path: '/yearly-statistics', roles: CLINICAL_ADMIN_ROLES },
   { path: '/', roles: STAFF_ROLES },
 ]
 

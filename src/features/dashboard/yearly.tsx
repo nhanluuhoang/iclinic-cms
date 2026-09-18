@@ -18,12 +18,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { LanguageSwitcher } from '@/components/language-switcher'
+// import { LanguageSwitcher } from '@/components/language-switcher'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { getYearlyQueueDashboard } from '@/features/examination-queue/api'
+import { OperationalStatistics } from './operational-statistics'
 import {
   formatDashboardMoney as formatMoney,
   getCurrentYear,
@@ -72,7 +73,7 @@ export function YearlyDashboard() {
     <>
       <Header fixed>
         <div className='ms-auto flex items-center space-x-4'>
-          <LanguageSwitcher />
+          {/* <LanguageSwitcher /> */}
           <ThemeSwitch />
           <ProfileDropdown />
         </div>
@@ -163,10 +164,13 @@ export function YearlyDashboard() {
                     name,
                   ]}
                   contentStyle={{
-                    background: 'hsl(var(--popover))',
-                    border: '1px solid hsl(var(--border))',
+                    background: 'var(--popover)',
+                    border: '1px solid var(--border)',
                     borderRadius: 8,
+                    color: 'var(--popover-foreground)',
                   }}
+                  itemStyle={{ color: 'var(--popover-foreground)' }}
+                  labelStyle={{ color: 'var(--popover-foreground)' }}
                 />
                 <Bar
                   dataKey='totalAmount'
@@ -178,6 +182,8 @@ export function YearlyDashboard() {
             </ResponsiveContainer>
           </CardContent>
         </Card>
+
+        <OperationalStatistics data={data} />
       </Main>
     </>
   )

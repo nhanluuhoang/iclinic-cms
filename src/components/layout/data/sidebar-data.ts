@@ -5,7 +5,6 @@ import {
   TENANT_ADMIN_ROLES,
 } from '@/config/access-control'
 import {
-  GalleryHorizontalEnd,
   LayoutDashboard,
   Users,
   Database,
@@ -18,6 +17,7 @@ import {
   ListOrdered,
   ClipboardList,
   CalendarRange,
+  CalendarOff,
   ChartColumn,
   History,
   PanelsTopLeft,
@@ -94,19 +94,19 @@ export const sidebarData: SidebarData = {
           title: 'Thống kê ngày',
           url: '/dashboards',
           icon: LayoutDashboard,
-          roles: STAFF_ROLES,
+          roles: CLINICAL_ADMIN_ROLES,
         },
         {
           title: 'Thống kê tháng',
           url: '/monthly-statistics',
           icon: CalendarRange,
-          roles: STAFF_ROLES,
+          roles: CLINICAL_ADMIN_ROLES,
         },
         {
           title: 'Thống kê năm',
           url: '/yearly-statistics',
           icon: ChartColumn,
-          roles: STAFF_ROLES,
+          roles: CLINICAL_ADMIN_ROLES,
         },
       ],
     },
@@ -118,15 +118,9 @@ export const sidebarData: SidebarData = {
           icon: ShieldCheck,
           items: [
             {
-              title: 'Landing page',
+              title: 'Trang giới thiệu',
               url: '/landing-config',
               icon: PanelsTopLeft,
-              roles: TENANT_ADMIN_ROLES,
-            },
-            {
-              title: 'Banners',
-              url: '/banners',
-              icon: GalleryHorizontalEnd,
               roles: TENANT_ADMIN_ROLES,
             },
             {
@@ -142,9 +136,15 @@ export const sidebarData: SidebarData = {
           icon: Settings,
           items: [
             {
-              title: 'Master Data',
+              title: 'Cấu hình chung',
               url: '/master-data',
               icon: Database,
+              roles: CLINICAL_ADMIN_ROLES,
+            },
+            {
+              title: 'Ngày nghỉ phòng khám',
+              url: '/clinic-days-off',
+              icon: CalendarOff,
               roles: CLINICAL_ADMIN_ROLES,
             },
           ],

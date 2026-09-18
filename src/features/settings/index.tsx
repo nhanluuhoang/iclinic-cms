@@ -1,28 +1,48 @@
 import { Outlet } from '@tanstack/react-router'
-import { UserCog } from 'lucide-react'
+import { Building2, LockKeyhole, UserCog } from 'lucide-react'
+import { useAuthStore } from '@/stores/auth-store'
 import { Separator } from '@/components/ui/separator'
-import { LanguageSwitcher } from '@/components/language-switcher'
+// import { LanguageSwitcher } from '@/components/language-switcher'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { SidebarNav } from '@/features/settings/components/sidebar-nav'
 
-const sidebarNavItems = [
+const accountNavItems = [
   {
-    title: 'Profile',
+    title: 'Hồ sơ cá nhân',
     href: '/settings',
     icon: <UserCog size={18} />,
+  },
+  {
+    title: 'Đổi mật khẩu',
+    href: '/settings/change-password',
+    icon: <LockKeyhole size={18} />,
   },
 ]
 
 export function Settings() {
+  const role = useAuthStore((state) => state.auth.user?.role)
+  const sidebarNavItems = [
+    ...accountNavItems,
+    ...(role === 'TENANT_ADMIN'
+      ? [
+          {
+            title: 'Thông tin phòng khám',
+            href: '/settings/tenant',
+            icon: <Building2 size={18} />,
+          },
+        ]
+      : []),
+  ]
+
   return (
     <>
       {/* ===== Top Heading ===== */}
       <Header>
         <div className='ms-auto flex items-center space-x-4'>
-          <LanguageSwitcher />
+          {/* <LanguageSwitcher /> */}
           <ThemeSwitch />
           <ProfileDropdown />
         </div>
@@ -31,10 +51,10 @@ export function Settings() {
       <Main fixed>
         <div className='space-y-0.5'>
           <h1 className='text-2xl font-bold tracking-tight md:text-3xl'>
-            Settings
+            Cài đặt tài khoản
           </h1>
           <p className='text-muted-foreground'>
-            Manage your account settings and set e-mail preferences.
+            Quản lý thông tin cá nhân và bảo mật tài khoản.
           </p>
         </div>
         <Separator className='my-4 lg:my-6' />

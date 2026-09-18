@@ -93,7 +93,7 @@ export function MasterDataMutateDrawer({
       onOpenChange(false)
       form.reset()
     } catch (_error) {
-      toast.error('Failed to save master data.')
+      toast.error('Không thể lưu cấu hình chung.')
     }
   }
 
@@ -107,12 +107,11 @@ export function MasterDataMutateDrawer({
     >
       <SheetContent className='flex flex-col'>
         <SheetHeader className='text-start'>
-          <SheetTitle>{isUpdate ? 'Update' : 'Create'} Master Data</SheetTitle>
+          <SheetTitle>{isUpdate ? 'Cập nhật' : 'Tạo'} cấu hình chung</SheetTitle>
           <SheetDescription>
             {isUpdate
-              ? 'Update the master data by providing necessary info.'
-              : 'Add a new master data by providing necessary info.'}
-            Click save when you&apos;re done.
+              ? 'Cập nhật các thông tin cấu hình cần thiết.'
+              : 'Nhập các thông tin để tạo cấu hình mới.'}
           </SheetDescription>
         </SheetHeader>
         <Form {...form}>
@@ -126,9 +125,9 @@ export function MasterDataMutateDrawer({
               name='key'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Key</FormLabel>
+                  <FormLabel>Khóa</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder='Enter key' />
+                    <Input {...field} placeholder='Nhập khóa' />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -139,9 +138,9 @@ export function MasterDataMutateDrawer({
               name='value'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Value</FormLabel>
+                  <FormLabel>Giá trị</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder='Enter value' />
+                    <Input {...field} placeholder='Nhập giá trị' />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -152,9 +151,9 @@ export function MasterDataMutateDrawer({
               name='searchKey'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Search Key</FormLabel>
+                  <FormLabel>Khóa tìm kiếm</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder='Enter search key' />
+                    <Input {...field} placeholder='Nhập khóa tìm kiếm' />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -164,14 +163,14 @@ export function MasterDataMutateDrawer({
         </Form>
         <SheetFooter className='gap-2'>
           <SheetClose asChild>
-            <Button variant='outline'>Close</Button>
+            <Button variant='outline'>Đóng</Button>
           </SheetClose>
           <Button
             form='master-data-form'
             type='submit'
             disabled={form.formState.isSubmitting}
           >
-            {form.formState.isSubmitting ? 'Saving...' : 'Save changes'}
+            {form.formState.isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
           </Button>
         </SheetFooter>
       </SheetContent>
