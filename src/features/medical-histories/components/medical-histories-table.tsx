@@ -1,15 +1,14 @@
 import { Fragment, useEffect, useState } from 'react'
+import { Cross2Icon } from '@radix-ui/react-icons'
 import {
   type ExpandedState,
   flexRender,
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { type NavigateFn, useTableUrlState } from '@/hooks/use-table-url-state'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import {
   Table,
   TableBody,
@@ -18,7 +17,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
+import {
+  DataTablePagination,
+  DataTableToolbar,
+  MobileDataCards,
+} from '@/components/data-table'
 import { DatePickerInput } from '@/components/date-picker-input'
 import { getToday } from '@/features/dashboard/utils'
 import { type MedicalHistoryListItem } from '../api'
@@ -84,7 +87,7 @@ export function MedicalHistoriesTable({
   }, [pageCount, ensurePageInRange])
 
   const resetFilters = () => {
-    table.resetColumnFilters()
+    table.resetColumnFilters(true)
     navigate({
       search: (previous) => ({
         ...previous,
@@ -97,23 +100,19 @@ export function MedicalHistoriesTable({
   }
 
   return (
-    <div className='flex flex-1 flex-col gap-4'>
-      <div className='flex flex-col gap-2 lg:flex-row lg:items-center'>
+    <div className='flex min-w-0 flex-1 flex-col gap-4'>
+      <div className='flex w-full min-w-0 flex-col items-start gap-2 sm:flex-row sm:flex-wrap sm:items-center'>
         <DataTableToolbar
           table={table}
           searchKey='patientName'
           searchPlaceholder='Tìm tên bệnh nhân...'
           showReset={false}
         />
-        <Input
-          className='h-8 w-full lg:w-[250px]'
-          value={
-            (table.getColumn('doctorName')?.getFilterValue() as string) ?? ''
-          }
-          onChange={(event) =>
-            table.getColumn('doctorName')?.setFilterValue(event.target.value)
-          }
-          placeholder='Tìm tên bác sĩ...'
+        <DataTableToolbar
+          table={table}
+          searchKey='doctorName'
+          searchPlaceholder='Tìm tên bác sĩ...'
+          showReset={false}
         />
         <DatePickerInput
           value={date}
@@ -126,21 +125,27 @@ export function MedicalHistoriesTable({
               }),
             })
           }
-          className='w-full lg:w-[300px]'
+          className='w-[150px] lg:w-[250px]'
           inputClassName='h-8 w-full'
         />
         <Button
           type='button'
           variant='ghost'
-          className='h-8 justify-start px-2 lg:justify-center'
+          className='order-first h-8 px-2 sm:order-last lg:px-3'
           onClick={resetFilters}
         >
-          Xóa tìm kiếm
-          <X className='size-4' />
+          Đặt lại
+          <Cross2Icon className='ms-2 h-4 w-4' />
         </Button>
       </div>
 
-      <div className='overflow-x-auto rounded-md border'>
+      <MobileDataCards
+        table={table}
+        isLoading={isLoading}
+        emptyMessage='Không có lịch sử khám bệnh trong ngày đã chọn.'
+        renderSubRow={(row) => <MedicalHistoryDetails history={row.original} />}
+      />
+      <div className='hidden overflow-x-auto rounded-md border sm:block'>
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

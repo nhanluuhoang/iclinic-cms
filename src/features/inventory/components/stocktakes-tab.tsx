@@ -6,11 +6,7 @@ import { useApiSearch } from '@/hooks/use-api-search'
 import { Button } from '@/components/ui/button'
 import { DataTableColumnHeader } from '@/components/data-table'
 import { UrlDataTable } from '@/components/data-table/url-data-table'
-import {
-  GetStockTake,
-  GetStockTakes,
-  type StockTakeSummary,
-} from '../api'
+import { GetStockTake, GetStockTakes, type StockTakeSummary } from '../api'
 import { formatDate, formatNumber } from '../utils'
 import { ExpiryBadge } from './expiry-badge'
 
@@ -25,7 +21,11 @@ const withSign = (diff: number) =>
   diff > 0 ? `+${formatNumber(diff)}` : formatNumber(diff)
 
 function StockTakeLines({ row }: { row: Row<StockTakeSummary> }) {
-  const { data: stockTake, isLoading, isError } = useQuery({
+  const {
+    data: stockTake,
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ['inventory', 'stocktake', row.original.id],
     queryFn: () => GetStockTake(row.original.id),
   })
@@ -50,7 +50,24 @@ function StockTakeLines({ row }: { row: Row<StockTakeSummary> }) {
           {withSign(stockTake.totalDiff)}
         </span>
       </p>
-      <div className='overflow-x-auto'>
+      <div className='grid gap-2 sm:hidden'>
+        {stockTake.lines.map((line) => (
+          <div
+            key={line.batchId}
+            className='space-y-1 rounded-md border p-3 text-sm'
+          >
+            <p className='font-medium'>{line.medicineName}</p>
+            <p>Số lô: {line.batchNo}</p>
+            <p>
+              Hạn dùng: <ExpiryBadge date={line.expiryDate} />
+            </p>
+            <p>Tồn hệ thống: {formatNumber(line.systemQty)}</p>
+            <p>Thực đếm: {formatNumber(line.countedQty)}</p>
+            <p className={diffClass(line.diff)}>Lệch: {withSign(line.diff)}</p>
+          </div>
+        ))}
+      </div>
+      <div className='hidden overflow-x-auto sm:block'>
         <table className='w-full text-sm'>
           <thead className='text-xs text-muted-foreground'>
             <tr className='border-b'>
@@ -171,9 +188,7 @@ export function StockTakesTab() {
       isLoading={isLoading}
       searchPlaceholder='Tìm theo mã phiếu, thuốc, số lô...'
       emptyMessage='Chưa có phiếu kiểm kê nào. Bấm "Kiểm kê" để tạo phiếu đầu tiên.'
-      getSearchText={(s) =>
-        `${s.code} ${s.note}`
-      }
+      getSearchText={(s) => `${s.code} ${s.note}`}
       initialSorting={[{ id: 'countedAt', desc: true }]}
       renderSubRow={(row) => <StockTakeLines row={row} />}
     />

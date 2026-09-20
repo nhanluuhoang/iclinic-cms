@@ -18,7 +18,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
+import {
+  DataTablePagination,
+  DataTableToolbar,
+  MobileDataCards,
+} from '@/components/data-table'
 import { postStatuses } from '@/features/posts/data/data'
 import { type Post } from '../api'
 import { columns } from './posts-columns'
@@ -117,7 +121,24 @@ export function PostsTable({ data, total, isLoading }: PostsTableProps) {
           },
         ]}
       />
-      <div className='overflow-hidden rounded-md border text-nowrap'>
+      <MobileDataCards
+        table={table}
+        isLoading={isLoading}
+        emptyMessage='Không tìm thấy kết quả.'
+        renderSubRow={(row) => (
+          <div className='grid grid-cols-2 gap-2'>
+            {row.original.postImages?.map((item) => (
+              <img
+                key={item.imageId}
+                src={item.image.fileName}
+                alt={item.image.fileName}
+                className='h-20 w-full rounded-md object-cover'
+              />
+            ))}
+          </div>
+        )}
+      />
+      <div className='hidden overflow-hidden rounded-md border text-nowrap sm:block'>
         <Table className='min-w-xl'>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

@@ -35,12 +35,15 @@ interface UserAuthFormProps extends React.HTMLAttributes<HTMLFormElement> {
   redirectTo?: string
 }
 
+type ApiError = { error?: { title?: string } }
+
 export function UserAuthForm({
   className,
   redirectTo,
   ...props
 }: UserAuthFormProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [submitError, setSubmitError] = useState('')
   const navigate = useNavigate()
   const { auth } = useAuthStore()
 
@@ -54,6 +57,7 @@ export function UserAuthForm({
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
     setIsLoading(true)
+    setSubmitError('')
     try {
       await Login(data)
       const profile = await Profile()
@@ -62,8 +66,11 @@ export function UserAuthForm({
       const targetPath = redirectTo || '/'
       navigate({ to: targetPath, replace: true })
       toast.success(`Chào mừng trở lại, ${profile.data.fullName}!`)
-    } catch {
-      toast.error('Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.')
+    } catch (error) {
+      const message =
+        (error as ApiError)?.error?.title ??
+        'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.'
+      toast.error(message)
     } finally {
       setIsLoading(false)
     }
@@ -112,6 +119,11 @@ export function UserAuthForm({
           {isLoading ? <Loader2 className='animate-spin' /> : <LogIn />}
           Đăng nhập
         </Button>
+        {submitError && (
+          <p role='alert' className='text-sm text-destructive'>
+            {submitError}
+          </p>
+        )}
       </form>
     </Form>
   )

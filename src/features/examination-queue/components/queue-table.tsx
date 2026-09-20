@@ -49,7 +49,50 @@ export function QueueTable({
 
   return (
     <>
-      <div className='overflow-x-auto rounded-md border'>
+      <div className='grid gap-3 sm:hidden'>
+        {isLoading ? (
+          <p className='rounded-md border p-4 text-center'>Đang tải...</p>
+        ) : data.length ? (
+          data.map((item) => (
+            <div key={item.id} className='min-w-0 space-y-3 rounded-md border p-4'>
+              <div className='flex items-start justify-between gap-3'>
+                <div className='min-w-0'>
+                  <p className='break-words font-medium'>{item.patient.fullName}</p>
+                  <p className='text-xs text-muted-foreground'>
+                    Số thứ tự: {item.queueNumber ?? '—'} · {item.patient.phone || 'Không có SĐT'}
+                    {item.isLate ? ' · Đến muộn' : ''}
+                  </p>
+                </div>
+                <QueueStatusBadge status={item.status} />
+              </div>
+              <div className='space-y-1 text-sm'>
+                <p>
+                  {item.appointmentAt
+                    ? `Hẹn ${formatTime(item.appointmentAt)}`
+                    : `Đến ${formatTime(item.checkInAt)}`}
+                </p>
+                <p className='break-words text-muted-foreground'>
+                  {item.reason || 'Không có lý do khám'}
+                </p>
+              </div>
+              {showActions && (
+                <QueueActions
+                  item={item}
+                  pending={isPending}
+                  align='start'
+                  onStatus={(status) => onStatus(item.id, status)}
+                  onCheckIn={() => onCheckIn(item.id)}
+                />
+              )}
+            </div>
+          ))
+        ) : (
+          <p className='rounded-md border p-4 text-center text-muted-foreground'>
+            {emptyMessage}
+          </p>
+        )}
+      </div>
+      <div className='hidden min-w-0 overflow-x-auto rounded-md border sm:block'>
         <Table>
           <TableHeader>
             <TableRow>
@@ -125,12 +168,12 @@ export function QueueTable({
         </Table>
       </div>
       {total > 0 && (
-        <div className='flex items-center justify-between px-2'>
+        <div className='flex items-center justify-between gap-2 px-2'>
           <p className='text-sm text-muted-foreground'>{total} lượt khám</p>
           <div className='flex items-center gap-2'>
             <Button
               variant='outline'
-              className='size-8 p-0'
+              className='hidden size-8 p-0 sm:inline-flex'
               disabled={page <= 1}
               onClick={() => onPageChange(1)}
             >
@@ -146,11 +189,14 @@ export function QueueTable({
               <span className='sr-only'>Trang trước</span>
               <ChevronLeftIcon />
             </Button>
+            <span className='whitespace-nowrap text-sm sm:hidden'>
+              {page}/{totalPages}
+            </span>
             {pageNumbers.map((pageNumber, index) =>
               pageNumber === '...' ? (
                 <span
                   key={`ellipsis-${index}`}
-                  className='px-1 text-sm text-muted-foreground'
+                  className='hidden px-1 text-sm text-muted-foreground sm:inline'
                 >
                   ...
                 </span>
@@ -158,7 +204,7 @@ export function QueueTable({
                 <Button
                   key={pageNumber}
                   variant={page === pageNumber ? 'default' : 'outline'}
-                  className='h-8 min-w-8 px-2'
+                  className='hidden h-8 min-w-8 px-2 sm:inline-flex'
                   onClick={() => onPageChange(pageNumber as number)}
                 >
                   {pageNumber}
@@ -176,7 +222,7 @@ export function QueueTable({
             </Button>
             <Button
               variant='outline'
-              className='size-8 p-0'
+              className='hidden size-8 p-0 sm:inline-flex'
               disabled={page >= totalPages}
               onClick={() => onPageChange(totalPages)}
             >

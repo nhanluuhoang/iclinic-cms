@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ArrowRight, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { sleep, cn } from '@/lib/utils'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -36,17 +36,18 @@ export function ForgotPasswordForm({
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
     setIsLoading(true)
-    await ForgotPassword(data)
-
-    toast.promise(sleep(2000), {
-      loading: 'Đang gửi email...',
-      success: () => {
-        setIsLoading(false)
-        form.reset()
-        return `Đã gửi email đến ${data.email}`
-      },
-      error: 'Không thể gửi email',
-    })
+    try {
+      await ForgotPassword(data)
+      form.reset()
+      toast.success(`Đã gửi email đến ${data.email}`)
+    } catch (error) {
+      const message =
+        (error as { error?: { title?: string } })?.error?.title ??
+        'Không thể gửi email. Vui lòng thử lại.'
+      toast.error(message)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (

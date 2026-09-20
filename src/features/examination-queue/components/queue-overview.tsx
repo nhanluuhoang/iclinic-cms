@@ -22,7 +22,7 @@ export function QueueOverview({
 
   return (
     <>
-      <div className='grid gap-3 sm:grid-cols-2 lg:grid-cols-4'>
+      <div className='hidden gap-3 sm:grid sm:grid-cols-2 lg:grid-cols-4'>
         {stats.map((stat) => (
           <Card key={stat.label} className='py-4'>
             <CardContent className='flex items-center justify-between px-4'>

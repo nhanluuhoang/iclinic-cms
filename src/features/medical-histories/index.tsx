@@ -36,7 +36,7 @@ export function MedicalHistories() {
           <ProfileDropdown />
         </div>
       </Header>
-      <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
+      <Main className='flex min-w-0 flex-1 flex-col gap-4 sm:gap-6'>
         <div>
           <h2 className='text-2xl font-bold tracking-tight'>
             Lịch sử khám bệnh

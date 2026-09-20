@@ -1,5 +1,8 @@
 # Memory
 
+The forgot-password form shows the backend `error.title` (including the 15-minute
+cooldown) in a toast and only reports email sent after the API succeeds.
+
 Role `ASSISTANT` cannot access the three statistics pages or prescribe in the CMS;
 the backend create/update medical-history APIs remain restricted to `DOCTOR`.
 Monthly and yearly statistics read precomputed snapshots from `/statistics/monthly`
@@ -31,6 +34,13 @@ liệu từ server dùng debounce 300 ms. Các bảng dùng chung nằm trong
 
 ## State
 
+- Bộ lọc Lịch sử khám bệnh dùng `DataTableToolbar` như trang Bệnh nhân cho cả tên bệnh nhân và bác sĩ (cùng kích thước, debounce); trên mobile các bộ lọc xếp dọc, từ `sm` tự xuống dòng. Nút `Đặt lại` luôn hiện vì ngày luôn được lọc, nằm trên cùng ở mobile và xóa hai tên/đưa ngày về hôm nay; `min-w-0` giữ bảng không kéo rộng trang.
+- Trang Thứ tự khám ẩn bốn thẻ thống kê trạng thái trên mobile (< `sm`); danh sách lượt khám hiển thị thẻ thay cho bảng cuộn ngang, phân trang mobile chỉ có trước/sau và số trang. Tablet/desktop vẫn dùng bảng và thống kê.
+- Các bảng danh sách TanStack/`UrlDataTable` hiện dùng thẻ mobile có nhãn tiếng Việt và giữ thao tác/mở rộng; gồm bệnh nhân, quản trị viên, bài viết, lịch sử khám, cấu hình chung, thuốc, kho và mẫu đơn. Phân trang chung rút gọn trên mobile. Bảng thống kê và các bảng chi tiết toa thuốc/kho cũng có thẻ mobile; bảng desktop giữ nguyên.
+
+- Form đăng nhập hiển thị `error.title` từ API (gồm lỗi 429) qua toast và thông báo ngay dưới nút đăng nhập.
+- Đăng xuất chỉ xóa trạng thái CMS và chuyển trang sau khi API logout thành công; lỗi API được báo bằng toast.
+
 - Các nhãn, nút, placeholder, thông báo và trang lỗi còn dùng tiếng Anh trong CMS đã được chuẩn hóa sang tiếng Việt, gồm thành phần dùng chung, đăng nhập, quản trị viên, cấu hình chung, bài viết, menu và thiết lập.
 
 - Tenant admin có mục “Thông tin phòng khám” tại `/settings/tenant`: sửa tên và địa chỉ; xem mã tenant, subdomain, tên gói, trạng thái và hạn thuê bao. Các vai trò khác không thấy menu và bị chặn route.
@@ -47,6 +57,9 @@ liệu từ server dùng debounce 300 ms. Các bảng dùng chung nằm trong
 
 - Landing config uses flat typed API fields rather than a JSON object. Clinic name and address are read-only values sourced from `Tenant`, and brand colors provide both a native color picker and a HEX input.
 
+- MobileDataCards labels and three medicine/stock/template overrides use i18next vi/en;
+  CMS defaults to vi when no saved choice exists, and the language switcher is in
+  the shared header. Other hardcoded CMS text has not yet been migrated to i18n.
 - CMS co product tour 6 buoc trong authenticated layout: tu dong mo mot lan cho
   moi tai khoan, ghi nho bang localStorage va co nut dau hoi de mo lai.
 - Menu profile co 2 tour nghiep vu: quy trinh kham benh (tao benh nhan, tiep nhan,

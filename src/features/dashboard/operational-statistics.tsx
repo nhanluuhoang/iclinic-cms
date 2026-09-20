@@ -105,49 +105,78 @@ export function OperationalStatistics({
           <CardTitle>Cảnh báo lô thuốc hết hạn trong 90 ngày</CardTitle>
         </CardHeader>
         <CardContent className='max-h-[360px] overflow-auto'>
-          <Table>
-            <TableHeader className='sticky top-0 bg-card'>
-              <TableRow>
-                <TableHead>Thuốc</TableHead>
-                <TableHead>Lô</TableHead>
-                <TableHead>Hạn dùng</TableHead>
-                <TableHead className='text-right'>Số lượng</TableHead>
-                <TableHead className='text-right'>Giá trị tồn</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {inventory?.expiringBatches?.length ? (
-                inventory.expiringBatches.map((batch) => (
-                  <TableRow key={batch.batchId}>
-                    <TableCell className='font-medium'>
-                      {batch.medicineName}
-                    </TableCell>
-                    <TableCell>{batch.batchNo}</TableCell>
-                    <TableCell>
-                      {new Date(
-                        `${batch.expiryDate}T00:00:00`
-                      ).toLocaleDateString('vi-VN')}
-                    </TableCell>
-                    <TableCell className='text-right'>
-                      {batch.quantity} {batch.unit}
-                    </TableCell>
-                    <TableCell className='text-right'>
-                      {formatMoney(batch.stockValue)} VNĐ
+          <div className='grid gap-2 sm:hidden'>
+            {inventory?.expiringBatches?.length ? (
+              inventory.expiringBatches.map((batch) => (
+                <div
+                  key={batch.batchId}
+                  className='space-y-1 rounded-md border p-3 text-sm'
+                >
+                  <p className='font-medium'>{batch.medicineName}</p>
+                  <p>Lô: {batch.batchNo}</p>
+                  <p>
+                    Hạn dùng:{' '}
+                    {new Date(
+                      `${batch.expiryDate}T00:00:00`
+                    ).toLocaleDateString('vi-VN')}
+                  </p>
+                  <p>
+                    Số lượng: {batch.quantity} {batch.unit}
+                  </p>
+                  <p>Giá trị tồn: {formatMoney(batch.stockValue)} VNĐ</p>
+                </div>
+              ))
+            ) : (
+              <p className='rounded-md border p-4 text-center text-sm text-muted-foreground'>
+                Không có lô thuốc sắp hết hạn.
+              </p>
+            )}
+          </div>
+          <div className='hidden sm:block'>
+            <Table>
+              <TableHeader className='sticky top-0 bg-card'>
+                <TableRow>
+                  <TableHead>Thuốc</TableHead>
+                  <TableHead>Lô</TableHead>
+                  <TableHead>Hạn dùng</TableHead>
+                  <TableHead className='text-right'>Số lượng</TableHead>
+                  <TableHead className='text-right'>Giá trị tồn</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {inventory?.expiringBatches?.length ? (
+                  inventory.expiringBatches.map((batch) => (
+                    <TableRow key={batch.batchId}>
+                      <TableCell className='font-medium'>
+                        {batch.medicineName}
+                      </TableCell>
+                      <TableCell>{batch.batchNo}</TableCell>
+                      <TableCell>
+                        {new Date(
+                          `${batch.expiryDate}T00:00:00`
+                        ).toLocaleDateString('vi-VN')}
+                      </TableCell>
+                      <TableCell className='text-right'>
+                        {batch.quantity} {batch.unit}
+                      </TableCell>
+                      <TableCell className='text-right'>
+                        {formatMoney(batch.stockValue)} VNĐ
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={5}
+                      className='h-24 text-center text-muted-foreground'
+                    >
+                      Không có lô thuốc sắp hết hạn.
                     </TableCell>
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={5}
-                    className='h-24 text-center text-muted-foreground'
-                  >
-                    Không có lô thuốc sắp hết hạn.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 
@@ -156,55 +185,98 @@ export function OperationalStatistics({
           <CardTitle>Thuốc hết hàng và sắp hết hàng</CardTitle>
         </CardHeader>
         <CardContent className='max-h-[360px] overflow-auto'>
-          <Table>
-            <TableHeader className='sticky top-0 bg-card'>
-              <TableRow>
-                <TableHead>Thuốc</TableHead>
-                <TableHead>Trạng thái</TableHead>
-                <TableHead className='text-right'>Tồn hiện tại</TableHead>
-                <TableHead className='text-right'>Tồn tối thiểu</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {[
-                ...(inventory?.outOfStock ?? []),
-                ...(inventory?.lowStock ?? []),
-              ].length ? (
-                [
-                  ...(inventory?.outOfStock ?? []).map((item) => ({
-                    ...item,
-                    label: 'Hết hàng',
-                  })),
-                  ...(inventory?.lowStock ?? []).map((item) => ({
-                    ...item,
-                    label: 'Sắp hết',
-                  })),
-                ].map((item) => (
-                  <TableRow key={item.medicineId}>
-                    <TableCell className='font-medium'>
-                      {item.medicineName}
-                    </TableCell>
-                    <TableCell>{item.label}</TableCell>
-                    <TableCell className='text-right'>
-                      {item.quantity} {item.unit}
-                    </TableCell>
-                    <TableCell className='text-right'>
-                      {item.minStock} {item.unit}
+          <div className='grid gap-2 sm:hidden'>
+            {[
+              ...(inventory?.outOfStock ?? []).map((item) => ({
+                ...item,
+                label: 'Hết hàng',
+              })),
+              ...(inventory?.lowStock ?? []).map((item) => ({
+                ...item,
+                label: 'Sắp hết',
+              })),
+            ].length ? (
+              [
+                ...(inventory?.outOfStock ?? []).map((item) => ({
+                  ...item,
+                  label: 'Hết hàng',
+                })),
+                ...(inventory?.lowStock ?? []).map((item) => ({
+                  ...item,
+                  label: 'Sắp hết',
+                })),
+              ].map((item) => (
+                <div
+                  key={item.medicineId}
+                  className='space-y-1 rounded-md border p-3 text-sm'
+                >
+                  <p className='font-medium'>{item.medicineName}</p>
+                  <p>Trạng thái: {item.label}</p>
+                  <p>
+                    Tồn hiện tại: {item.quantity} {item.unit}
+                  </p>
+                  <p>
+                    Tồn tối thiểu: {item.minStock} {item.unit}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <p className='rounded-md border p-4 text-center text-sm text-muted-foreground'>
+                Không có thuốc hết hàng hoặc dưới mức tồn tối thiểu.
+              </p>
+            )}
+          </div>
+          <div className='hidden sm:block'>
+            <Table>
+              <TableHeader className='sticky top-0 bg-card'>
+                <TableRow>
+                  <TableHead>Thuốc</TableHead>
+                  <TableHead>Trạng thái</TableHead>
+                  <TableHead className='text-right'>Tồn hiện tại</TableHead>
+                  <TableHead className='text-right'>Tồn tối thiểu</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {[
+                  ...(inventory?.outOfStock ?? []),
+                  ...(inventory?.lowStock ?? []),
+                ].length ? (
+                  [
+                    ...(inventory?.outOfStock ?? []).map((item) => ({
+                      ...item,
+                      label: 'Hết hàng',
+                    })),
+                    ...(inventory?.lowStock ?? []).map((item) => ({
+                      ...item,
+                      label: 'Sắp hết',
+                    })),
+                  ].map((item) => (
+                    <TableRow key={item.medicineId}>
+                      <TableCell className='font-medium'>
+                        {item.medicineName}
+                      </TableCell>
+                      <TableCell>{item.label}</TableCell>
+                      <TableCell className='text-right'>
+                        {item.quantity} {item.unit}
+                      </TableCell>
+                      <TableCell className='text-right'>
+                        {item.minStock} {item.unit}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={4}
+                      className='h-24 text-center text-muted-foreground'
+                    >
+                      Không có thuốc hết hàng hoặc dưới mức tồn tối thiểu.
                     </TableCell>
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={4}
-                    className='h-24 text-center text-muted-foreground'
-                  >
-                    Không có thuốc hết hàng hoặc dưới mức tồn tối thiểu.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
     </div>

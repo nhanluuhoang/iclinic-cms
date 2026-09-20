@@ -18,11 +18,13 @@ export function QueueActions({
   pending,
   onStatus,
   onCheckIn,
+  align = 'end',
 }: {
   item: QueueEntry
   pending: boolean
   onStatus: (status: QueueStatus) => void
   onCheckIn: () => void
+  align?: 'start' | 'end'
 }) {
   const [prescriptionOpen, setPrescriptionOpen] = useState(false)
   const canPrescribe =
@@ -31,7 +33,9 @@ export function QueueActions({
 
   return (
     <>
-      <div className='flex flex-wrap justify-end gap-1'>
+      <div
+        className={`flex flex-wrap gap-1 ${align === 'start' ? 'justify-start' : 'justify-end'}`}
+      >
         {item.status === 'COMPLETED' && invoice && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

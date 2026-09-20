@@ -257,6 +257,7 @@ export function PrescriptionTemplates() {
           isLoading={isLoading}
           searchPlaceholder='Tìm tên mẫu hoặc thuốc...'
           emptyMessage='Chưa có mẫu đơn thuốc.'
+          mobileLabels={{ name: 'mobileTable.context.templateName' }}
           getSearchText={(row) =>
             `${row.name} ${row.items.map((item) => item.medicineName).join(' ')}`
           }

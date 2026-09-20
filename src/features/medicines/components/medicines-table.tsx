@@ -117,8 +117,14 @@ const columns: ColumnDef<Medicine>[] = [
   },
   {
     accessorKey: 'salePrice',
-    header: ({ column }) => <DataTableColumnHeader column={column} title='Giá bán' />,
-    cell: ({ row }) => <span className='tabular-nums'>{formatNumber(Number(row.original.salePrice))} ₫</span>,
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Giá bán' />
+    ),
+    cell: ({ row }) => (
+      <span className='tabular-nums'>
+        {formatNumber(Number(row.original.salePrice))} ₫
+      </span>
+    ),
   },
   {
     accessorKey: 'minStock',
@@ -152,6 +158,7 @@ export function MedicinesTable() {
       isLoading={isLoading}
       searchPlaceholder='Tìm theo tên, mã, hoạt chất...'
       emptyMessage='Chưa có thuốc nào trong danh mục.'
+      mobileLabels={{ name: 'mobileTable.context.medicineName' }}
       getSearchText={(m) =>
         `${m.name} ${m.code} ${m.activeIngredient} ${m.manufacturer}`
       }

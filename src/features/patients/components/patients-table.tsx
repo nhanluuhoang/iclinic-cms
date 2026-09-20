@@ -14,7 +14,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
+import {
+  DataTablePagination,
+  DataTableToolbar,
+  MobileDataCards,
+} from '@/components/data-table'
 import { type Patient } from '../api'
 import { genders } from '../data/data'
 import { patientsColumns as columns } from './patients-columns'
@@ -108,7 +112,12 @@ export function PatientsTable({
           },
         ]}
       />
-      <div className='overflow-x-auto rounded-md border'>
+      <MobileDataCards
+        table={table}
+        isLoading={isLoading}
+        emptyMessage='Chưa có bệnh nhân nào.'
+      />
+      <div className='hidden overflow-x-auto rounded-md border sm:block'>
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

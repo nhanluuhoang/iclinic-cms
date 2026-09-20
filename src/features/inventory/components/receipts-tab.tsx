@@ -5,16 +5,16 @@ import { useApiSearch } from '@/hooks/use-api-search'
 import { Button } from '@/components/ui/button'
 import { DataTableColumnHeader } from '@/components/data-table'
 import { UrlDataTable } from '@/components/data-table/url-data-table'
-import {
-  GetReceipt,
-  GetReceipts,
-  type GoodsReceiptSummary,
-} from '../api'
+import { GetReceipt, GetReceipts, type GoodsReceiptSummary } from '../api'
 import { formatDate, formatMoney, formatNumber } from '../utils'
 import { ExpiryBadge } from './expiry-badge'
 
 function ReceiptLines({ row }: { row: Row<GoodsReceiptSummary> }) {
-  const { data: receipt, isLoading, isError } = useQuery({
+  const {
+    data: receipt,
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ['inventory', 'receipt', row.original.id],
     queryFn: () => GetReceipt(row.original.id),
   })
@@ -37,7 +37,26 @@ function ReceiptLines({ row }: { row: Row<GoodsReceiptSummary> }) {
         {receipt.lines.length} dòng — tổng {formatNumber(receipt.totalQty)} ·{' '}
         {formatMoney(receipt.totalAmount)}
       </p>
-      <div className='overflow-x-auto'>
+      <div className='grid gap-2 sm:hidden'>
+        {receipt.lines.map((line) => (
+          <div
+            key={line.batchId}
+            className='space-y-1 rounded-md border p-3 text-sm'
+          >
+            <p className='font-medium'>{line.medicineName}</p>
+            <p>Số lô: {line.batchNo}</p>
+            <p>
+              Hạn dùng: <ExpiryBadge date={line.expiryDate} />
+            </p>
+            <p>
+              Số lượng: {formatNumber(line.qty)} {line.unit}
+            </p>
+            <p>Đơn giá: {formatMoney(line.unitCost)}</p>
+            <p>Thành tiền: {formatMoney(line.amount)}</p>
+          </div>
+        ))}
+      </div>
+      <div className='hidden overflow-x-auto sm:block'>
         <table className='w-full text-sm'>
           <thead className='text-xs text-muted-foreground'>
             <tr className='border-b'>
@@ -166,9 +185,7 @@ export function ReceiptsTab() {
       isLoading={isLoading}
       searchPlaceholder='Tìm theo mã phiếu, nhà cung cấp, số hoá đơn...'
       emptyMessage='Chưa có phiếu nhập nào.'
-      getSearchText={(r) =>
-        `${r.code} ${r.supplierName} ${r.invoiceNo}`
-      }
+      getSearchText={(r) => `${r.code} ${r.supplierName} ${r.invoiceNo}`}
       initialSorting={[{ id: 'receivedAt', desc: true }]}
       renderSubRow={(row) => <ReceiptLines row={row} />}
     />

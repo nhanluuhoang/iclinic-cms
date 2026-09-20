@@ -5,15 +5,15 @@ import { useApiSearch } from '@/hooks/use-api-search'
 import { Button } from '@/components/ui/button'
 import { DataTableColumnHeader } from '@/components/data-table'
 import { UrlDataTable } from '@/components/data-table/url-data-table'
-import {
-  GetGoodsIssue,
-  GetGoodsIssues,
-  type GoodsIssueSummary,
-} from '../api'
+import { GetGoodsIssue, GetGoodsIssues, type GoodsIssueSummary } from '../api'
 import { formatDate, formatNumber } from '../utils'
 
 function IssueLines({ row }: { row: Row<GoodsIssueSummary> }) {
-  const { data: issue, isLoading, isError } = useQuery({
+  const {
+    data: issue,
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ['inventory', 'issue', row.original.id],
     queryFn: () => GetGoodsIssue(row.original.id),
   })
@@ -35,31 +35,49 @@ function IssueLines({ row }: { row: Row<GoodsIssueSummary> }) {
       <p className='mb-2 text-xs font-medium text-muted-foreground'>
         {issue.lines.length} dòng — tổng {formatNumber(issue.totalQty)}
       </p>
-      <table className='w-full text-sm'>
-        <thead className='text-xs text-muted-foreground'>
-          <tr className='border-b'>
-            <th className='py-1.5 pe-4 text-start font-medium'>Thuốc</th>
-            <th className='py-1.5 pe-4 text-start font-medium'>Số lô</th>
-            <th className='py-1.5 text-end font-medium'>Số lượng xuất</th>
-          </tr>
-        </thead>
-        <tbody>
-          {issue.lines.map((line) => (
-            <tr key={line.batchId} className='border-b last:border-0'>
-              <td className='py-1.5 pe-4'>
-                <span className='font-medium'>{line.medicineName}</span>
-                <span className='ms-2 text-xs text-muted-foreground'>
-                  {line.medicineCode}
-                </span>
-              </td>
-              <td className='py-1.5 pe-4 font-mono text-xs'>{line.batchNo}</td>
-              <td className='py-1.5 text-end tabular-nums'>
-                {formatNumber(line.quantity)} {line.unit}
-              </td>
+      <div className='grid gap-2 sm:hidden'>
+        {issue.lines.map((line) => (
+          <div
+            key={line.batchId}
+            className='space-y-1 rounded-md border p-3 text-sm'
+          >
+            <p className='font-medium'>{line.medicineName}</p>
+            <p>Số lô: {line.batchNo}</p>
+            <p>
+              Số lượng xuất: {formatNumber(line.quantity)} {line.unit}
+            </p>
+          </div>
+        ))}
+      </div>
+      <div className='hidden overflow-x-auto sm:block'>
+        <table className='w-full text-sm'>
+          <thead className='text-xs text-muted-foreground'>
+            <tr className='border-b'>
+              <th className='py-1.5 pe-4 text-start font-medium'>Thuốc</th>
+              <th className='py-1.5 pe-4 text-start font-medium'>Số lô</th>
+              <th className='py-1.5 text-end font-medium'>Số lượng xuất</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {issue.lines.map((line) => (
+              <tr key={line.batchId} className='border-b last:border-0'>
+                <td className='py-1.5 pe-4'>
+                  <span className='font-medium'>{line.medicineName}</span>
+                  <span className='ms-2 text-xs text-muted-foreground'>
+                    {line.medicineCode}
+                  </span>
+                </td>
+                <td className='py-1.5 pe-4 font-mono text-xs'>
+                  {line.batchNo}
+                </td>
+                <td className='py-1.5 text-end tabular-nums'>
+                  {formatNumber(line.quantity)} {line.unit}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }
@@ -133,9 +151,7 @@ export function IssuesTab() {
         isLoading={isLoading}
         searchPlaceholder='Tìm mã phiếu hoặc người nhận...'
         emptyMessage='Chưa có phiếu xuất nào.'
-        getSearchText={(issue) =>
-          `${issue.code} ${issue.recipientName}`
-        }
+        getSearchText={(issue) => `${issue.code} ${issue.recipientName}`}
         initialSorting={[{ id: 'issuedAt', desc: true }]}
         renderSubRow={(row) => <IssueLines row={row} />}
       />

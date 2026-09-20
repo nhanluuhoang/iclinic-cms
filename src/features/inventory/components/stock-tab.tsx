@@ -25,7 +25,27 @@ function BatchBreakdown({ row }: { row: Row<StockSummary> }) {
         {batches.length} đợt nhập đang còn tồn — sắp theo hạn dùng, lô hết hạn
         sớm nhất lên đầu
       </p>
-      <div className='overflow-x-auto'>
+      <div className='grid gap-2 sm:hidden'>
+        {batches.map((batch) => (
+          <div
+            key={batch.id}
+            className='space-y-1 rounded-md border p-3 text-sm'
+          >
+            <p className='font-medium'>Lô {batch.batchNo}</p>
+            <p>
+              Hạn dùng: <ExpiryBadge date={batch.expiryDate} />
+            </p>
+            <p>
+              Tồn: {formatNumber(batch.qtyRemaining)} {unit}
+            </p>
+            <p>Đã nhập: {formatNumber(batch.qtyReceived)}</p>
+            <p>Giá nhập: {formatMoney(batch.unitCost)}</p>
+            <p>Phiếu nhập: {batch.receiptCode}</p>
+            <p>Nhà cung cấp: {batch.supplierName}</p>
+          </div>
+        ))}
+      </div>
+      <div className='hidden overflow-x-auto sm:block'>
         <table className='w-full text-sm'>
           <thead className='text-xs text-muted-foreground'>
             <tr className='border-b'>
@@ -208,6 +228,7 @@ export function StockTab() {
       isLoading={isLoading}
       searchPlaceholder='Tìm theo tên thuốc, mã, nhà sản xuất...'
       emptyMessage='Chưa có thuốc nào trong kho.'
+      mobileLabels={{ name: 'mobileTable.context.stockMedicine' }}
       getSearchText={(s) => `${s.name} ${s.code} ${s.manufacturer}`}
       renderSubRow={(row) => <BatchBreakdown row={row} />}
       filters={[

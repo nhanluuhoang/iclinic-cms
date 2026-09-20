@@ -66,33 +66,56 @@ export function MedicalHistoryContent({
           <div className='mt-3 border-t pt-3'>
             <p className='mb-2 font-medium'>Toa thuốc</p>
             {history.prescription?.items.length ? (
-              <div className='overflow-x-auto rounded-md border'>
-                <table className='w-full text-sm'>
-                  <thead className='bg-muted/50 text-left'>
-                    <tr>
-                      <th className='px-3 py-2 font-medium'>Thuốc</th>
-                      <th className='px-3 py-2 font-medium'>Số lượng</th>
-                      <th className='px-3 py-2 font-medium'>Hướng dẫn</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {history.prescription.items.map((item) => (
-                      <tr key={item.id} className='border-t align-top'>
-                        <td className='px-3 py-2'>
-                          <div className='font-medium'>{item.medicineName}</div>
-                          {item.medicine && (
-                            <div className='text-xs text-muted-foreground'>
-                              {item.medicine.strength} · {item.medicine.unit}
-                            </div>
-                          )}
-                        </td>
-                        <td className='px-3 py-2'>{item.quantity ?? '—'}</td>
-                        <td className='px-3 py-2'>{item.instruction || '—'}</td>
+              <>
+                <div className='grid gap-2 sm:hidden'>
+                  {history.prescription.items.map((item) => (
+                    <div
+                      key={item.id}
+                      className='space-y-1 rounded-md border p-3 text-sm'
+                    >
+                      <p className='font-medium'>{item.medicineName}</p>
+                      {item.medicine && (
+                        <p className='text-xs text-muted-foreground'>
+                          {item.medicine.strength} · {item.medicine.unit}
+                        </p>
+                      )}
+                      <p>Số lượng: {item.quantity ?? '—'}</p>
+                      <p>Hướng dẫn: {item.instruction || '—'}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className='hidden overflow-x-auto rounded-md border sm:block'>
+                  <table className='w-full text-sm'>
+                    <thead className='bg-muted/50 text-left'>
+                      <tr>
+                        <th className='px-3 py-2 font-medium'>Thuốc</th>
+                        <th className='px-3 py-2 font-medium'>Số lượng</th>
+                        <th className='px-3 py-2 font-medium'>Hướng dẫn</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {history.prescription.items.map((item) => (
+                        <tr key={item.id} className='border-t align-top'>
+                          <td className='px-3 py-2'>
+                            <div className='font-medium'>
+                              {item.medicineName}
+                            </div>
+                            {item.medicine && (
+                              <div className='text-xs text-muted-foreground'>
+                                {item.medicine.strength} · {item.medicine.unit}
+                              </div>
+                            )}
+                          </td>
+                          <td className='px-3 py-2'>{item.quantity ?? '—'}</td>
+                          <td className='px-3 py-2'>
+                            {item.instruction || '—'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             ) : (
               <p className='text-sm text-muted-foreground'>
                 Không có toa thuốc.

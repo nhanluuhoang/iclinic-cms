@@ -311,7 +311,27 @@ function StatisticsPage({ period }: { period: 'day' | 'month' }) {
                   </strong>
                 </div>
               </div>
-              <div className='max-h-[340px] overflow-auto rounded-md border'>
+              <div className='grid max-h-[340px] gap-2 overflow-auto sm:hidden'>
+                {data?.medicineUsage.length ? (
+                  data.medicineUsage.map((medicine) => (
+                    <div
+                      key={medicine.medicineId ?? medicine.medicineName}
+                      className='rounded-md border p-3 text-sm'
+                    >
+                      <p className='font-medium'>{medicine.medicineName}</p>
+                      <p className='text-muted-foreground'>
+                        Số lượng: {formatMoney(medicine.quantity)}{' '}
+                        {medicine.unit || ''}
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <p className='rounded-md border p-4 text-center text-sm text-muted-foreground'>
+                    Chưa có thuốc được sử dụng {periodLabel} này.
+                  </p>
+                )}
+              </div>
+              <div className='hidden max-h-[340px] overflow-auto rounded-md border sm:block'>
                 <Table>
                   <TableHeader className='sticky top-0 bg-card'>
                     <TableRow>

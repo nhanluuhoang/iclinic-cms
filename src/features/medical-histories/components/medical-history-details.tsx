@@ -38,7 +38,32 @@ export function MedicalHistoryDetails({
           <h4 className='mb-3 text-sm font-semibold underline underline-offset-4'>
             Thuốc kê đơn
           </h4>
-          <div className='overflow-x-auto'>
+          <div className='grid gap-2 sm:hidden'>
+            {prescription.items.map((item) => {
+              const quantity = Number(item.quantity ?? 0)
+              const price = Number(item.medicine?.salePrice ?? 0)
+              return (
+                <div
+                  key={item.id}
+                  className='space-y-1 rounded-md border p-3 text-sm'
+                >
+                  <p className='font-medium'>{item.medicineName}</p>
+                  <p className='text-muted-foreground'>
+                    {item.instruction || 'Không có hướng dẫn'}
+                  </p>
+                  <p>
+                    {quantity.toLocaleString('vi-VN')}{' '}
+                    {item.medicine?.unit || ''} ×{' '}
+                    {price.toLocaleString('vi-VN')} VNĐ
+                  </p>
+                  <p className='font-medium'>
+                    Thành tiền: {(price * quantity).toLocaleString('vi-VN')} VNĐ
+                  </p>
+                </div>
+              )
+            })}
+          </div>
+          <div className='hidden overflow-x-auto sm:block'>
             <Table>
               <TableHeader>
                 <TableRow>

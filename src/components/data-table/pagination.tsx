@@ -61,8 +61,14 @@ export function DataTablePagination<TData>({
           </Button>
 
           {/* Page number buttons */}
+          <span className='text-sm whitespace-nowrap sm:hidden'>
+            {currentPage}/{totalPages}
+          </span>
           {pageNumbers.map((pageNumber, index) => (
-            <div key={`${pageNumber}-${index}`} className='flex items-center'>
+            <div
+              key={`${pageNumber}-${index}`}
+              className='hidden items-center sm:flex'
+            >
               {pageNumber === '...' ? (
                 <span className='px-1 text-sm text-muted-foreground'>...</span>
               ) : (

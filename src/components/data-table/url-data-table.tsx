@@ -25,6 +25,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
+import { MobileDataCards } from './mobile-cards'
 
 type ToolbarFilter = {
   columnId: string
@@ -53,6 +54,7 @@ type UrlDataTableProps<TData> = {
   searchPlaceholder?: string
   filters?: ToolbarFilter[]
   emptyMessage?: string
+  mobileLabels?: Record<string, string>
   initialSorting?: SortingState
   pageSize?: number
   renderSubRow?: (row: Row<TData>) => React.ReactNode
@@ -67,6 +69,7 @@ export function UrlDataTable<TData>({
   searchPlaceholder = 'Tìm kiếm...',
   filters = [],
   emptyMessage = 'Không có dữ liệu.',
+  mobileLabels,
   initialSorting = [],
   pageSize = 10,
   renderSubRow,
@@ -160,13 +163,21 @@ export function UrlDataTable<TData>({
   const rows = table.getRowModel().rows
 
   return (
-    <div className='flex flex-1 flex-col gap-4'>
+    <div className='flex min-w-0 flex-1 flex-col gap-4'>
       <DataTableToolbar
         table={table}
         searchPlaceholder={searchPlaceholder}
         filters={filters}
       />
-      <div className='overflow-x-auto rounded-md border'>
+      <MobileDataCards
+        table={table}
+        rows={rows}
+        isLoading={isLoading}
+        emptyMessage={emptyMessage}
+        labels={mobileLabels}
+        renderSubRow={renderSubRow}
+      />
+      <div className='hidden overflow-x-auto rounded-md border sm:block'>
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

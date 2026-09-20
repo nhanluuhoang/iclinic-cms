@@ -236,86 +236,141 @@ export function StockTakeMutateDrawer({
                   Thuốc này không còn lô nào có tồn.
                 </p>
               ) : (
-                <div className='overflow-x-auto rounded-md border'>
-                  <table className='w-full text-sm'>
-                    <thead className='bg-muted/50 text-xs text-muted-foreground'>
-                      <tr>
-                        <th className='px-3 py-2 text-start font-medium'>
-                          Số lô
-                        </th>
-                        <th className='px-3 py-2 text-start font-medium'>
-                          Hạn sử dụng
-                        </th>
-                        <th className='px-3 py-2 text-end font-medium'>
-                          Tồn hệ thống
-                        </th>
-                        <th className='px-3 py-2 text-end font-medium'>
-                          Thực đếm
-                        </th>
-                        <th className='px-3 py-2 text-end font-medium'>Lệch</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {batches.map((batch) => {
-                        const counted = counts[batch.id]
-                        const diff =
-                          counted === undefined
-                            ? null
-                            : counted - batch.qtyRemaining
+                <>
+                  <div className='grid gap-2 sm:hidden'>
+                    {batches.map((batch) => {
+                      const counted = counts[batch.id]
+                      const diff =
+                        counted === undefined
+                          ? null
+                          : counted - batch.qtyRemaining
+                      return (
+                        <div
+                          key={batch.id}
+                          className='space-y-2 rounded-md border p-3 text-sm'
+                        >
+                          <p className='font-medium'>Lô {batch.batchNo}</p>
+                          <p>
+                            Hạn sử dụng: <ExpiryBadge date={batch.expiryDate} />
+                          </p>
+                          <p>
+                            Tồn hệ thống: {formatNumber(batch.qtyRemaining)}
+                          </p>
+                          <label className='block space-y-1'>
+                            <span>Thực đếm</span>
+                            <Input
+                              type='number'
+                              min={0}
+                              className='h-8 w-full'
+                              placeholder={String(batch.qtyRemaining)}
+                              value={counted ?? ''}
+                              onChange={(event) =>
+                                setCounts((previous) => {
+                                  const next = { ...previous }
+                                  if (event.target.value === '')
+                                    delete next[batch.id]
+                                  else
+                                    next[batch.id] = Number(event.target.value)
+                                  return next
+                                })
+                              }
+                            />
+                          </label>
+                          <p>
+                            Lệch:{' '}
+                            {diff === null
+                              ? '—'
+                              : diff > 0
+                                ? `+${formatNumber(diff)}`
+                                : formatNumber(diff)}
+                          </p>
+                        </div>
+                      )
+                    })}
+                  </div>
+                  <div className='hidden overflow-x-auto rounded-md border sm:block'>
+                    <table className='w-full text-sm'>
+                      <thead className='bg-muted/50 text-xs text-muted-foreground'>
+                        <tr>
+                          <th className='px-3 py-2 text-start font-medium'>
+                            Số lô
+                          </th>
+                          <th className='px-3 py-2 text-start font-medium'>
+                            Hạn sử dụng
+                          </th>
+                          <th className='px-3 py-2 text-end font-medium'>
+                            Tồn hệ thống
+                          </th>
+                          <th className='px-3 py-2 text-end font-medium'>
+                            Thực đếm
+                          </th>
+                          <th className='px-3 py-2 text-end font-medium'>
+                            Lệch
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {batches.map((batch) => {
+                          const counted = counts[batch.id]
+                          const diff =
+                            counted === undefined
+                              ? null
+                              : counted - batch.qtyRemaining
 
-                        return (
-                          <tr key={batch.id} className='border-t'>
-                            <td className='px-3 py-2 font-mono text-xs'>
-                              {batch.batchNo}
-                            </td>
-                            <td className='px-3 py-2'>
-                              <ExpiryBadge date={batch.expiryDate} />
-                            </td>
-                            <td className='px-3 py-2 text-end tabular-nums'>
-                              {formatNumber(batch.qtyRemaining)}
-                            </td>
-                            <td className='px-3 py-2 text-end'>
-                              <Input
-                                type='number'
-                                min={0}
-                                className='ms-auto h-8 w-24 text-end'
-                                placeholder={String(batch.qtyRemaining)}
-                                value={counted ?? ''}
-                                onChange={(e) =>
-                                  setCounts((prev) => {
-                                    const next = { ...prev }
-                                    if (e.target.value === '') {
-                                      delete next[batch.id]
-                                    } else {
-                                      next[batch.id] = Number(e.target.value)
-                                    }
-                                    return next
-                                  })
-                                }
-                              />
-                            </td>
-                            <td
-                              className={cn(
-                                'px-3 py-2 text-end font-medium tabular-nums',
-                                diff === null || diff === 0
-                                  ? 'text-muted-foreground'
+                          return (
+                            <tr key={batch.id} className='border-t'>
+                              <td className='px-3 py-2 font-mono text-xs'>
+                                {batch.batchNo}
+                              </td>
+                              <td className='px-3 py-2'>
+                                <ExpiryBadge date={batch.expiryDate} />
+                              </td>
+                              <td className='px-3 py-2 text-end tabular-nums'>
+                                {formatNumber(batch.qtyRemaining)}
+                              </td>
+                              <td className='px-3 py-2 text-end'>
+                                <Input
+                                  type='number'
+                                  min={0}
+                                  className='ms-auto h-8 w-24 text-end'
+                                  placeholder={String(batch.qtyRemaining)}
+                                  value={counted ?? ''}
+                                  onChange={(e) =>
+                                    setCounts((prev) => {
+                                      const next = { ...prev }
+                                      if (e.target.value === '') {
+                                        delete next[batch.id]
+                                      } else {
+                                        next[batch.id] = Number(e.target.value)
+                                      }
+                                      return next
+                                    })
+                                  }
+                                />
+                              </td>
+                              <td
+                                className={cn(
+                                  'px-3 py-2 text-end font-medium tabular-nums',
+                                  diff === null || diff === 0
+                                    ? 'text-muted-foreground'
+                                    : diff > 0
+                                      ? 'text-emerald-600 dark:text-emerald-400'
+                                      : 'text-red-600 dark:text-red-400'
+                                )}
+                              >
+                                {diff === null
+                                  ? '—'
                                   : diff > 0
-                                    ? 'text-emerald-600 dark:text-emerald-400'
-                                    : 'text-red-600 dark:text-red-400'
-                              )}
-                            >
-                              {diff === null
-                                ? '—'
-                                : diff > 0
-                                  ? `+${formatNumber(diff)}`
-                                  : formatNumber(diff)}
-                            </td>
-                          </tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
-                </div>
+                                    ? `+${formatNumber(diff)}`
+                                    : formatNumber(diff)}
+                              </td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
               )}
             </div>
           )}
