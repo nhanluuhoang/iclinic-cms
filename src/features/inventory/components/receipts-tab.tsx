@@ -1,21 +1,62 @@
 import { useQuery } from '@tanstack/react-query'
 import { type ColumnDef, type Row } from '@tanstack/react-table'
 import { ChevronDown, ChevronRight } from 'lucide-react'
+import { useApiSearch } from '@/hooks/use-api-search'
 import { Button } from '@/components/ui/button'
 import { DataTableColumnHeader } from '@/components/data-table'
-import { GetReceipts, type GoodsReceipt } from '../api'
+import { UrlDataTable } from '@/components/data-table/url-data-table'
+import { GetReceipt, GetReceipts, type GoodsReceiptSummary } from '../api'
 import { formatDate, formatMoney, formatNumber } from '../utils'
 import { ExpiryBadge } from './expiry-badge'
-import { InventoryTable } from './inventory-table'
 
-function ReceiptLines({ row }: { row: Row<GoodsReceipt> }) {
+function ReceiptLines({ row }: { row: Row<GoodsReceiptSummary> }) {
+  const {
+    data: receipt,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ['inventory', 'receipt', row.original.id],
+    queryFn: () => GetReceipt(row.original.id),
+  })
+
+  if (isLoading) {
+    return <div className='px-4 py-6 text-sm'>Đang tải chi tiết...</div>
+  }
+
+  if (isError || !receipt) {
+    return (
+      <div className='px-4 py-6 text-sm text-destructive'>
+        Không thể tải chi tiết phiếu nhập.
+      </div>
+    )
+  }
+
   return (
     <div className='px-4 py-3'>
       <p className='mb-2 text-xs font-medium text-muted-foreground'>
-        {row.original.lines.length} dòng — mỗi dòng tạo ra một lô riêng trong
-        kho
+        {receipt.lines.length} dòng — tổng {formatNumber(receipt.totalQty)} ·{' '}
+        {formatMoney(receipt.totalAmount)}
       </p>
-      <div className='overflow-x-auto'>
+      <div className='grid gap-2 sm:hidden'>
+        {receipt.lines.map((line) => (
+          <div
+            key={line.batchId}
+            className='space-y-1 rounded-md border p-3 text-sm'
+          >
+            <p className='font-medium'>{line.medicineName}</p>
+            <p>Số lô: {line.batchNo}</p>
+            <p>
+              Hạn dùng: <ExpiryBadge date={line.expiryDate} />
+            </p>
+            <p>
+              Số lượng: {formatNumber(line.qty)} {line.unit}
+            </p>
+            <p>Đơn giá: {formatMoney(line.unitCost)}</p>
+            <p>Thành tiền: {formatMoney(line.amount)}</p>
+          </div>
+        ))}
+      </div>
+      <div className='hidden overflow-x-auto sm:block'>
         <table className='w-full text-sm'>
           <thead className='text-xs text-muted-foreground'>
             <tr className='border-b'>
@@ -28,7 +69,7 @@ function ReceiptLines({ row }: { row: Row<GoodsReceipt> }) {
             </tr>
           </thead>
           <tbody>
-            {row.original.lines.map((line) => (
+            {receipt.lines.map((line) => (
               <tr key={line.batchId} className='border-b last:border-0'>
                 <td className='py-1.5 pe-4'>
                   <span className='font-medium'>{line.medicineName}</span>
@@ -60,7 +101,7 @@ function ReceiptLines({ row }: { row: Row<GoodsReceipt> }) {
   )
 }
 
-const columns: ColumnDef<GoodsReceipt>[] = [
+const columns: ColumnDef<GoodsReceiptSummary>[] = [
   {
     id: 'expander',
     header: () => null,
@@ -119,57 +160,32 @@ const columns: ColumnDef<GoodsReceipt>[] = [
   },
   {
     id: 'lineCount',
-    accessorFn: (row) => row.lines.length,
+    accessorKey: 'lineCount',
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title='Số lô' />
     ),
     cell: ({ row }) => (
-      <span className='tabular-nums'>{row.original.lines.length}</span>
-    ),
-    meta: { className: 'text-end', tdClassName: 'text-end' },
-  },
-  {
-    accessorKey: 'totalQty',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Tổng SL' />
-    ),
-    cell: ({ row }) => (
-      <span className='tabular-nums'>
-        {formatNumber(row.original.totalQty)}
-      </span>
-    ),
-    meta: { className: 'text-end', tdClassName: 'text-end' },
-  },
-  {
-    accessorKey: 'totalAmount',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Giá trị' />
-    ),
-    cell: ({ row }) => (
-      <span className='font-medium tabular-nums'>
-        {formatMoney(row.original.totalAmount)}
-      </span>
+      <span className='tabular-nums'>{row.original.lineCount}</span>
     ),
     meta: { className: 'text-end', tdClassName: 'text-end' },
   },
 ]
 
 export function ReceiptsTab() {
+  const search = useApiSearch()
   const { data, isLoading } = useQuery({
-    queryKey: ['inventory', 'receipts'],
-    queryFn: GetReceipts,
+    queryKey: ['inventory', 'receipts', search],
+    queryFn: () => GetReceipts(search),
   })
 
   return (
-    <InventoryTable
+    <UrlDataTable
       columns={columns}
       data={data ?? []}
       isLoading={isLoading}
       searchPlaceholder='Tìm theo mã phiếu, nhà cung cấp, số hoá đơn...'
       emptyMessage='Chưa có phiếu nhập nào.'
-      getSearchText={(r) =>
-        `${r.code} ${r.supplierName} ${r.invoiceNo} ${r.lines.map((l) => `${l.medicineName} ${l.batchNo}`).join(' ')}`
-      }
+      getSearchText={(r) => `${r.code} ${r.supplierName} ${r.invoiceNo}`}
       initialSorting={[{ id: 'receivedAt', desc: true }]}
       renderSubRow={(row) => <ReceiptLines row={row} />}
     />

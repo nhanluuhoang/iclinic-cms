@@ -1,14 +1,16 @@
+import { useEffect } from 'react'
+import { useMutation } from '@tanstack/react-query'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 import { z } from 'zod'
-import { useFieldArray, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Link } from '@tanstack/react-router'
-import { showSubmittedData } from '@/lib/show-submitted-data'
-import { cn } from '@/lib/utils'
+import { UpdateProfile } from '@/features/auth/api'
+import { useAuthStore } from '@/stores/auth-store'
+import { DatePickerInput } from '@/components/date-picker-input'
 import { Button } from '@/components/ui/button'
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -24,153 +26,214 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 
-const profileFormSchema = z.object({
-  username: z
-    .string('Please enter your username.')
-    .min(2, 'Username must be at least 2 characters.')
-    .max(30, 'Username must not be longer than 30 characters.'),
-  email: z.email({
-    error: (iss) =>
-      iss.input === undefined
-        ? 'Please select an email to display.'
-        : undefined,
-  }),
-  bio: z.string().max(160).min(4),
-  urls: z
-    .array(
-      z.object({
-        value: z.url('Please enter a valid URL.'),
+const profileFormSchema = z
+  .object({
+    fullName: z.string().trim().min(1, 'Vui lòng nhập họ tên').max(255),
+    email: z.string().trim().max(255),
+    phone: z.string().trim().max(20),
+    gender: z.enum(['0', '1', '2']),
+    dateOfBirth: z.string(),
+    address: z.string().trim().max(255),
+    note: z.string().trim().max(255),
+  })
+  .superRefine((values, context) => {
+    if (values.email && !z.email().safeParse(values.email).success) {
+      context.addIssue({
+        code: 'custom',
+        path: ['email'],
+        message: 'Email không hợp lệ',
       })
-    )
-    .optional(),
-})
+    }
+    if (
+      values.dateOfBirth &&
+      values.dateOfBirth > new Date().toISOString().slice(0, 10)
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['dateOfBirth'],
+        message: 'Ngày sinh không thể ở tương lai',
+      })
+    }
+  })
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>
 
-// This can come from your database or API.
-const defaultValues: Partial<ProfileFormValues> = {
-  bio: 'I own a computer.',
-  urls: [
-    { value: 'https://shadcn.com' },
-    { value: 'http://twitter.com/shadcn' },
-  ],
+const emptyValues: ProfileFormValues = {
+  fullName: '',
+  email: '',
+  phone: '',
+  gender: '0',
+  dateOfBirth: '',
+  address: '',
+  note: '',
 }
 
 export function ProfileForm() {
+  const user = useAuthStore((state) => state.auth.user)
+  const setUser = useAuthStore((state) => state.auth.setUser)
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
-    defaultValues,
-    mode: 'onChange',
+    defaultValues: emptyValues,
   })
 
-  const { fields, append } = useFieldArray({
-    name: 'urls',
-    control: form.control,
+  useEffect(() => {
+    if (!user) return
+    form.reset({
+      fullName: user.fullName ?? '',
+      email: user.email ?? '',
+      phone: user.phone ?? '',
+      gender:
+        user.gender === '1' || user.gender === '2' ? user.gender : '0',
+      dateOfBirth: user.dateOfBirth?.slice(0, 10) ?? '',
+      address: user.address ?? '',
+      note: user.note ?? '',
+    })
+  }, [form, user])
+
+  const updateProfile = useMutation({
+    mutationFn: (values: ProfileFormValues) =>
+      UpdateProfile({
+        fullName: values.fullName.trim(),
+        email: values.email.trim() || null,
+        phone: values.phone.trim() || null,
+        gender: values.gender === '0' ? null : values.gender,
+        dateOfBirth: values.dateOfBirth || null,
+        address: values.address.trim() || null,
+        note: values.note.trim() || null,
+      }),
+    onSuccess: ({ data }) => {
+      setUser(data)
+      toast.success('Đã cập nhật hồ sơ')
+    },
+    onError: () => toast.error('Không thể cập nhật hồ sơ'),
   })
 
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit((data) => showSubmittedData(data))}
-        className='space-y-8'
+        onSubmit={form.handleSubmit((values) => updateProfile.mutate(values))}
+        className='space-y-6'
       >
+        <FormItem>
+          <FormLabel>Tên đăng nhập</FormLabel>
+          <FormControl>
+            <Input value={user?.userName ?? ''} disabled />
+          </FormControl>
+        </FormItem>
+
         <FormField
           control={form.control}
-          name='username'
+          name='fullName'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Username</FormLabel>
+              <FormLabel>Họ tên</FormLabel>
               <FormControl>
-                <Input placeholder='shadcn' {...field} />
+                <Input {...field} placeholder='Nguyễn Văn A' />
               </FormControl>
-              <FormDescription>
-                This is your public display name. It can be your real name or a
-                pseudonym. You can only change this once every 30 days.
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
-        <FormField
-          control={form.control}
-          name='email'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+
+        <div className='grid gap-4 sm:grid-cols-2'>
+          <FormField
+            control={form.control}
+            name='email'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder='Select a verified email to display' />
-                  </SelectTrigger>
+                  <Input {...field} type='email' placeholder='a@example.com' />
                 </FormControl>
-                <SelectContent>
-                  <SelectItem value='m@example.com'>m@example.com</SelectItem>
-                  <SelectItem value='m@google.com'>m@google.com</SelectItem>
-                  <SelectItem value='m@support.com'>m@support.com</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormDescription>
-                You can manage verified email addresses in your{' '}
-                <Link to='/'>email settings</Link>.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name='phone'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Số điện thoại</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder='0901234567' />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className='grid gap-4 sm:grid-cols-2'>
+          <FormField
+            control={form.control}
+            name='gender'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Giới tính</FormLabel>
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder='Chọn giới tính' />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value='0'>Không xác định</SelectItem>
+                    <SelectItem value='1'>Nam</SelectItem>
+                    <SelectItem value='2'>Nữ</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name='dateOfBirth'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Ngày sinh</FormLabel>
+                <DatePickerInput value={field.value} onChange={field.onChange} />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
         <FormField
           control={form.control}
-          name='bio'
+          name='address'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Bio</FormLabel>
+              <FormLabel>Địa chỉ</FormLabel>
               <FormControl>
-                <Textarea
-                  placeholder='Tell us a little bit about yourself'
-                  className='resize-none'
+                <Input
                   {...field}
+                  placeholder='Số nhà, đường, phường/xã, tỉnh/thành'
                 />
               </FormControl>
-              <FormDescription>
-                You can <span>@mention</span> other users and organizations to
-                link to them.
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
-        <div>
-          {fields.map((field, index) => (
-            <FormField
-              control={form.control}
-              key={field.id}
-              name={`urls.${index}.value`}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className={cn(index !== 0 && 'sr-only')}>
-                    URLs
-                  </FormLabel>
-                  <FormDescription className={cn(index !== 0 && 'sr-only')}>
-                    Add links to your website, blog, or social media profiles.
-                  </FormDescription>
-                  <FormControl className={cn(index !== 0 && 'mt-1.5')}>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          ))}
-          <Button
-            type='button'
-            variant='outline'
-            size='sm'
-            className='mt-2'
-            onClick={() => append({ value: '' })}
-          >
-            Add URL
-          </Button>
-        </div>
-        <Button type='submit'>Update profile</Button>
+
+        <FormField
+          control={form.control}
+          name='note'
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Ghi chú</FormLabel>
+              <FormControl>
+                <Textarea {...field} className='resize-none' maxLength={255} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <Button type='submit' disabled={updateProfile.isPending}>
+          {updateProfile.isPending ? 'Đang lưu...' : 'Lưu thay đổi'}
+        </Button>
       </form>
     </Form>
   )

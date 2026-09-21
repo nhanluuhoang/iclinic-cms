@@ -3,6 +3,7 @@ import Axios, {
   type InternalAxiosRequestConfig,
 } from 'axios'
 import { API_URL } from '@/config'
+import { getCookie } from '@/lib/cookies'
 
 const authRequestInterceptor = (
   config: InternalAxiosRequestConfig
@@ -11,6 +12,11 @@ const authRequestInterceptor = (
 
   if (!config.headers['Content-Type'])
     config.headers['Content-Type'] = 'application/json'
+
+  const csrfToken = getCookie('x-csrf-token')
+  if (csrfToken) {
+    config.headers['x-csrf-token'] = decodeURIComponent(csrfToken)
+  }
 
   return config
 }

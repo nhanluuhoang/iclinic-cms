@@ -1,3 +1,5 @@
+import { type MedicineGroup } from '@/features/medicines/api/types'
+
 /**
  * Kho thuốc — mô hình dữ liệu.
  *
@@ -7,30 +9,7 @@
  * được HSD. Tồn theo thuốc (`StockSummary`) là số liệu tổng hợp từ các lô.
  */
 
-export type MedicineGroup =
-  | 'antibiotic'
-  | 'analgesic'
-  | 'vitamin'
-  | 'cardio'
-  | 'digestive'
-  | 'respiratory'
-  | 'other'
-
 export type ExpiryStatus = 'expired' | 'critical' | 'warning' | 'ok'
-
-export interface Medicine {
-  id: string
-  code: string
-  name: string
-  activeIngredient: string
-  strength: string
-  unit: string
-  group: MedicineGroup
-  manufacturer: string
-  /** Định mức tồn tối thiểu, dưới mức này thì cảnh báo cần nhập thêm. */
-  minStock: number
-  isActive: boolean
-}
 
 /** Một đợt nhập hàng của một thuốc. Đơn vị tồn kho thật sự. */
 export interface StockBatch {
@@ -46,12 +25,18 @@ export interface StockBatch {
   qtyReceived: number
   qtyRemaining: number
   unitCost: number
+  note: string
   /** Truy ngược về phiếu nhập đã tạo ra lô này. */
   receiptId: string
   receiptCode: string
   supplierName: string
   receivedAt: string
 }
+
+export type StockBatchUpdateInput = Pick<
+  StockBatch,
+  'batchNo' | 'mfgDate' | 'expiryDate' | 'note'
+>
 
 /** Tồn kho tổng hợp theo thuốc, kèm danh sách lô để xem chi tiết. */
 export interface StockSummary {
@@ -103,12 +88,63 @@ export interface GoodsReceipt {
   totalAmount: number
 }
 
+export interface GoodsReceiptSummary {
+  id: string
+  code: string
+  supplierName: string
+  invoiceNo: string
+  receivedAt: string
+  note: string
+  lineCount: number
+}
+
 export interface GoodsReceiptInput {
   supplierName: string
   invoiceNo: string
   receivedAt: string
   note: string
   lines: GoodsReceiptLineInput[]
+}
+
+export interface GoodsIssueLine {
+  batchId: string
+  batchNo: string
+  medicineCode: string
+  medicineName: string
+  unit: string
+  quantity: number
+}
+
+export interface GoodsIssue {
+  id: string
+  code: string
+  userId?: string
+  prescriptionId?: string
+  recipientName: string
+  issuedAt: string
+  note: string
+  lines: GoodsIssueLine[]
+  totalQty: number
+}
+
+export interface GoodsIssueSummary {
+  id: string
+  code: string
+  userId?: string
+  prescriptionId?: string
+  recipientName: string
+  issuedAt: string
+  note: string
+  lineCount: number
+}
+
+export interface GoodsIssueInput {
+  userId?: string
+  prescriptionId?: string
+  recipientName: string
+  issuedAt: string
+  note: string
+  lines: Array<{ batchId: string; quantity: number }>
 }
 
 export interface StockTakeLine {
@@ -129,6 +165,14 @@ export interface StockTake {
   note: string
   lines: StockTakeLine[]
   totalDiff: number
+}
+
+export interface StockTakeSummary {
+  id: string
+  code: string
+  countedAt: string
+  note: string
+  lineCount: number
 }
 
 export interface StockTakeInput {

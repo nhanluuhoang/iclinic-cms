@@ -2,19 +2,19 @@ import { useQuery } from '@tanstack/react-query'
 import { type ColumnDef, type Row } from '@tanstack/react-table'
 import { ChevronDown, ChevronRight, TrendingDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useApiSearch } from '@/hooks/use-api-search'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { DataTableColumnHeader } from '@/components/data-table'
-import { GetStock, type StockSummary } from '../api'
+import { UrlDataTable } from '@/components/data-table/url-data-table'
 import {
-  expiryMeta,
-  expiryStatuses,
   medicineGroupLabel,
   medicineGroups,
-} from '../data/data'
+} from '@/features/medicines/data/data'
+import { GetStock, type StockSummary } from '../api'
+import { expiryMeta, expiryStatuses } from '../data/data'
 import { formatMoney, formatNumber } from '../utils'
 import { ExpiryBadge } from './expiry-badge'
-import { InventoryTable } from './inventory-table'
 
 function BatchBreakdown({ row }: { row: Row<StockSummary> }) {
   const { batches, unit } = row.original
@@ -25,7 +25,27 @@ function BatchBreakdown({ row }: { row: Row<StockSummary> }) {
         {batches.length} đợt nhập đang còn tồn — sắp theo hạn dùng, lô hết hạn
         sớm nhất lên đầu
       </p>
-      <div className='overflow-x-auto'>
+      <div className='grid gap-2 sm:hidden'>
+        {batches.map((batch) => (
+          <div
+            key={batch.id}
+            className='space-y-1 rounded-md border p-3 text-sm'
+          >
+            <p className='font-medium'>Lô {batch.batchNo}</p>
+            <p>
+              Hạn dùng: <ExpiryBadge date={batch.expiryDate} />
+            </p>
+            <p>
+              Tồn: {formatNumber(batch.qtyRemaining)} {unit}
+            </p>
+            <p>Đã nhập: {formatNumber(batch.qtyReceived)}</p>
+            <p>Giá nhập: {formatMoney(batch.unitCost)}</p>
+            <p>Phiếu nhập: {batch.receiptCode}</p>
+            <p>Nhà cung cấp: {batch.supplierName}</p>
+          </div>
+        ))}
+      </div>
+      <div className='hidden overflow-x-auto sm:block'>
         <table className='w-full text-sm'>
           <thead className='text-xs text-muted-foreground'>
             <tr className='border-b'>
@@ -195,18 +215,20 @@ const columns: ColumnDef<StockSummary>[] = [
 ]
 
 export function StockTab() {
+  const search = useApiSearch()
   const { data, isLoading } = useQuery({
-    queryKey: ['inventory', 'stock'],
-    queryFn: GetStock,
+    queryKey: ['inventory', 'stock', search],
+    queryFn: () => GetStock(search),
   })
 
   return (
-    <InventoryTable
+    <UrlDataTable
       columns={columns}
       data={data ?? []}
       isLoading={isLoading}
       searchPlaceholder='Tìm theo tên thuốc, mã, nhà sản xuất...'
       emptyMessage='Chưa có thuốc nào trong kho.'
+      mobileLabels={{ name: 'mobileTable.context.stockMedicine' }}
       getSearchText={(s) => `${s.name} ${s.code} ${s.manufacturer}`}
       renderSubRow={(row) => <BatchBreakdown row={row} />}
       filters={[

@@ -1,6 +1,6 @@
 {
   "auth": {
-    "appName": "CMS",
+    "appName": "iClinic",
     "appDescription": "Management System",
     "signIn": "Sign in",
     "signInDescription": "Enter your email and password below to log into your account",
@@ -16,5 +16,62 @@
   },
   "language": {
     "switch": "Switch language"
+  },
+  "mobileTable": {
+    "loading": "Loading...",
+    "empty": "No data.",
+    "context": {
+      "medicineName": "Medicine name",
+      "stockMedicine": "Medicine",
+      "templateName": "Template name"
+    },
+    "columns": {
+      "address": "Address",
+      "batchCount": "Batch count",
+      "batchNo": "Batch number",
+      "code": "Code",
+      "countedAt": "Counted at",
+      "createdAt": "Created at",
+      "dateOfBirth": "Date of birth",
+      "diagnosis": "Diagnosis",
+      "doctorName": "Doctor",
+      "email": "Email",
+      "expiryDate": "Expiry date",
+      "expiryStatus": "Expiry status",
+      "excerpt": "Description",
+      "fullName": "Full name",
+      "gender": "Gender",
+      "group": "Group",
+      "isPublished": "Status",
+      "issuedAt": "Issued at",
+      "itemCount": "Item count",
+      "key": "Key",
+      "lineCount": "Line count",
+      "manufacturer": "Manufacturer",
+      "medicineCount": "Medicine count",
+      "medicineName": "Medicine",
+      "medicines": "Medicines in template",
+      "minStock": "Minimum stock",
+      "name": "Name",
+      "nearestExpiry": "Nearest expiry",
+      "note": "Note",
+      "patientName": "Patient",
+      "phone": "Phone",
+      "qtyReceived": "Quantity received",
+      "qtyRemaining": "Remaining",
+      "receiptCode": "Receipt code",
+      "receivedAt": "Received at",
+      "recipientName": "Recipient",
+      "salePrice": "Sale price",
+      "stockValue": "Stock value",
+      "strength": "Strength",
+      "supplierName": "Supplier",
+      "thumbnailUrl": "Thumbnail",
+      "title": "Title",
+      "totalQty": "Stock quantity",
+      "unit": "Unit",
+      "unitCost": "Unit cost",
+      "value": "Value"
+    }
   }
 }

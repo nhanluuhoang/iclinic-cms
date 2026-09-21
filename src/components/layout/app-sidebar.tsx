@@ -1,4 +1,5 @@
 import { useAuthStore } from '@/stores/auth-store'
+import { hasAnyRole } from '@/config/access-control'
 import { useLayout } from '@/context/layout-provider'
 import {
   Sidebar,
@@ -17,12 +18,7 @@ export function AppSidebar() {
   const { collapsible, variant } = useLayout()
   const { user } = useAuthStore((state) => state.auth)
 
-  const userRoles = user?.role || []
-
-  const checkRole = (roles?: string[]) => {
-    if (!roles || roles.length === 0) return true
-    return roles.some((r) => userRoles.includes(r))
-  }
+  const checkRole = (roles?: string[]) => hasAnyRole(user?.role, roles)
 
   const filteredNavGroups = sidebarData.navGroups
     .map((group) => {
@@ -50,7 +46,7 @@ export function AppSidebar() {
     .filter((group): group is NavGroupType => group !== null)
 
   return (
-    <Sidebar collapsible={collapsible} variant={variant}>
+    <Sidebar collapsible={collapsible} variant={variant} data-tour='sidebar'>
       <SidebarHeader>
         <AppTitle />
       </SidebarHeader>
@@ -59,7 +55,7 @@ export function AppSidebar() {
           <NavGroup key={index} {...props} />
         ))}
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter data-tour='user-menu'>
         <NavUser user={sidebarData.user} />
       </SidebarFooter>
       <SidebarRail />

@@ -21,11 +21,11 @@ import { ResetPassword } from '@/features/auth/api'
 const formSchema = z.object({
   password: z
     .string()
-    .min(6, 'Please enter your password')
-    .max(255, 'Password is too long'),
+    .min(6, 'Mật khẩu phải có ít nhất 6 ký tự')
+    .max(255, 'Mật khẩu không được vượt quá 255 ký tự'),
   passwordConfirmation: z
     .string()
-    .min(1, 'Please enter your password confirmation'),
+    .min(1, 'Vui lòng nhập lại mật khẩu'),
 })
 
 interface ResetPasswordFormProps extends React.HTMLAttributes<HTMLFormElement> {
@@ -53,10 +53,10 @@ export function ResetPasswordForm({
     try {
       await ResetPassword({ ...data, token })
       navigate({ to: '/sign-in' })
-      toast.success('Password reset successfully')
+      toast.success('Đặt lại mật khẩu thành công')
     } catch {
       toast.error(
-        'Password reset failed. Please check your token and try again.'
+        'Đặt lại mật khẩu thất bại. Vui lòng kiểm tra liên kết và thử lại.'
       )
     } finally {
       setIsLoading(false)
@@ -75,7 +75,7 @@ export function ResetPasswordForm({
           name='password'
           render={({ field }) => (
             <FormItem className='relative'>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>Mật khẩu</FormLabel>
               <FormControl>
                 <PasswordInput placeholder='********' {...field} />
               </FormControl>
@@ -88,7 +88,7 @@ export function ResetPasswordForm({
           name='passwordConfirmation'
           render={({ field }) => (
             <FormItem className='relative'>
-              <FormLabel>Confirm Password</FormLabel>
+              <FormLabel>Nhập lại mật khẩu</FormLabel>
               <FormControl>
                 <PasswordInput placeholder='********' {...field} />
               </FormControl>
@@ -98,7 +98,7 @@ export function ResetPasswordForm({
         />
         <Button className='mt-2' disabled={isLoading}>
           {isLoading ? <Loader2 className='animate-spin' /> : <Save />}
-          Reset Password
+          Đặt lại mật khẩu
         </Button>
       </form>
     </Form>

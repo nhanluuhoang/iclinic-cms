@@ -67,7 +67,7 @@ function ToggleSidebar({
     >
       <X className='md:hidden' />
       <Menu className={cn('max-md:hidden', state === 'expanded' && 'hidden')} />
-      <span className='sr-only'>Toggle Sidebar</span>
+      <span className='sr-only'>Thu gọn hoặc mở thanh bên</span>
     </Button>
   )
 }

@@ -1,6 +1,8 @@
 import { DotsHorizontalIcon } from '@radix-ui/react-icons'
 import { type Row } from '@tanstack/react-table'
-import { Edit, Trash } from 'lucide-react'
+import { ClipboardList, Edit, FileClock, Trash } from 'lucide-react'
+import { useAuthStore } from '@/stores/auth-store'
+import { hasAnyRole, USER_ROLES } from '@/config/access-control'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -16,6 +18,8 @@ import { usePatients } from './patients-provider'
 export function DataTableRowActions({ row }: { row: Row<Patient> }) {
   const patient = row.original
   const { setOpen, setCurrentRow } = usePatients()
+  const role = useAuthStore((state) => state.auth.user?.role)
+  const canPrescribe = hasAnyRole(role, [USER_ROLES.DOCTOR])
 
   return (
     <DropdownMenu>
@@ -38,6 +42,30 @@ export function DataTableRowActions({ row }: { row: Row<Patient> }) {
           Sửa
           <DropdownMenuShortcut>
             <Edit size={16} />
+          </DropdownMenuShortcut>
+        </DropdownMenuItem>
+        {canPrescribe && (
+          <DropdownMenuItem
+            onClick={() => {
+              setCurrentRow(patient)
+              setOpen('prescription')
+            }}
+          >
+            Kê toa
+            <DropdownMenuShortcut>
+              <ClipboardList size={16} />
+            </DropdownMenuShortcut>
+          </DropdownMenuItem>
+        )}
+        <DropdownMenuItem
+          onClick={() => {
+            setCurrentRow(patient)
+            setOpen('history')
+          }}
+        >
+          Lịch sử khám
+          <DropdownMenuShortcut>
+            <FileClock size={16} />
           </DropdownMenuShortcut>
         </DropdownMenuItem>
         <DropdownMenuSeparator />

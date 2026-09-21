@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
-import { LanguageSwitcher } from '@/components/language-switcher'
+// import { LanguageSwitcher } from '@/components/language-switcher'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
@@ -23,8 +23,6 @@ export function Patients() {
       GetPatients({
         page: search.page ?? 1,
         pageSize: search.pageSize ?? 10,
-        // Rỗng thì để undefined chứ không gửi '': axios bỏ hẳn param undefined,
-        // còn '' vẫn thành `?gender=` và backend có thể hiểu là đang lọc.
         fullName: search.fullName || undefined,
         phone: search.phone || undefined,
         gender: search.gender || undefined,
@@ -36,7 +34,7 @@ export function Patients() {
     <PatientsProvider>
       <Header fixed>
         <div className='ms-auto flex items-center space-x-4'>
-          <LanguageSwitcher />
+          {/* <LanguageSwitcher /> */}
           <ThemeSwitch />
           <ProfileDropdown />
         </div>

@@ -2,7 +2,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { DeletePost } from '@/features/posts/api'
-import { PostsMutateDrawer } from '@/features/posts/components/posts-mutate-drawer'
+import { PostsMutateDialog } from '@/features/posts/components/posts-mutate-dialog'
 import { usePosts } from '@/features/posts/components/posts-provider'
 
 export function PostsDialogs() {
@@ -13,42 +13,63 @@ export function PostsDialogs() {
     if (!currentRow) return
     try {
       await DeletePost(currentRow.id)
-      toast.success('Post deleted successfully')
+      toast.success('Đã xóa bài viết')
       queryClient.invalidateQueries({ queryKey: ['posts'] })
       setOpen(null)
-      setCurrentRow(undefined)
+      setTimeout(() => setCurrentRow(undefined), 500)
     } catch (_error) {
-      toast.error('Failed to delete post')
+      toast.error('Không thể xóa bài viết')
     }
   }
 
   return (
     <>
-      <PostsMutateDrawer
-        key='post-mutate'
-        open={open === 'create' || open === 'update'}
+      <PostsMutateDialog
+        key='post-create'
+        open={open === 'create'}
         onOpenChange={(v) => {
-          if (!v) {
-            setOpen(null)
-            setCurrentRow(undefined)
-          }
+          if (!v) setOpen(null)
         }}
-        currentRow={currentRow}
       />
 
-      <ConfirmDialog
-        key='post-delete'
-        open={open === 'delete'}
-        onOpenChange={(v: boolean) => {
-          if (!v) {
-            setOpen(null)
-            setCurrentRow(undefined)
-          }
-        }}
-        title='Delete Post'
-        desc='Are you sure you want to delete this post? This action cannot be undone.'
-        handleConfirm={handleDelete}
-      />
+      {currentRow && (
+        <>
+          <PostsMutateDialog
+            key={`post-update-${currentRow.id}`}
+            open={open === 'update'}
+            onOpenChange={(v) => {
+              if (!v) {
+                setOpen(null)
+                setTimeout(() => setCurrentRow(undefined), 500)
+              }
+            }}
+            currentRow={currentRow}
+          />
+
+          <ConfirmDialog
+            key='post-delete'
+            destructive
+            open={open === 'delete'}
+            onOpenChange={(v: boolean) => {
+              if (!v) {
+                setOpen(null)
+                setTimeout(() => setCurrentRow(undefined), 500)
+              }
+            }}
+            className='max-w-md'
+            title={`Xóa bài viết: ${currentRow.title}?`}
+            desc={
+              <>
+                Bạn sắp xóa bài viết <strong>{currentRow.title}</strong>.
+                <br />
+                Thao tác này không thể hoàn tác.
+              </>
+            }
+            confirmText='Xóa'
+            handleConfirm={handleDelete}
+          />
+        </>
+      )}
     </>
   )
 }

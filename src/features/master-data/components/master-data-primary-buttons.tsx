@@ -8,7 +8,7 @@ export function MasterDataPrimaryButtons() {
     <div className='flex gap-2'>
       <Button className='gap-2' onClick={() => setOpen('create')}>
         <Plus size={18} />
-        <span>Create</span>
+        <span>Tạo mới</span>
       </Button>
     </div>
   )

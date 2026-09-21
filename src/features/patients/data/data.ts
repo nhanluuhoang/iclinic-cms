@@ -1,14 +1,9 @@
-/**
- * Giới tính lưu dạng số (Prisma: `gender Int? @db.SmallInt`).
- * Bộ giá trị 1/2/3 lấy theo đúng cái bảng Admins đang dùng để không lệch nhau.
- */
 export const genders = [
-  { label: 'Nam', value: 1 },
-  { label: 'Nữ', value: 2 },
-  { label: 'Khác', value: 3 },
-]
+  { label: 'Nam', value: '1' },
+  { label: 'Nữ', value: '2' },
+] as const
 
-export const genderLabel = (value?: number | null) =>
+export const genderLabel = (value?: string | null) =>
   genders.find((g) => g.value === value)?.label ?? '—'
 
 /**

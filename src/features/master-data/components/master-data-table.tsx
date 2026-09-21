@@ -15,7 +15,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
+import {
+  DataTablePagination,
+  DataTableToolbar,
+  MobileDataCards,
+} from '@/components/data-table'
 import { type MasterData } from '../api'
 import { columns } from './master-data-columns'
 
@@ -89,9 +93,14 @@ export function MasterDataTable({
       <DataTableToolbar
         table={table}
         showSearch={true}
-        searchPlaceholder='Search by key...'
+        searchPlaceholder='Tìm theo khóa...'
       />
-      <div className='overflow-hidden rounded-md border text-nowrap'>
+      <MobileDataCards
+        table={table}
+        isLoading={isLoading}
+        emptyMessage='Không có kết quả.'
+      />
+      <div className='hidden overflow-hidden rounded-md border text-nowrap sm:block'>
         <Table className='min-w-xl'>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -118,7 +127,7 @@ export function MasterDataTable({
                   colSpan={columns.length}
                   className='h-24 text-center'
                 >
-                  Loading...
+                  Đang tải...
                 </TableCell>
               </TableRow>
             ) : table.getRowModel().rows?.length ? (
@@ -143,7 +152,7 @@ export function MasterDataTable({
                   colSpan={columns.length}
                   className='h-24 text-center'
                 >
-                  No results.
+                  Không có kết quả.
                 </TableCell>
               </TableRow>
             )}

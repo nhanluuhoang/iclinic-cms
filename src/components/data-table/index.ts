@@ -1,3 +1,4 @@
 export { DataTablePagination } from './pagination'
 export { DataTableColumnHeader } from './column-header'
 export { DataTableToolbar } from './toolbar'
+export { MobileDataCards } from './mobile-cards'

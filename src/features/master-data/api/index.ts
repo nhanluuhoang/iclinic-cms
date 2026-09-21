@@ -11,11 +11,6 @@ export interface MasterDataDtoRequest {
   value: string
 }
 
-export interface MasterDataResponse {
-  status: boolean
-  data: MasterData
-}
-
 export interface MasterDatasResponse {
   status: boolean
   data: MasterData[]
@@ -38,10 +33,6 @@ const GetMasterDatas = (
   return axios.get('/master-data', { params })
 }
 
-const GetMasterData = (id: string): Promise<MasterDataResponse> => {
-  return axios.get(`/master-data/${id}`)
-}
-
 const UpdateMasterData = (
   id: string,
   data: MasterDataDtoRequest
@@ -56,7 +47,6 @@ const DeleteMasterData = (id: string): Promise<void> => {
 export {
   CreateMasterData,
   GetMasterDatas,
-  GetMasterData,
   UpdateMasterData,
   DeleteMasterData,
 }

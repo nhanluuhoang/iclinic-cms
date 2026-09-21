@@ -1,15 +1,20 @@
 import { axios } from '@/lib/axios'
+import { GetMedicines, type Medicine } from '@/features/medicines/api'
 import { isExpired, worstExpiryStatus } from '../utils'
 import {
   type GoodsReceipt,
   type GoodsReceiptInput,
+  type GoodsReceiptSummary,
+  type GoodsIssue,
+  type GoodsIssueInput,
+  type GoodsIssueSummary,
   type InventoryStats,
-  type Medicine,
-  type MedicineGroup,
   type StockBatch,
+  type StockBatchUpdateInput,
   type StockSummary,
   type StockTake,
   type StockTakeInput,
+  type StockTakeSummary,
 } from './types'
 
 interface Page<T> {
@@ -17,9 +22,6 @@ interface Page<T> {
   total: number
   page: number
   limit: number
-}
-interface ApiMedicine extends Omit<Medicine, 'group'> {
-  medicineGroup: MedicineGroup
 }
 interface ApiBatch {
   id: string
@@ -30,7 +32,8 @@ interface ApiBatch {
   qtyReceived: number
   qtyRemaining: number
   unitCost: number | string
-  medicine: ApiMedicine
+  note: string
+  medicine: Pick<Medicine, 'code' | 'name' | 'unit'>
   receiptLine: null | {
     receipt: {
       id: string
@@ -54,6 +57,15 @@ interface ApiReceipt {
     batch: ApiBatch
   }>
 }
+interface ApiReceiptSummary {
+  id: string
+  code: string
+  supplierName: string
+  invoiceNo: string
+  receivedAt: string
+  note: string
+  _count: { lines: number }
+}
 interface ApiStockTake {
   id: string
   code: string
@@ -67,30 +79,35 @@ interface ApiStockTake {
     batch: ApiBatch
   }>
 }
+interface ApiGoodsIssue {
+  id: string
+  code: string
+  userId?: string
+  prescriptionId?: string
+  recipientName: string
+  issuedAt: string
+  note: string
+  lines: Array<{ quantity: number; batch: ApiBatch }>
+}
 
 const generatedCode = (prefix: string) =>
   `${prefix}-${Date.now().toString(36).toUpperCase()}`
 
-const getAll = async <T>(url: string): Promise<T[]> => {
+const getAll = async <T>(url: string, search = ''): Promise<T[]> => {
   const first = await axios.get<unknown, Page<T>>(url, {
-    params: { page: 1, limit: 100 },
+    params: { page: 1, limit: 100, search: search || undefined },
   })
   if (first.data.length >= first.total) return first.data
   const pageCount = Math.ceil(first.total / 100)
   const rest = await Promise.all(
     Array.from({ length: pageCount - 1 }, (_, index) =>
       axios.get<unknown, Page<T>>(url, {
-        params: { page: index + 2, limit: 100 },
+        params: { page: index + 2, limit: 100, search: search || undefined },
       })
     )
   )
   return [...first.data, ...rest.flatMap((page) => page.data)]
 }
-
-const mapMedicine = (medicine: ApiMedicine): Medicine => ({
-  ...medicine,
-  group: medicine.medicineGroup,
-})
 
 const mapBatch = (batch: ApiBatch): StockBatch => ({
   id: batch.id,
@@ -104,41 +121,34 @@ const mapBatch = (batch: ApiBatch): StockBatch => ({
   qtyReceived: batch.qtyReceived,
   qtyRemaining: batch.qtyRemaining,
   unitCost: Number(batch.unitCost),
+  note: batch.note,
   receiptId: batch.receiptLine?.receipt.id ?? '',
   receiptCode: batch.receiptLine?.receipt.code ?? '',
   supplierName: batch.receiptLine?.receipt.supplierName ?? '',
   receivedAt: batch.receiptLine?.receipt.receivedAt ?? '',
 })
 
-const CreateMedicine = (data: Omit<Medicine, 'id' | 'code'>): Promise<void> =>
-  axios.post('/inventory/medicines', {
+const GetBatches = async (search = ''): Promise<StockBatch[]> =>
+  (await getAll<ApiBatch>('/stock-batches', search)).map(mapBatch)
+
+const SearchBatches = async (search: string): Promise<StockBatch[]> => {
+  const page = await axios.get<unknown, Page<ApiBatch>>('/stock-batches', {
+    params: { page: 1, limit: 50, search: search || undefined },
+  })
+  return page.data.map(mapBatch)
+}
+
+const UpdateBatch = (id: string, data: StockBatchUpdateInput): Promise<void> =>
+  axios.patch(`/stock-batches/${id}`, {
     ...data,
-    code: generatedCode('MED'),
-    medicineGroup: data.group,
-    group: undefined,
+    mfgDate: data.mfgDate || undefined,
   })
 
-const UpdateMedicine = (
-  id: string,
-  data: Omit<Medicine, 'id' | 'code'>
-): Promise<void> =>
-  axios.patch(`/inventory/medicines/${id}`, {
-    ...data,
-    medicineGroup: data.group,
-    group: undefined,
-  })
-
-const DeleteMedicine = (id: string): Promise<void> =>
-  axios.delete(`/inventory/medicines/${id}`)
-
-const GetMedicines = async (): Promise<Medicine[]> =>
-  (await getAll<ApiMedicine>('/inventory/medicines')).map(mapMedicine)
-
-const GetBatches = async (): Promise<StockBatch[]> =>
-  (await getAll<ApiBatch>('/inventory/stock-batches')).map(mapBatch)
-
-const GetStock = async (): Promise<StockSummary[]> => {
-  const [medicines, batches] = await Promise.all([GetMedicines(), GetBatches()])
+const GetStock = async (search = ''): Promise<StockSummary[]> => {
+  const [medicines, batches] = await Promise.all([
+    GetMedicines(search),
+    GetBatches(),
+  ])
   return medicines.map((medicine) => {
     const own = batches
       .filter(
@@ -192,43 +202,62 @@ const GetStats = async (): Promise<InventoryStats> => {
   }
 }
 
-const GetReceipts = async (): Promise<GoodsReceipt[]> => {
-  const summaries = await getAll<{ id: string }>('/inventory/goods-receipts')
-  const receipts = await Promise.all(
-    summaries.map(({ id }) =>
-      axios.get<unknown, ApiReceipt>(`/inventory/goods-receipts/${id}`)
-    )
-  )
-  return receipts.map((receipt) => {
-    const lines = receipt.lines.map(({ batch, qty, unitCost, amount }) => ({
-      medicineId: batch.medicineId,
-      medicineCode: batch.medicine.code,
-      medicineName: batch.medicine.name,
-      unit: batch.medicine.unit,
-      batchId: batch.id,
-      batchNo: batch.batchNo,
-      mfgDate: batch.mfgDate ?? '',
-      expiryDate: batch.expiryDate,
-      qty,
-      unitCost: Number(unitCost),
-      amount: Number(amount),
-    }))
-    return {
-      id: receipt.id,
-      code: receipt.code,
-      supplierName: receipt.supplierName,
-      invoiceNo: receipt.invoiceNo,
-      receivedAt: receipt.receivedAt,
-      note: receipt.note,
-      lines,
-      totalQty: lines.reduce((sum, line) => sum + line.qty, 0),
-      totalAmount: lines.reduce((sum, line) => sum + line.amount, 0),
-    }
-  })
+const mapReceipt = (receipt: ApiReceipt): GoodsReceipt => {
+  const lines = receipt.lines.map(({ batch, qty, unitCost, amount }) => ({
+    medicineId: batch.medicineId,
+    medicineCode: batch.medicine.code,
+    medicineName: batch.medicine.name,
+    unit: batch.medicine.unit,
+    batchId: batch.id,
+    batchNo: batch.batchNo,
+    mfgDate: batch.mfgDate ?? '',
+    expiryDate: batch.expiryDate,
+    qty,
+    unitCost: Number(unitCost),
+    amount: Number(amount),
+  }))
+  return {
+    id: receipt.id,
+    code: receipt.code,
+    supplierName: receipt.supplierName,
+    invoiceNo: receipt.invoiceNo,
+    receivedAt: receipt.receivedAt,
+    note: receipt.note,
+    lines,
+    totalQty: lines.reduce((sum, line) => sum + line.qty, 0),
+    totalAmount: lines.reduce((sum, line) => sum + line.amount, 0),
+  }
+}
+interface ApiStockTakeSummary {
+  id: string
+  code: string
+  countedAt: string
+  note: string
+  _count: { lines: number }
 }
 
+interface ApiGoodsIssueSummary {
+  id: string
+  code: string
+  recipientName: string
+  issuedAt: string
+  note: string
+  _count: { lines: number }
+}
+
+const GetReceipts = async (search = ''): Promise<GoodsReceiptSummary[]> => {
+  const summaries = await getAll<ApiReceiptSummary>('/goods-receipts', search)
+  return summaries.map(({ _count, ...receipt }) => ({
+    ...receipt,
+    lineCount: _count.lines,
+  }))
+}
+
+const GetReceipt = async (id: string): Promise<GoodsReceipt> =>
+  mapReceipt(await axios.get<unknown, ApiReceipt>(`/goods-receipts/${id}`))
+
 const CreateReceipt = (data: GoodsReceiptInput): Promise<void> =>
-  axios.post('/inventory/goods-receipts', {
+  axios.post('/goods-receipts', {
     ...data,
     code: generatedCode('PN'),
     lines: data.lines.map((line) => ({
@@ -237,39 +266,71 @@ const CreateReceipt = (data: GoodsReceiptInput): Promise<void> =>
     })),
   })
 
-const GetStockTakes = async (): Promise<StockTake[]> => {
-  const summaries = await getAll<{ id: string }>('/inventory/stock-takes')
-  const takes = await Promise.all(
-    summaries.map(({ id }) =>
-      axios.get<unknown, ApiStockTake>(`/inventory/stock-takes/${id}`)
-    )
-  )
-  return takes.map((take) => {
-    const lines = take.lines.map((line) => ({
-      batchId: line.batchId,
-      batchNo: line.batch.batchNo,
-      medicineName: line.batch.medicine.name,
-      expiryDate: line.batch.expiryDate,
-      systemQty: line.systemQty,
-      countedQty: line.countedQty,
-      diff: line.diff,
-    }))
-    return {
-      id: take.id,
-      code: take.code,
-      countedAt: take.countedAt,
-      note: take.note,
-      lines,
-      totalDiff: lines.reduce((sum, line) => sum + line.diff, 0),
-    }
+const GetGoodsIssues = async (search = ''): Promise<GoodsIssueSummary[]> => {
+  const summaries = await getAll<ApiGoodsIssueSummary>('/goods-issues', search)
+  return summaries.map(({ _count, ...issue }) => ({
+    ...issue,
+    lineCount: _count.lines,
+  }))
+}
+
+const GetGoodsIssue = async (id: string): Promise<GoodsIssue> => {
+  const issue = await axios.get<unknown, ApiGoodsIssue>(`/goods-issues/${id}`)
+  const lines = issue.lines.map(({ batch, quantity }) => ({
+    batchId: batch.id,
+    batchNo: batch.batchNo,
+    medicineCode: batch.medicine.code,
+    medicineName: batch.medicine.name,
+    unit: batch.medicine.unit,
+    quantity,
+  }))
+  return {
+    ...issue,
+    lines,
+    totalQty: lines.reduce((sum, line) => sum + line.quantity, 0),
+  }
+}
+
+const CreateGoodsIssue = (data: GoodsIssueInput): Promise<void> =>
+  axios.post('/goods-issues', {
+    ...data,
+    code: generatedCode('PX'),
   })
+
+const GetStockTakes = async (search = ''): Promise<StockTakeSummary[]> => {
+  const summaries = await getAll<ApiStockTakeSummary>('/stock-takes', search)
+  return summaries.map(({ _count, ...take }) => ({
+    ...take,
+    lineCount: _count.lines,
+  }))
+}
+
+const GetStockTake = async (id: string): Promise<StockTake> => {
+  const take = await axios.get<unknown, ApiStockTake>(`/stock-takes/${id}`)
+  const lines = take.lines.map((line) => ({
+    batchId: line.batchId,
+    batchNo: line.batch.batchNo,
+    medicineName: line.batch.medicine.name,
+    expiryDate: line.batch.expiryDate,
+    systemQty: line.systemQty,
+    countedQty: line.countedQty,
+    diff: line.diff,
+  }))
+  return {
+    id: take.id,
+    code: take.code,
+    countedAt: take.countedAt,
+    note: take.note,
+    lines,
+    totalDiff: lines.reduce((sum, line) => sum + line.diff, 0),
+  }
 }
 
 const CreateStockTake = (data: StockTakeInput): Promise<void> =>
-  axios.post('/inventory/stock-takes', { ...data, code: generatedCode('KK') })
+  axios.post('/stock-takes', { ...data, code: generatedCode('KK') })
 
 const DisposeBatch = (batchId: string): Promise<void> =>
-  axios.post('/inventory/stock-takes', {
+  axios.post('/stock-takes', {
     code: generatedCode('HUY'),
     countedAt: new Date().toISOString(),
     note: 'Hủy toàn bộ tồn của lô hết hạn',
@@ -277,16 +338,19 @@ const DisposeBatch = (batchId: string): Promise<void> =>
   })
 
 export {
-  CreateMedicine,
-  UpdateMedicine,
-  DeleteMedicine,
-  GetMedicines,
   GetStock,
   GetBatches,
+  SearchBatches,
+  UpdateBatch,
   GetStats,
   GetReceipts,
+  GetReceipt,
   CreateReceipt,
+  GetGoodsIssues,
+  GetGoodsIssue,
+  CreateGoodsIssue,
   GetStockTakes,
+  GetStockTake,
   CreateStockTake,
   DisposeBatch,
 }

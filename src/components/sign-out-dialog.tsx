@@ -1,4 +1,5 @@
 import { useNavigate, useLocation } from '@tanstack/react-router'
+import { toast } from 'sonner'
 import { Logout } from '@/features/auth/api'
 import { useAuthStore } from '@/stores/auth-store'
 import { ConfirmDialog } from '@/components/confirm-dialog'
@@ -13,8 +14,9 @@ export function SignOutDialog({ open, onOpenChange }: SignOutDialogProps) {
   const location = useLocation()
   const { auth } = useAuthStore()
 
-  const handleSignOut = () => {
-    void Logout().finally(() => {
+  const handleSignOut = async () => {
+    try {
+      await Logout()
       auth.reset()
       // Preserve current location for redirect after sign-in
       const currentPath = location.href
@@ -23,16 +25,18 @@ export function SignOutDialog({ open, onOpenChange }: SignOutDialogProps) {
         search: { redirect: currentPath },
         replace: true,
       })
-    })
+    } catch {
+      toast.error('Không thể đăng xuất lúc này. Vui lòng thử lại.')
+    }
   }
 
   return (
     <ConfirmDialog
       open={open}
       onOpenChange={onOpenChange}
-      title='Sign out'
-      desc='Are you sure you want to sign out? You will need to sign in again to access your account.'
-      confirmText='Sign out'
+      title='Đăng xuất'
+      desc='Bạn có chắc muốn đăng xuất? Bạn sẽ cần đăng nhập lại để truy cập tài khoản.'
+      confirmText='Đăng xuất'
       destructive
       handleConfirm={handleSignOut}
       className='sm:max-w-sm'

@@ -21,14 +21,16 @@ type DataTableToolbarProps<TData> = {
     variant?: 'checkbox' | 'radio'
   }[]
   showSearch?: boolean
+  showReset?: boolean
 }
 
 export function DataTableToolbar<TData>({
   table,
-  searchPlaceholder = 'Filter...',
+  searchPlaceholder = 'Lọc dữ liệu...',
   searchKey,
   filters = [],
   showSearch = true,
+  showReset = true,
 }: DataTableToolbarProps<TData>) {
   const isFiltered =
     table.getState().columnFilters.length > 0 || table.getState().globalFilter
@@ -42,9 +44,10 @@ export function DataTableToolbar<TData>({
   const debouncedSearchValue = useDebounce(searchValue, 500)
 
   // Sync internal state with external state (e.g. on reset or URL change)
-  const externalValue = (searchKey
-    ? (table.getColumn(searchKey)?.getFilterValue() as string)
-    : table.getState().globalFilter) ?? ''
+  const externalValue =
+    (searchKey
+      ? (table.getColumn(searchKey)?.getFilterValue() as string)
+      : table.getState().globalFilter) ?? ''
 
   useEffect(() => {
     setSearchValue(externalValue)
@@ -71,22 +74,24 @@ export function DataTableToolbar<TData>({
             className='h-8 w-[150px] lg:w-[250px]'
           />
         )}
-        <div className='flex gap-x-2'>
-          {filters.map((filter) => {
-            const column = table.getColumn(filter.columnId)
-            if (!column) return null
-            return (
-              <DataTableFacetedFilter
-                key={filter.columnId}
-                column={column}
-                title={filter.title}
-                options={filter.options}
-                variant={filter.variant}
-              />
-            )
-          })}
-        </div>
-        {isFiltered && (
+        {filters.length > 0 && (
+          <div className='flex gap-x-2'>
+            {filters.map((filter) => {
+              const column = table.getColumn(filter.columnId)
+              if (!column) return null
+              return (
+                <DataTableFacetedFilter
+                  key={filter.columnId}
+                  column={column}
+                  title={filter.title}
+                  options={filter.options}
+                  variant={filter.variant}
+                />
+              )
+            })}
+          </div>
+        )}
+        {showReset && isFiltered && (
           <Button
             variant='ghost'
             onClick={() => {
@@ -95,7 +100,7 @@ export function DataTableToolbar<TData>({
             }}
             className='h-8 px-2 lg:px-3'
           >
-            Reset
+            Đặt lại
             <Cross2Icon className='ms-2 h-4 w-4' />
           </Button>
         )}

@@ -29,15 +29,15 @@ import { roles } from '../data/data'
 
 const formSchema = z
   .object({
-    firstName: z.string().min(1, 'First Name is required.'),
-    lastName: z.string().min(1, 'Last Name is required.'),
-    username: z.string().min(1, 'Adminname is required.'),
-    phoneNumber: z.string().min(1, 'Phone number is required.'),
+    firstName: z.string().min(1, 'Vui lòng nhập tên.'),
+    lastName: z.string().min(1, 'Vui lòng nhập họ.'),
+    username: z.string().min(1, 'Vui lòng nhập tên đăng nhập.'),
+    phoneNumber: z.string().min(1, 'Vui lòng nhập số điện thoại.'),
     email: z.email({
-      error: (iss) => (iss.input === '' ? 'Email is required.' : undefined),
+      error: (iss) => (iss.input === '' ? 'Vui lòng nhập email.' : undefined),
     }),
     password: z.string().transform((pwd) => pwd.trim()),
-    role: z.string().min(1, 'Role is required.'),
+    role: z.string().min(1, 'Vui lòng chọn vai trò.'),
     confirmPassword: z.string().transform((pwd) => pwd.trim()),
     isEdit: z.boolean(),
   })
@@ -47,7 +47,7 @@ const formSchema = z
       return data.password.length > 0
     },
     {
-      message: 'Password is required.',
+      message: 'Vui lòng nhập mật khẩu.',
       path: ['password'],
     }
   )
@@ -57,7 +57,7 @@ const formSchema = z
       return password.length >= 8
     },
     {
-      message: 'Password must be at least 8 characters long.',
+      message: 'Mật khẩu phải có ít nhất 8 ký tự.',
       path: ['password'],
     }
   )
@@ -67,7 +67,7 @@ const formSchema = z
       return /[a-z]/.test(password)
     },
     {
-      message: 'Password must contain at least one lowercase letter.',
+      message: 'Mật khẩu phải có ít nhất một chữ thường.',
       path: ['password'],
     }
   )
@@ -77,7 +77,7 @@ const formSchema = z
       return /\d/.test(password)
     },
     {
-      message: 'Password must contain at least one number.',
+      message: 'Mật khẩu phải có ít nhất một chữ số.',
       path: ['password'],
     }
   )
@@ -87,7 +87,7 @@ const formSchema = z
       return password === confirmPassword
     },
     {
-      message: "Passwords don't match.",
+      message: 'Mật khẩu nhập lại không khớp.',
       path: ['confirmPassword'],
     }
   )
@@ -145,10 +145,11 @@ export function AdminsActionDialog({
     >
       <DialogContent className='sm:max-w-lg'>
         <DialogHeader className='text-start'>
-          <DialogTitle>{isEdit ? 'Edit Admin' : 'Add New Admin'}</DialogTitle>
+          <DialogTitle>{isEdit ? 'Sửa quản trị viên' : 'Thêm quản trị viên'}</DialogTitle>
           <DialogDescription>
-            {isEdit ? 'Update the admin here. ' : 'Create new admin here. '}
-            Click save when you&apos;re done.
+            {isEdit
+              ? 'Cập nhật thông tin tài khoản quản trị.'
+              : 'Nhập thông tin để tạo tài khoản quản trị mới.'}
           </DialogDescription>
         </DialogHeader>
         <div className='h-105 w-[calc(100%+0.75rem)] overflow-y-auto py-1 pe-3'>
@@ -164,11 +165,11 @@ export function AdminsActionDialog({
                 render={({ field }) => (
                   <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
                     <FormLabel className='col-span-2 text-end'>
-                      First Name
+                      Tên
                     </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder='John'
+                        placeholder='Văn An'
                         className='col-span-4'
                         autoComplete='off'
                         {...field}
@@ -184,11 +185,11 @@ export function AdminsActionDialog({
                 render={({ field }) => (
                   <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
                     <FormLabel className='col-span-2 text-end'>
-                      Last Name
+                      Họ
                     </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder='Doe'
+                        placeholder='Nguyễn'
                         className='col-span-4'
                         autoComplete='off'
                         {...field}
@@ -204,11 +205,11 @@ export function AdminsActionDialog({
                 render={({ field }) => (
                   <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
                     <FormLabel className='col-span-2 text-end'>
-                      Adminname
+                      Tên đăng nhập
                     </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder='john_doe'
+                        placeholder='nguyen_van_an'
                         className='col-span-4'
                         {...field}
                       />
@@ -225,7 +226,7 @@ export function AdminsActionDialog({
                     <FormLabel className='col-span-2 text-end'>Email</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder='john.doe@gmail.com'
+                        placeholder='nguyenvanan@gmail.com'
                         className='col-span-4'
                         {...field}
                       />
@@ -240,7 +241,7 @@ export function AdminsActionDialog({
                 render={({ field }) => (
                   <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
                     <FormLabel className='col-span-2 text-end'>
-                      Phone Number
+                      Số điện thoại
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -258,11 +259,11 @@ export function AdminsActionDialog({
                 name='role'
                 render={({ field }) => (
                   <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
-                    <FormLabel className='col-span-2 text-end'>Role</FormLabel>
+                    <FormLabel className='col-span-2 text-end'>Vai trò</FormLabel>
                     <SelectDropdown
                       defaultValue={field.value}
                       onValueChange={field.onChange}
-                      placeholder='Select a role'
+                      placeholder='Chọn vai trò'
                       className='col-span-4'
                       items={roles.map(({ label, value }) => ({
                         label,
@@ -279,11 +280,11 @@ export function AdminsActionDialog({
                 render={({ field }) => (
                   <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
                     <FormLabel className='col-span-2 text-end'>
-                      Password
+                      Mật khẩu
                     </FormLabel>
                     <FormControl>
                       <PasswordInput
-                        placeholder='e.g., S3cur3P@ssw0rd'
+                        placeholder='Ví dụ: M4tKhau@123'
                         className='col-span-4'
                         {...field}
                       />
@@ -298,12 +299,12 @@ export function AdminsActionDialog({
                 render={({ field }) => (
                   <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
                     <FormLabel className='col-span-2 text-end'>
-                      Confirm Password
+                      Nhập lại mật khẩu
                     </FormLabel>
                     <FormControl>
                       <PasswordInput
                         disabled={!isPasswordTouched}
-                        placeholder='e.g., S3cur3P@ssw0rd'
+                        placeholder='Ví dụ: M4tKhau@123'
                         className='col-span-4'
                         {...field}
                       />
@@ -317,7 +318,7 @@ export function AdminsActionDialog({
         </div>
         <DialogFooter>
           <Button type='submit' form='admin-form'>
-            Save changes
+            Lưu thay đổi
           </Button>
         </DialogFooter>
       </DialogContent>

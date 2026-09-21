@@ -15,7 +15,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
+import {
+  DataTablePagination,
+  DataTableToolbar,
+  MobileDataCards,
+} from '@/components/data-table'
 import { type Admin } from '../api'
 import { adminsColumns as columns } from './admins-columns'
 
@@ -104,7 +108,12 @@ export function AdminsTable({
           },
         ]}
       />
-      <div className='overflow-hidden rounded-md border text-nowrap'>
+      <MobileDataCards
+        table={table}
+        isLoading={isLoading}
+        emptyMessage='Không có kết quả.'
+      />
+      <div className='hidden overflow-hidden rounded-md border text-nowrap sm:block'>
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -133,8 +142,11 @@ export function AdminsTable({
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={columns.length} className='h-24 text-center'>
-                  Loading...
+                <TableCell
+                  colSpan={columns.length}
+                  className='h-24 text-center'
+                >
+                  Đang tải...
                 </TableCell>
               </TableRow>
             ) : table.getRowModel().rows?.length ? (
@@ -163,8 +175,11 @@ export function AdminsTable({
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className='h-24 text-center'>
-                  No results.
+                <TableCell
+                  colSpan={columns.length}
+                  className='h-24 text-center'
+                >
+                  Không có kết quả.
                 </TableCell>
               </TableRow>
             )}

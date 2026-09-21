@@ -26,18 +26,22 @@ export const columns: ColumnDef<Post>[] = [
     ),
   },
   {
-    accessorKey: 'thumbnail',
+    accessorKey: 'thumbnailUrl',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Thumbnail' />
+      <DataTableColumnHeader column={column} title='Ảnh đại diện' />
     ),
     cell: ({ row }) => {
       return (
         <div className='flex w-[100px] items-center'>
-          <img
-            src={row.getValue('thumbnail')}
-            alt={row.getValue('thumbnail')}
-            className='h-12 w-20 rounded-md object-cover shadow-sm'
-          />
+          {row.getValue('thumbnailUrl') ? (
+            <img
+              src={row.getValue('thumbnailUrl')}
+              alt=''
+              className='h-12 w-20 rounded-md object-cover shadow-sm'
+            />
+          ) : (
+            <span className='text-xs text-muted-foreground'>Không có ảnh</span>
+          )}
         </div>
       )
     },
@@ -46,7 +50,7 @@ export const columns: ColumnDef<Post>[] = [
   {
     accessorKey: 'title',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Title' />
+      <DataTableColumnHeader column={column} title='Tiêu đề' />
     ),
     cell: ({ row }) => (
       <div className='max-w-[300px] truncate font-medium'>
@@ -55,12 +59,12 @@ export const columns: ColumnDef<Post>[] = [
     ),
   },
   {
-    accessorKey: 'content',
+    accessorKey: 'excerpt',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Content' />
+      <DataTableColumnHeader column={column} title='Mô tả' />
     ),
     cell: ({ row }) => {
-      const content = row.getValue('content') as string
+      const content = row.getValue('excerpt') as string
       return (
         <div className='max-w-[400px] truncate text-muted-foreground'>
           {content.length > 100 ? content.substring(0, 100) + '...' : content}
@@ -69,14 +73,14 @@ export const columns: ColumnDef<Post>[] = [
     },
   },
   {
-    accessorKey: 'isPublic',
+    accessorKey: 'isPublished',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Status' />
+      <DataTableColumnHeader column={column} title='Trạng thái' />
     ),
     meta: { className: 'ps-1', tdClassName: 'ps-4' },
     cell: ({ row }) => {
       const status = postStatuses.find(
-        (status) => status.value === row.getValue('isPublic')
+        (status) => status.value === row.getValue('isPublished')
       )
 
       if (!status) {

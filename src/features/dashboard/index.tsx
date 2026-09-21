@@ -1,162 +1,391 @@
+import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { Banknote, CalendarDays, Package, Pill, Users } from 'lucide-react'
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import { LanguageSwitcher } from '@/components/language-switcher'
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { DatePickerInput } from '@/components/date-picker-input'
+// import { LanguageSwitcher } from '@/components/language-switcher'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
-import { Overview } from './components/overview'
-import { RecentSales } from './components/recent-sales'
+import {
+  getQueueDashboard,
+  getMonthlyQueueDashboard,
+  type DashboardStatistics,
+  type QueueDashboard,
+} from '@/features/examination-queue/api'
+import { OperationalStatistics } from './operational-statistics'
+import {
+  formatDashboardMoney as formatMoney,
+  getCurrentMonth,
+  getToday,
+  MONTH_OPTIONS,
+  YEAR_OPTIONS,
+} from './utils'
 
-export function Dashboard() {
+function DailyRevenueChart({
+  dashboard,
+  periodLabel,
+}: {
+  dashboard?: QueueDashboard | DashboardStatistics
+  periodLabel: string
+}) {
+  const chartData = [
+    {
+      name: 'Thuốc',
+      value: dashboard?.billing.medicineRevenue ?? 0,
+      color: '#2f66d8',
+    },
+    {
+      name: 'Khám',
+      value: dashboard?.billing.consultationRevenue ?? 0,
+      color: '#32b890',
+    },
+  ]
+
+  if (!chartData.some((item) => item.value > 0)) {
+    return (
+      <div className='flex h-[320px] flex-col items-center justify-center gap-1'>
+        <span className='text-sm text-muted-foreground'>
+          Tổng thu {periodLabel}
+        </span>
+        <strong className='text-xl tabular-nums'>
+          {formatMoney(dashboard?.billing.totalAmount ?? 0)} VNĐ
+        </strong>
+      </div>
+    )
+  }
+
   return (
     <>
-      {/* ===== Top Heading ===== */}
-      <Header>
+      <div className='relative'>
+        <ResponsiveContainer width='100%' height={300}>
+          <PieChart>
+            <Pie
+              data={chartData}
+              dataKey='value'
+              nameKey='name'
+              cx='50%'
+              cy='48%'
+              innerRadius={58}
+              outerRadius={125}
+              paddingAngle={2}
+              stroke='hsl(var(--card))'
+              strokeWidth={3}
+              labelLine={{ stroke: 'hsl(var(--foreground))' }}
+              label={({ value }) => formatMoney(Number(value))}
+            >
+              {chartData.map((entry) => (
+                <Cell key={entry.name} fill={entry.color} />
+              ))}
+            </Pie>
+            <Tooltip
+              formatter={(value) => [
+                `${formatMoney(Number(value))} VNĐ`,
+                'Doanh thu',
+              ]}
+              contentStyle={{
+                background: 'var(--popover)',
+                border: '1px solid var(--border)',
+                borderRadius: 8,
+                color: 'var(--popover-foreground)',
+              }}
+              itemStyle={{ color: 'var(--popover-foreground)' }}
+              labelStyle={{ color: 'var(--popover-foreground)' }}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+        <div className='pointer-events-none absolute top-[48%] left-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center'>
+          <span className='text-xs text-muted-foreground'>
+            Tổng thu {periodLabel}
+          </span>
+          <strong className='text-sm whitespace-nowrap tabular-nums'>
+            {formatMoney(dashboard?.billing.totalAmount ?? 0)} VNĐ
+          </strong>
+        </div>
+      </div>
+      <div className='flex items-center justify-center gap-4 text-sm'>
+        {chartData.map((entry) => (
+          <div key={entry.name} className='flex items-center gap-2'>
+            <span
+              className='size-2.5 rounded-sm'
+              style={{ backgroundColor: entry.color }}
+            />
+            <span>{entry.name}</span>
+          </div>
+        ))}
+      </div>
+    </>
+  )
+}
+
+function SummaryCards({
+  dashboard,
+}: {
+  dashboard?: QueueDashboard | DashboardStatistics
+}) {
+  const cards = [
+    {
+      label: 'Tổng lượt khám',
+      value: dashboard?.billing.invoiceCount ?? 0,
+      icon: Users,
+      money: false,
+    },
+    {
+      label: 'Tổng thu',
+      value: dashboard?.billing.totalAmount ?? 0,
+      icon: Banknote,
+      money: true,
+    },
+    {
+      label: 'Tiền thuốc bán ra',
+      value: dashboard?.billing.medicineRevenue ?? 0,
+      icon: Pill,
+      money: true,
+    },
+    {
+      label: 'Giá vốn thuốc',
+      value: dashboard?.billing.medicineCost ?? 0,
+      icon: Package,
+      money: true,
+    },
+  ]
+
+  return (
+    <div className='grid gap-4 sm:grid-cols-2 xl:grid-cols-4'>
+      {cards.map((card) => (
+        <Card key={card.label}>
+          <CardHeader className='flex flex-row items-center justify-between pb-2'>
+            <CardTitle className='text-sm font-medium'>{card.label}</CardTitle>
+            <card.icon className='size-4 text-muted-foreground' />
+          </CardHeader>
+          <CardContent>
+            <p className='text-2xl font-bold tabular-nums'>
+              {card.money ? `${formatMoney(card.value)} VNĐ` : card.value}
+            </p>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  )
+}
+
+function StatisticsPage({ period }: { period: 'day' | 'month' }) {
+  const isMonthly = period === 'month'
+  const [selectedPeriod, setSelectedPeriod] = useState(
+    isMonthly ? getCurrentMonth : getToday
+  )
+  const { data, isLoading, isError } = useQuery<
+    QueueDashboard | DashboardStatistics
+  >({
+    queryKey: ['dashboard', period, selectedPeriod, isMonthly],
+    queryFn: async () =>
+      isMonthly
+        ? await getMonthlyQueueDashboard(selectedPeriod)
+        : await getQueueDashboard(selectedPeriod),
+    enabled: isMonthly
+      ? /^\d{4}-\d{2}$/.test(selectedPeriod)
+      : /^\d{4}-\d{2}-\d{2}$/.test(selectedPeriod),
+  })
+  const periodLabel = isMonthly ? 'trong tháng' : 'trong ngày'
+  const totalMedicineQuantity =
+    data?.medicineUsage.reduce(
+      (total, medicine) => total + medicine.quantity,
+      0
+    ) ?? 0
+
+  return (
+    <>
+      <Header fixed>
         <div className='ms-auto flex items-center space-x-4'>
-          <LanguageSwitcher />
+          {/* <LanguageSwitcher /> */}
           <ThemeSwitch />
           <ProfileDropdown />
         </div>
       </Header>
 
-      {/* ===== Main ===== */}
-      <Main>
-        <div className='mb-2 flex items-center justify-between space-y-2'>
-          <h1 className='text-2xl font-bold tracking-tight'>Dashboard</h1>
-        </div>
-        <div className='flex-1 space-y-4'>
-          <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
-            <Card>
-              <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                <CardTitle className='text-sm font-medium'>
-                  Total Revenue
-                </CardTitle>
-                <svg
-                  xmlns='http://www.w3.org/2000/svg'
-                  viewBox='0 0 24 24'
-                  fill='none'
-                  stroke='currentColor'
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  strokeWidth='2'
-                  className='h-4 w-4 text-muted-foreground'
-                >
-                  <path d='M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6' />
-                </svg>
-              </CardHeader>
-              <CardContent>
-                <div className='text-2xl font-bold'>$45,231.89</div>
-                <p className='text-xs text-muted-foreground'>
-                  +20.1% from last month
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                <CardTitle className='text-sm font-medium'>
-                  Subscriptions
-                </CardTitle>
-                <svg
-                  xmlns='http://www.w3.org/2000/svg'
-                  viewBox='0 0 24 24'
-                  fill='none'
-                  stroke='currentColor'
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  strokeWidth='2'
-                  className='h-4 w-4 text-muted-foreground'
-                >
-                  <path d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2' />
-                  <circle cx='9' cy='7' r='4' />
-                  <path d='M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75' />
-                </svg>
-              </CardHeader>
-              <CardContent>
-                <div className='text-2xl font-bold'>+2350</div>
-                <p className='text-xs text-muted-foreground'>
-                  +180.1% from last month
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                <CardTitle className='text-sm font-medium'>Sales</CardTitle>
-                <svg
-                  xmlns='http://www.w3.org/2000/svg'
-                  viewBox='0 0 24 24'
-                  fill='none'
-                  stroke='currentColor'
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  strokeWidth='2'
-                  className='h-4 w-4 text-muted-foreground'
-                >
-                  <rect width='20' height='14' x='2' y='5' rx='2' />
-                  <path d='M2 10h20' />
-                </svg>
-              </CardHeader>
-              <CardContent>
-                <div className='text-2xl font-bold'>+12,234</div>
-                <p className='text-xs text-muted-foreground'>
-                  +19% from last month
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                <CardTitle className='text-sm font-medium'>
-                  Active Now
-                </CardTitle>
-                <svg
-                  xmlns='http://www.w3.org/2000/svg'
-                  viewBox='0 0 24 24'
-                  fill='none'
-                  stroke='currentColor'
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  strokeWidth='2'
-                  className='h-4 w-4 text-muted-foreground'
-                >
-                  <path d='M22 12h-4l-3 9L9 3l-3 9H2' />
-                </svg>
-              </CardHeader>
-              <CardContent>
-                <div className='text-2xl font-bold'>+573</div>
-                <p className='text-xs text-muted-foreground'>
-                  +201 since last hour
-                </p>
-              </CardContent>
-            </Card>
+      <Main className='flex flex-1 flex-col gap-6'>
+        <div className='flex flex-wrap items-end justify-between gap-3'>
+          <div>
+            <h1 className='text-2xl font-bold tracking-tight'>Thống kê</h1>
+            <p className='text-muted-foreground'>
+              Tổng quan hoạt động khám bệnh {periodLabel}.
+            </p>
           </div>
-          <div className='grid grid-cols-1 gap-4 lg:grid-cols-7'>
-            <Card className='col-span-1 lg:col-span-4'>
-              <CardHeader>
-                <CardTitle>Overview</CardTitle>
-              </CardHeader>
-              <CardContent className='ps-2'>
-                <Overview />
-              </CardContent>
-            </Card>
-            <Card className='col-span-1 lg:col-span-3'>
-              <CardHeader>
-                <CardTitle>Recent Sales</CardTitle>
-                <CardDescription>
-                  You made 265 sales this month.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <RecentSales />
-              </CardContent>
-            </Card>
+          <div className='w-full space-y-1.5 sm:w-auto'>
+            <label className='flex items-center gap-1.5 text-sm font-medium'>
+              <CalendarDays className='size-4' />{' '}
+              {isMonthly ? 'Tháng thống kê' : 'Ngày thống kê'}
+            </label>
+            {isMonthly ? (
+              <div className='grid grid-cols-[minmax(0,1fr)_1px_minmax(0,1fr)] items-center gap-2 rounded-lg border bg-card p-1.5 shadow-sm sm:flex'>
+                <Select
+                  value={selectedPeriod.slice(5, 7)}
+                  onValueChange={(month) =>
+                    setSelectedPeriod(`${selectedPeriod.slice(0, 4)}-${month}`)
+                  }
+                >
+                  <SelectTrigger className='w-full min-w-0 border-0 shadow-none sm:w-36'>
+                    <SelectValue placeholder='Chọn tháng' />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MONTH_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div className='my-1 w-px bg-border' />
+                <Select
+                  value={selectedPeriod.slice(0, 4)}
+                  onValueChange={(year) =>
+                    setSelectedPeriod(`${year}-${selectedPeriod.slice(5, 7)}`)
+                  }
+                >
+                  <SelectTrigger className='w-full min-w-0 border-0 shadow-none sm:w-36'>
+                    <SelectValue placeholder='Chọn năm' />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {YEAR_OPTIONS.map((year) => (
+                      <SelectItem key={year} value={String(year)}>
+                        Năm {year}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <DatePickerInput
+                value={selectedPeriod}
+                onChange={setSelectedPeriod}
+              />
+            )}
           </div>
         </div>
+
+        {isError && (
+          <p className='rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive'>
+            Không thể tải dữ liệu thống kê. Vui lòng thử lại.
+          </p>
+        )}
+
+        <div className={isLoading ? 'animate-pulse opacity-60' : undefined}>
+          <SummaryCards dashboard={data} />
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Thống kê {periodLabel}</CardTitle>
+          </CardHeader>
+          <CardContent className='grid gap-6 lg:grid-cols-2 lg:divide-x'>
+            <div>
+              <h3 className='mb-2 text-sm font-medium'>Cơ cấu doanh thu</h3>
+              <DailyRevenueChart dashboard={data} periodLabel={periodLabel} />
+            </div>
+            <div className='min-w-0 lg:pl-6'>
+              <div className='mb-4 flex flex-wrap items-center justify-between gap-2'>
+                <h3 className='text-sm font-medium'>
+                  Thuốc sử dụng {periodLabel}
+                </h3>
+                <div className='rounded-md bg-primary/10 px-3 py-1.5 text-sm text-primary'>
+                  Tổng số lượng:{' '}
+                  <strong className='tabular-nums'>
+                    {formatMoney(totalMedicineQuantity)}
+                  </strong>
+                </div>
+              </div>
+              <div className='grid max-h-[340px] gap-2 overflow-auto sm:hidden'>
+                {data?.medicineUsage.length ? (
+                  data.medicineUsage.map((medicine) => (
+                    <div
+                      key={medicine.medicineId ?? medicine.medicineName}
+                      className='rounded-md border p-3 text-sm'
+                    >
+                      <p className='font-medium'>{medicine.medicineName}</p>
+                      <p className='text-muted-foreground'>
+                        Số lượng: {formatMoney(medicine.quantity)}{' '}
+                        {medicine.unit || ''}
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <p className='rounded-md border p-4 text-center text-sm text-muted-foreground'>
+                    Chưa có thuốc được sử dụng {periodLabel} này.
+                  </p>
+                )}
+              </div>
+              <div className='hidden max-h-[340px] overflow-auto rounded-md border sm:block'>
+                <Table>
+                  <TableHeader className='sticky top-0 bg-card'>
+                    <TableRow>
+                      <TableHead>Thuốc</TableHead>
+                      <TableHead>Đơn vị</TableHead>
+                      <TableHead className='text-right'>Số lượng</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {data?.medicineUsage.length ? (
+                      data.medicineUsage.map((medicine) => (
+                        <TableRow
+                          key={medicine.medicineId ?? medicine.medicineName}
+                        >
+                          <TableCell className='max-w-64 truncate font-medium'>
+                            {medicine.medicineName}
+                          </TableCell>
+                          <TableCell>{medicine.unit || '-'}</TableCell>
+                          <TableCell className='text-right font-semibold tabular-nums'>
+                            {formatMoney(medicine.quantity)}
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell
+                          colSpan={3}
+                          className='h-24 text-center text-muted-foreground'
+                        >
+                          Chưa có thuốc được sử dụng {periodLabel} này.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {isMonthly && (
+          <OperationalStatistics
+            data={data as DashboardStatistics | undefined}
+          />
+        )}
       </Main>
     </>
   )
+}
+
+export function Dashboard() {
+  return <StatisticsPage period='day' />
+}
+
+export function MonthlyDashboard() {
+  return <StatisticsPage period='month' />
 }

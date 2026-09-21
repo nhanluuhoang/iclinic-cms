@@ -30,7 +30,7 @@ export interface Patient {
   fullName: string
   email?: string | null
   phone?: string | null
-  gender?: number | null
+  gender?: string | null
   dateOfBirth?: string | null
   address?: string | null
   note?: string | null
@@ -50,18 +50,14 @@ export interface Patient {
  */
 export interface PatientDtoRequest {
   password?: string
+  passwordConfirmation?: string
   fullName: string
   email?: string
   phone?: string
-  gender?: number
+  gender?: string | null
   dateOfBirth?: string
   address?: string
   note?: string
-}
-
-export interface PatientResponse {
-  status: boolean
-  data: Patient
 }
 
 export interface PatientsResponse {
@@ -78,10 +74,6 @@ const GetPatients = (params?: PatientParams): Promise<PatientsResponse> => {
   return axios.get('/patient', { params })
 }
 
-const GetPatient = (id: string): Promise<PatientResponse> => {
-  return axios.get(`/patient/${id}`)
-}
-
 const UpdatePatient = (id: string, data: PatientDtoRequest): Promise<void> => {
   return axios.patch(`/patient/${id}`, data)
 }
@@ -90,4 +82,4 @@ const DeletePatient = (id: string): Promise<void> => {
   return axios.delete(`/patient/${id}`)
 }
 
-export { CreatePatient, GetPatients, GetPatient, UpdatePatient, DeletePatient }
+export { CreatePatient, GetPatients, UpdatePatient, DeletePatient }

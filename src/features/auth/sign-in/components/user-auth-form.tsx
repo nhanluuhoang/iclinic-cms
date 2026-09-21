@@ -21,18 +21,21 @@ import { PasswordInput } from '@/components/password-input'
 import { Login, Profile } from '@/features/auth/api'
 
 const formSchema = z.object({
-  email: z.email({
-    error: (iss) => (iss.input === '' ? 'Please enter your email' : undefined),
+  userName: z.string({
+    error: (iss) =>
+      iss.input === '' ? 'Vui lòng nhập tên đăng nhập' : undefined,
   }),
   password: z
     .string()
-    .min(6, 'Please enter your password')
-    .max(255, 'Password is too long'),
+    .min(6, 'Mật khẩu phải có ít nhất 6 ký tự')
+    .max(255, 'Mật khẩu không được vượt quá 255 ký tự'),
 })
 
 interface UserAuthFormProps extends React.HTMLAttributes<HTMLFormElement> {
   redirectTo?: string
 }
+
+type ApiError = { error?: { title?: string } }
 
 export function UserAuthForm({
   className,
@@ -40,19 +43,21 @@ export function UserAuthForm({
   ...props
 }: UserAuthFormProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [submitError, setSubmitError] = useState('')
   const navigate = useNavigate()
   const { auth } = useAuthStore()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: '',
+      userName: '',
       password: '',
     },
   })
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
     setIsLoading(true)
+    setSubmitError('')
     try {
       await Login(data)
       const profile = await Profile()
@@ -60,9 +65,12 @@ export function UserAuthForm({
 
       const targetPath = redirectTo || '/'
       navigate({ to: targetPath, replace: true })
-      toast.success(`Welcome back, ${profile.data.email}!`)
-    } catch {
-      toast.error('Sign in failed. Please check your credentials.')
+      toast.success(`Chào mừng trở lại, ${profile.data.fullName}!`)
+    } catch (error) {
+      const message =
+        (error as ApiError)?.error?.title ??
+        'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.'
+      toast.error(message)
     } finally {
       setIsLoading(false)
     }
@@ -77,10 +85,10 @@ export function UserAuthForm({
       >
         <FormField
           control={form.control}
-          name='email'
+          name='userName'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>Tên đăng nhập</FormLabel>
               <FormControl>
                 <Input placeholder='name@example.com' {...field} />
               </FormControl>
@@ -93,7 +101,7 @@ export function UserAuthForm({
           name='password'
           render={({ field }) => (
             <FormItem className='relative'>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>Mật khẩu</FormLabel>
               <FormControl>
                 <PasswordInput placeholder='********' {...field} />
               </FormControl>
@@ -102,15 +110,20 @@ export function UserAuthForm({
                 to='/forgot-password'
                 className='absolute end-0 -top-0.5 text-sm font-medium text-muted-foreground hover:opacity-75'
               >
-                Forgot password?
+                Quên mật khẩu?
               </Link>
             </FormItem>
           )}
         />
         <Button className='mt-2' disabled={isLoading}>
           {isLoading ? <Loader2 className='animate-spin' /> : <LogIn />}
-          Sign in
+          Đăng nhập
         </Button>
+        {submitError && (
+          <p role='alert' className='text-sm text-destructive'>
+            {submitError}
+          </p>
+        )}
       </form>
     </Form>
   )

@@ -10,77 +10,37 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
-import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
-import { Route as errors503RouteImport } from './routes/(errors)/503'
-import { Route as errors500RouteImport } from './routes/(errors)/500'
-import { Route as errors404RouteImport } from './routes/(errors)/404'
-import { Route as errors403RouteImport } from './routes/(errors)/403'
-import { Route as errors401RouteImport } from './routes/(errors)/401'
-import { Route as authSignUpRouteImport } from './routes/(auth)/sign-up'
-import { Route as authSignInRouteImport } from './routes/(auth)/sign-in'
-import { Route as authResetPasswordRouteImport } from './routes/(auth)/reset-password'
 import { Route as authForgotPasswordRouteImport } from './routes/(auth)/forgot-password'
+import { Route as authResetPasswordRouteImport } from './routes/(auth)/reset-password'
+import { Route as authSignInRouteImport } from './routes/(auth)/sign-in'
+import { Route as errors401RouteImport } from './routes/(errors)/401'
+import { Route as errors403RouteImport } from './routes/(errors)/403'
+import { Route as errors404RouteImport } from './routes/(errors)/404'
+import { Route as errors500RouteImport } from './routes/(errors)/500'
+import { Route as errors503RouteImport } from './routes/(errors)/503'
+import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedSettingsRouteRouteImport } from './routes/_authenticated/settings/route'
-import { Route as AuthenticatedTasksIndexRouteImport } from './routes/_authenticated/tasks/index'
-import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
-import { Route as AuthenticatedPrescriptionsIndexRouteImport } from './routes/_authenticated/prescriptions/index'
-import { Route as AuthenticatedPostsIndexRouteImport } from './routes/_authenticated/posts/index'
-import { Route as AuthenticatedPatientsIndexRouteImport } from './routes/_authenticated/patients/index'
-import { Route as AuthenticatedMasterDataIndexRouteImport } from './routes/_authenticated/master-data/index'
-import { Route as AuthenticatedInventoryIndexRouteImport } from './routes/_authenticated/inventory/index'
-import { Route as AuthenticatedHelpCenterIndexRouteImport } from './routes/_authenticated/help-center/index'
-import { Route as AuthenticatedExaminationQueueIndexRouteImport } from './routes/_authenticated/examination-queue/index'
-import { Route as AuthenticatedBannersIndexRouteImport } from './routes/_authenticated/banners/index'
 import { Route as AuthenticatedAdminsIndexRouteImport } from './routes/_authenticated/admins/index'
+import { Route as AuthenticatedClinicDaysOffIndexRouteImport } from './routes/_authenticated/clinic-days-off/index'
+import { Route as AuthenticatedDashboardsIndexRouteImport } from './routes/_authenticated/dashboards/index'
 import { Route as AuthenticatedErrorsErrorRouteImport } from './routes/_authenticated/errors/$error'
+import { Route as AuthenticatedHelpCenterIndexRouteImport } from './routes/_authenticated/help-center/index'
+import { Route as AuthenticatedInventoryIndexRouteImport } from './routes/_authenticated/inventory/index'
+import { Route as AuthenticatedLandingConfigIndexRouteImport } from './routes/_authenticated/landing-config/index'
+import { Route as AuthenticatedMasterDataIndexRouteImport } from './routes/_authenticated/master-data/index'
+import { Route as AuthenticatedMedicalHistoriesIndexRouteImport } from './routes/_authenticated/medical-histories/index'
+import { Route as AuthenticatedMedicinesIndexRouteImport } from './routes/_authenticated/medicines/index'
+import { Route as AuthenticatedMonthlyStatisticsIndexRouteImport } from './routes/_authenticated/monthly-statistics/index'
+import { Route as AuthenticatedPatientsIndexRouteImport } from './routes/_authenticated/patients/index'
+import { Route as AuthenticatedPostsIndexRouteImport } from './routes/_authenticated/posts/index'
+import { Route as AuthenticatedPrescriptionTemplatesIndexRouteImport } from './routes/_authenticated/prescription-templates/index'
+import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
+import { Route as AuthenticatedSettingsChangePasswordRouteImport } from './routes/_authenticated/settings/change-password'
+import { Route as AuthenticatedSettingsTenantRouteImport } from './routes/_authenticated/settings/tenant'
+import { Route as AuthenticatedYearlyStatisticsIndexRouteImport } from './routes/_authenticated/yearly-statistics/index'
 
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const errors503Route = errors503RouteImport.update({
-  id: '/(errors)/503',
-  path: '/503',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const errors500Route = errors500RouteImport.update({
-  id: '/(errors)/500',
-  path: '/500',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const errors404Route = errors404RouteImport.update({
-  id: '/(errors)/404',
-  path: '/404',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const errors403Route = errors403RouteImport.update({
-  id: '/(errors)/403',
-  path: '/403',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const errors401Route = errors401RouteImport.update({
-  id: '/(errors)/401',
-  path: '/401',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const authSignUpRoute = authSignUpRouteImport.update({
-  id: '/(auth)/sign-up',
-  path: '/sign-up',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const authSignInRoute = authSignInRouteImport.update({
-  id: '/(auth)/sign-in',
-  path: '/sign-in',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const authResetPasswordRoute = authResetPasswordRouteImport.update({
-  id: '/(auth)/reset-password',
-  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const authForgotPasswordRoute = authForgotPasswordRouteImport.update({
@@ -88,68 +48,50 @@ const authForgotPasswordRoute = authForgotPasswordRouteImport.update({
   path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const authResetPasswordRoute = authResetPasswordRouteImport.update({
+  id: '/(auth)/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const authSignInRoute = authSignInRouteImport.update({
+  id: '/(auth)/sign-in',
+  path: '/sign-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const errors401Route = errors401RouteImport.update({
+  id: '/(errors)/401',
+  path: '/401',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const errors403Route = errors403RouteImport.update({
+  id: '/(errors)/403',
+  path: '/403',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const errors404Route = errors404RouteImport.update({
+  id: '/(errors)/404',
+  path: '/404',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const errors500Route = errors500RouteImport.update({
+  id: '/(errors)/500',
+  path: '/500',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const errors503Route = errors503RouteImport.update({
+  id: '/(errors)/503',
+  path: '/503',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedSettingsRouteRoute =
   AuthenticatedSettingsRouteRouteImport.update({
     id: '/settings',
     path: '/settings',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedTasksIndexRoute = AuthenticatedTasksIndexRouteImport.update({
-  id: '/tasks/',
-  path: '/tasks/',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedSettingsIndexRoute =
-  AuthenticatedSettingsIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AuthenticatedSettingsRouteRoute,
-  } as any)
-const AuthenticatedPrescriptionsIndexRoute =
-  AuthenticatedPrescriptionsIndexRouteImport.update({
-    id: '/prescriptions/',
-    path: '/prescriptions/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedPostsIndexRoute = AuthenticatedPostsIndexRouteImport.update({
-  id: '/posts/',
-  path: '/posts/',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedPatientsIndexRoute =
-  AuthenticatedPatientsIndexRouteImport.update({
-    id: '/patients/',
-    path: '/patients/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedMasterDataIndexRoute =
-  AuthenticatedMasterDataIndexRouteImport.update({
-    id: '/master-data/',
-    path: '/master-data/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedInventoryIndexRoute =
-  AuthenticatedInventoryIndexRouteImport.update({
-    id: '/inventory/',
-    path: '/inventory/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedHelpCenterIndexRoute =
-  AuthenticatedHelpCenterIndexRouteImport.update({
-    id: '/help-center/',
-    path: '/help-center/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedExaminationQueueIndexRoute =
-  AuthenticatedExaminationQueueIndexRouteImport.update({
-    id: '/examination-queue/',
-    path: '/examination-queue/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedBannersIndexRoute =
-  AuthenticatedBannersIndexRouteImport.update({
-    id: '/banners/',
-    path: '/banners/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedAdminsIndexRoute =
@@ -158,10 +100,105 @@ const AuthenticatedAdminsIndexRoute =
     path: '/admins/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedClinicDaysOffIndexRoute =
+  AuthenticatedClinicDaysOffIndexRouteImport.update({
+    id: '/clinic-days-off/',
+    path: '/clinic-days-off/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedDashboardsIndexRoute =
+  AuthenticatedDashboardsIndexRouteImport.update({
+    id: '/dashboards/',
+    path: '/dashboards/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedErrorsErrorRoute =
   AuthenticatedErrorsErrorRouteImport.update({
     id: '/errors/$error',
     path: '/errors/$error',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedHelpCenterIndexRoute =
+  AuthenticatedHelpCenterIndexRouteImport.update({
+    id: '/help-center/',
+    path: '/help-center/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedInventoryIndexRoute =
+  AuthenticatedInventoryIndexRouteImport.update({
+    id: '/inventory/',
+    path: '/inventory/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedLandingConfigIndexRoute =
+  AuthenticatedLandingConfigIndexRouteImport.update({
+    id: '/landing-config/',
+    path: '/landing-config/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedMasterDataIndexRoute =
+  AuthenticatedMasterDataIndexRouteImport.update({
+    id: '/master-data/',
+    path: '/master-data/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedMedicalHistoriesIndexRoute =
+  AuthenticatedMedicalHistoriesIndexRouteImport.update({
+    id: '/medical-histories/',
+    path: '/medical-histories/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedMedicinesIndexRoute =
+  AuthenticatedMedicinesIndexRouteImport.update({
+    id: '/medicines/',
+    path: '/medicines/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedMonthlyStatisticsIndexRoute =
+  AuthenticatedMonthlyStatisticsIndexRouteImport.update({
+    id: '/monthly-statistics/',
+    path: '/monthly-statistics/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPatientsIndexRoute =
+  AuthenticatedPatientsIndexRouteImport.update({
+    id: '/patients/',
+    path: '/patients/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPostsIndexRoute = AuthenticatedPostsIndexRouteImport.update({
+  id: '/posts/',
+  path: '/posts/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPrescriptionTemplatesIndexRoute =
+  AuthenticatedPrescriptionTemplatesIndexRouteImport.update({
+    id: '/prescription-templates/',
+    path: '/prescription-templates/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSettingsIndexRoute =
+  AuthenticatedSettingsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedSettingsRouteRoute,
+  } as any)
+const AuthenticatedSettingsChangePasswordRoute =
+  AuthenticatedSettingsChangePasswordRouteImport.update({
+    id: '/change-password',
+    path: '/change-password',
+    getParentRoute: () => AuthenticatedSettingsRouteRoute,
+  } as any)
+const AuthenticatedSettingsTenantRoute =
+  AuthenticatedSettingsTenantRouteImport.update({
+    id: '/tenant',
+    path: '/tenant',
+    getParentRoute: () => AuthenticatedSettingsRouteRoute,
+  } as any)
+const AuthenticatedYearlyStatisticsIndexRoute =
+  AuthenticatedYearlyStatisticsIndexRouteImport.update({
+    id: '/yearly-statistics/',
+    path: '/yearly-statistics/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
@@ -171,30 +208,34 @@ export interface FileRoutesByFullPath {
   '/forgot-password': typeof authForgotPasswordRoute
   '/reset-password': typeof authResetPasswordRoute
   '/sign-in': typeof authSignInRoute
-  '/sign-up': typeof authSignUpRoute
   '/401': typeof errors401Route
   '/403': typeof errors403Route
   '/404': typeof errors404Route
   '/500': typeof errors500Route
   '/503': typeof errors503Route
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
+  '/settings/change-password': typeof AuthenticatedSettingsChangePasswordRoute
+  '/settings/tenant': typeof AuthenticatedSettingsTenantRoute
   '/admins/': typeof AuthenticatedAdminsIndexRoute
-  '/banners/': typeof AuthenticatedBannersIndexRoute
-  '/examination-queue/': typeof AuthenticatedExaminationQueueIndexRoute
+  '/clinic-days-off/': typeof AuthenticatedClinicDaysOffIndexRoute
+  '/dashboards/': typeof AuthenticatedDashboardsIndexRoute
   '/help-center/': typeof AuthenticatedHelpCenterIndexRoute
   '/inventory/': typeof AuthenticatedInventoryIndexRoute
+  '/landing-config/': typeof AuthenticatedLandingConfigIndexRoute
   '/master-data/': typeof AuthenticatedMasterDataIndexRoute
+  '/medical-histories/': typeof AuthenticatedMedicalHistoriesIndexRoute
+  '/medicines/': typeof AuthenticatedMedicinesIndexRoute
+  '/monthly-statistics/': typeof AuthenticatedMonthlyStatisticsIndexRoute
   '/patients/': typeof AuthenticatedPatientsIndexRoute
   '/posts/': typeof AuthenticatedPostsIndexRoute
-  '/prescriptions/': typeof AuthenticatedPrescriptionsIndexRoute
+  '/prescription-templates/': typeof AuthenticatedPrescriptionTemplatesIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
-  '/tasks/': typeof AuthenticatedTasksIndexRoute
+  '/yearly-statistics/': typeof AuthenticatedYearlyStatisticsIndexRoute
 }
 export interface FileRoutesByTo {
   '/forgot-password': typeof authForgotPasswordRoute
   '/reset-password': typeof authResetPasswordRoute
   '/sign-in': typeof authSignInRoute
-  '/sign-up': typeof authSignUpRoute
   '/401': typeof errors401Route
   '/403': typeof errors403Route
   '/404': typeof errors404Route
@@ -202,17 +243,23 @@ export interface FileRoutesByTo {
   '/503': typeof errors503Route
   '/': typeof AuthenticatedIndexRoute
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
+  '/settings/change-password': typeof AuthenticatedSettingsChangePasswordRoute
+  '/settings/tenant': typeof AuthenticatedSettingsTenantRoute
   '/admins': typeof AuthenticatedAdminsIndexRoute
-  '/banners': typeof AuthenticatedBannersIndexRoute
-  '/examination-queue': typeof AuthenticatedExaminationQueueIndexRoute
+  '/clinic-days-off': typeof AuthenticatedClinicDaysOffIndexRoute
+  '/dashboards': typeof AuthenticatedDashboardsIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
   '/inventory': typeof AuthenticatedInventoryIndexRoute
+  '/landing-config': typeof AuthenticatedLandingConfigIndexRoute
   '/master-data': typeof AuthenticatedMasterDataIndexRoute
+  '/medical-histories': typeof AuthenticatedMedicalHistoriesIndexRoute
+  '/medicines': typeof AuthenticatedMedicinesIndexRoute
+  '/monthly-statistics': typeof AuthenticatedMonthlyStatisticsIndexRoute
   '/patients': typeof AuthenticatedPatientsIndexRoute
   '/posts': typeof AuthenticatedPostsIndexRoute
-  '/prescriptions': typeof AuthenticatedPrescriptionsIndexRoute
+  '/prescription-templates': typeof AuthenticatedPrescriptionTemplatesIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
-  '/tasks': typeof AuthenticatedTasksIndexRoute
+  '/yearly-statistics': typeof AuthenticatedYearlyStatisticsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -221,7 +268,6 @@ export interface FileRoutesById {
   '/(auth)/forgot-password': typeof authForgotPasswordRoute
   '/(auth)/reset-password': typeof authResetPasswordRoute
   '/(auth)/sign-in': typeof authSignInRoute
-  '/(auth)/sign-up': typeof authSignUpRoute
   '/(errors)/401': typeof errors401Route
   '/(errors)/403': typeof errors403Route
   '/(errors)/404': typeof errors404Route
@@ -229,17 +275,23 @@ export interface FileRoutesById {
   '/(errors)/503': typeof errors503Route
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/errors/$error': typeof AuthenticatedErrorsErrorRoute
+  '/_authenticated/settings/change-password': typeof AuthenticatedSettingsChangePasswordRoute
+  '/_authenticated/settings/tenant': typeof AuthenticatedSettingsTenantRoute
   '/_authenticated/admins/': typeof AuthenticatedAdminsIndexRoute
-  '/_authenticated/banners/': typeof AuthenticatedBannersIndexRoute
-  '/_authenticated/examination-queue/': typeof AuthenticatedExaminationQueueIndexRoute
+  '/_authenticated/clinic-days-off/': typeof AuthenticatedClinicDaysOffIndexRoute
+  '/_authenticated/dashboards/': typeof AuthenticatedDashboardsIndexRoute
   '/_authenticated/help-center/': typeof AuthenticatedHelpCenterIndexRoute
   '/_authenticated/inventory/': typeof AuthenticatedInventoryIndexRoute
+  '/_authenticated/landing-config/': typeof AuthenticatedLandingConfigIndexRoute
   '/_authenticated/master-data/': typeof AuthenticatedMasterDataIndexRoute
+  '/_authenticated/medical-histories/': typeof AuthenticatedMedicalHistoriesIndexRoute
+  '/_authenticated/medicines/': typeof AuthenticatedMedicinesIndexRoute
+  '/_authenticated/monthly-statistics/': typeof AuthenticatedMonthlyStatisticsIndexRoute
   '/_authenticated/patients/': typeof AuthenticatedPatientsIndexRoute
   '/_authenticated/posts/': typeof AuthenticatedPostsIndexRoute
-  '/_authenticated/prescriptions/': typeof AuthenticatedPrescriptionsIndexRoute
+  '/_authenticated/prescription-templates/': typeof AuthenticatedPrescriptionTemplatesIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
-  '/_authenticated/tasks/': typeof AuthenticatedTasksIndexRoute
+  '/_authenticated/yearly-statistics/': typeof AuthenticatedYearlyStatisticsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -249,30 +301,34 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/reset-password'
     | '/sign-in'
-    | '/sign-up'
     | '/401'
     | '/403'
     | '/404'
     | '/500'
     | '/503'
     | '/errors/$error'
+    | '/settings/change-password'
+    | '/settings/tenant'
     | '/admins/'
-    | '/banners/'
-    | '/examination-queue/'
+    | '/clinic-days-off/'
+    | '/dashboards/'
     | '/help-center/'
     | '/inventory/'
+    | '/landing-config/'
     | '/master-data/'
+    | '/medical-histories/'
+    | '/medicines/'
+    | '/monthly-statistics/'
     | '/patients/'
     | '/posts/'
-    | '/prescriptions/'
+    | '/prescription-templates/'
     | '/settings/'
-    | '/tasks/'
+    | '/yearly-statistics/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/forgot-password'
     | '/reset-password'
     | '/sign-in'
-    | '/sign-up'
     | '/401'
     | '/403'
     | '/404'
@@ -280,17 +336,23 @@ export interface FileRouteTypes {
     | '/503'
     | '/'
     | '/errors/$error'
+    | '/settings/change-password'
+    | '/settings/tenant'
     | '/admins'
-    | '/banners'
-    | '/examination-queue'
+    | '/clinic-days-off'
+    | '/dashboards'
     | '/help-center'
     | '/inventory'
+    | '/landing-config'
     | '/master-data'
+    | '/medical-histories'
+    | '/medicines'
+    | '/monthly-statistics'
     | '/patients'
     | '/posts'
-    | '/prescriptions'
+    | '/prescription-templates'
     | '/settings'
-    | '/tasks'
+    | '/yearly-statistics'
   id:
     | '__root__'
     | '/_authenticated'
@@ -298,7 +360,6 @@ export interface FileRouteTypes {
     | '/(auth)/forgot-password'
     | '/(auth)/reset-password'
     | '/(auth)/sign-in'
-    | '/(auth)/sign-up'
     | '/(errors)/401'
     | '/(errors)/403'
     | '/(errors)/404'
@@ -306,17 +367,23 @@ export interface FileRouteTypes {
     | '/(errors)/503'
     | '/_authenticated/'
     | '/_authenticated/errors/$error'
+    | '/_authenticated/settings/change-password'
+    | '/_authenticated/settings/tenant'
     | '/_authenticated/admins/'
-    | '/_authenticated/banners/'
-    | '/_authenticated/examination-queue/'
+    | '/_authenticated/clinic-days-off/'
+    | '/_authenticated/dashboards/'
     | '/_authenticated/help-center/'
     | '/_authenticated/inventory/'
+    | '/_authenticated/landing-config/'
     | '/_authenticated/master-data/'
+    | '/_authenticated/medical-histories/'
+    | '/_authenticated/medicines/'
+    | '/_authenticated/monthly-statistics/'
     | '/_authenticated/patients/'
     | '/_authenticated/posts/'
-    | '/_authenticated/prescriptions/'
+    | '/_authenticated/prescription-templates/'
     | '/_authenticated/settings/'
-    | '/_authenticated/tasks/'
+    | '/_authenticated/yearly-statistics/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -324,7 +391,6 @@ export interface RootRouteChildren {
   authForgotPasswordRoute: typeof authForgotPasswordRoute
   authResetPasswordRoute: typeof authResetPasswordRoute
   authSignInRoute: typeof authSignInRoute
-  authSignUpRoute: typeof authSignUpRoute
   errors401Route: typeof errors401Route
   errors403Route: typeof errors403Route
   errors404Route: typeof errors404Route
@@ -341,60 +407,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/': {
-      id: '/_authenticated/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/(errors)/503': {
-      id: '/(errors)/503'
-      path: '/503'
-      fullPath: '/503'
-      preLoaderRoute: typeof errors503RouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/(errors)/500': {
-      id: '/(errors)/500'
-      path: '/500'
-      fullPath: '/500'
-      preLoaderRoute: typeof errors500RouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/(errors)/404': {
-      id: '/(errors)/404'
-      path: '/404'
-      fullPath: '/404'
-      preLoaderRoute: typeof errors404RouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/(errors)/403': {
-      id: '/(errors)/403'
-      path: '/403'
-      fullPath: '/403'
-      preLoaderRoute: typeof errors403RouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/(errors)/401': {
-      id: '/(errors)/401'
-      path: '/401'
-      fullPath: '/401'
-      preLoaderRoute: typeof errors401RouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/(auth)/sign-up': {
-      id: '/(auth)/sign-up'
-      path: '/sign-up'
-      fullPath: '/sign-up'
-      preLoaderRoute: typeof authSignUpRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/(auth)/sign-in': {
-      id: '/(auth)/sign-in'
-      path: '/sign-in'
-      fullPath: '/sign-in'
-      preLoaderRoute: typeof authSignInRouteImport
+    '/(auth)/forgot-password': {
+      id: '/(auth)/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof authForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/(auth)/reset-password': {
@@ -404,88 +421,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/(auth)/forgot-password': {
-      id: '/(auth)/forgot-password'
-      path: '/forgot-password'
-      fullPath: '/forgot-password'
-      preLoaderRoute: typeof authForgotPasswordRouteImport
+    '/(auth)/sign-in': {
+      id: '/(auth)/sign-in'
+      path: '/sign-in'
+      fullPath: '/sign-in'
+      preLoaderRoute: typeof authSignInRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/(errors)/401': {
+      id: '/(errors)/401'
+      path: '/401'
+      fullPath: '/401'
+      preLoaderRoute: typeof errors401RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(errors)/403': {
+      id: '/(errors)/403'
+      path: '/403'
+      fullPath: '/403'
+      preLoaderRoute: typeof errors403RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(errors)/404': {
+      id: '/(errors)/404'
+      path: '/404'
+      fullPath: '/404'
+      preLoaderRoute: typeof errors404RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(errors)/500': {
+      id: '/(errors)/500'
+      path: '/500'
+      fullPath: '/500'
+      preLoaderRoute: typeof errors500RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(errors)/503': {
+      id: '/(errors)/503'
+      path: '/503'
+      fullPath: '/503'
+      preLoaderRoute: typeof errors503RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/': {
+      id: '/_authenticated/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof AuthenticatedSettingsRouteRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/tasks/': {
-      id: '/_authenticated/tasks/'
-      path: '/tasks'
-      fullPath: '/tasks/'
-      preLoaderRoute: typeof AuthenticatedTasksIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/settings/': {
-      id: '/_authenticated/settings/'
-      path: '/'
-      fullPath: '/settings/'
-      preLoaderRoute: typeof AuthenticatedSettingsIndexRouteImport
-      parentRoute: typeof AuthenticatedSettingsRouteRoute
-    }
-    '/_authenticated/prescriptions/': {
-      id: '/_authenticated/prescriptions/'
-      path: '/prescriptions'
-      fullPath: '/prescriptions/'
-      preLoaderRoute: typeof AuthenticatedPrescriptionsIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/posts/': {
-      id: '/_authenticated/posts/'
-      path: '/posts'
-      fullPath: '/posts/'
-      preLoaderRoute: typeof AuthenticatedPostsIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/patients/': {
-      id: '/_authenticated/patients/'
-      path: '/patients'
-      fullPath: '/patients/'
-      preLoaderRoute: typeof AuthenticatedPatientsIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/master-data/': {
-      id: '/_authenticated/master-data/'
-      path: '/master-data'
-      fullPath: '/master-data/'
-      preLoaderRoute: typeof AuthenticatedMasterDataIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/inventory/': {
-      id: '/_authenticated/inventory/'
-      path: '/inventory'
-      fullPath: '/inventory/'
-      preLoaderRoute: typeof AuthenticatedInventoryIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/help-center/': {
-      id: '/_authenticated/help-center/'
-      path: '/help-center'
-      fullPath: '/help-center/'
-      preLoaderRoute: typeof AuthenticatedHelpCenterIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/examination-queue/': {
-      id: '/_authenticated/examination-queue/'
-      path: '/examination-queue'
-      fullPath: '/examination-queue/'
-      preLoaderRoute: typeof AuthenticatedExaminationQueueIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/banners/': {
-      id: '/_authenticated/banners/'
-      path: '/banners'
-      fullPath: '/banners/'
-      preLoaderRoute: typeof AuthenticatedBannersIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admins/': {
@@ -495,6 +484,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/clinic-days-off/': {
+      id: '/_authenticated/clinic-days-off/'
+      path: '/clinic-days-off'
+      fullPath: '/clinic-days-off/'
+      preLoaderRoute: typeof AuthenticatedClinicDaysOffIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboards/': {
+      id: '/_authenticated/dashboards/'
+      path: '/dashboards'
+      fullPath: '/dashboards/'
+      preLoaderRoute: typeof AuthenticatedDashboardsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/errors/$error': {
       id: '/_authenticated/errors/$error'
       path: '/errors/$error'
@@ -502,15 +505,118 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedErrorsErrorRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/help-center/': {
+      id: '/_authenticated/help-center/'
+      path: '/help-center'
+      fullPath: '/help-center/'
+      preLoaderRoute: typeof AuthenticatedHelpCenterIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/inventory/': {
+      id: '/_authenticated/inventory/'
+      path: '/inventory'
+      fullPath: '/inventory/'
+      preLoaderRoute: typeof AuthenticatedInventoryIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/landing-config/': {
+      id: '/_authenticated/landing-config/'
+      path: '/landing-config'
+      fullPath: '/landing-config/'
+      preLoaderRoute: typeof AuthenticatedLandingConfigIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/master-data/': {
+      id: '/_authenticated/master-data/'
+      path: '/master-data'
+      fullPath: '/master-data/'
+      preLoaderRoute: typeof AuthenticatedMasterDataIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/medical-histories/': {
+      id: '/_authenticated/medical-histories/'
+      path: '/medical-histories'
+      fullPath: '/medical-histories/'
+      preLoaderRoute: typeof AuthenticatedMedicalHistoriesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/medicines/': {
+      id: '/_authenticated/medicines/'
+      path: '/medicines'
+      fullPath: '/medicines/'
+      preLoaderRoute: typeof AuthenticatedMedicinesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/monthly-statistics/': {
+      id: '/_authenticated/monthly-statistics/'
+      path: '/monthly-statistics'
+      fullPath: '/monthly-statistics/'
+      preLoaderRoute: typeof AuthenticatedMonthlyStatisticsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/patients/': {
+      id: '/_authenticated/patients/'
+      path: '/patients'
+      fullPath: '/patients/'
+      preLoaderRoute: typeof AuthenticatedPatientsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/posts/': {
+      id: '/_authenticated/posts/'
+      path: '/posts'
+      fullPath: '/posts/'
+      preLoaderRoute: typeof AuthenticatedPostsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/prescription-templates/': {
+      id: '/_authenticated/prescription-templates/'
+      path: '/prescription-templates'
+      fullPath: '/prescription-templates/'
+      preLoaderRoute: typeof AuthenticatedPrescriptionTemplatesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings/': {
+      id: '/_authenticated/settings/'
+      path: '/'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof AuthenticatedSettingsIndexRouteImport
+      parentRoute: typeof AuthenticatedSettingsRouteRoute
+    }
+    '/_authenticated/settings/change-password': {
+      id: '/_authenticated/settings/change-password'
+      path: '/change-password'
+      fullPath: '/settings/change-password'
+      preLoaderRoute: typeof AuthenticatedSettingsChangePasswordRouteImport
+      parentRoute: typeof AuthenticatedSettingsRouteRoute
+    }
+    '/_authenticated/settings/tenant': {
+      id: '/_authenticated/settings/tenant'
+      path: '/tenant'
+      fullPath: '/settings/tenant'
+      preLoaderRoute: typeof AuthenticatedSettingsTenantRouteImport
+      parentRoute: typeof AuthenticatedSettingsRouteRoute
+    }
+    '/_authenticated/yearly-statistics/': {
+      id: '/_authenticated/yearly-statistics/'
+      path: '/yearly-statistics'
+      fullPath: '/yearly-statistics/'
+      preLoaderRoute: typeof AuthenticatedYearlyStatisticsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedSettingsRouteRouteChildren {
+  AuthenticatedSettingsChangePasswordRoute: typeof AuthenticatedSettingsChangePasswordRoute
+  AuthenticatedSettingsTenantRoute: typeof AuthenticatedSettingsTenantRoute
   AuthenticatedSettingsIndexRoute: typeof AuthenticatedSettingsIndexRoute
 }
 
 const AuthenticatedSettingsRouteRouteChildren: AuthenticatedSettingsRouteRouteChildren =
   {
+    AuthenticatedSettingsChangePasswordRoute:
+      AuthenticatedSettingsChangePasswordRoute,
+    AuthenticatedSettingsTenantRoute: AuthenticatedSettingsTenantRoute,
     AuthenticatedSettingsIndexRoute: AuthenticatedSettingsIndexRoute,
   }
 
@@ -524,15 +630,19 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedErrorsErrorRoute: typeof AuthenticatedErrorsErrorRoute
   AuthenticatedAdminsIndexRoute: typeof AuthenticatedAdminsIndexRoute
-  AuthenticatedBannersIndexRoute: typeof AuthenticatedBannersIndexRoute
-  AuthenticatedExaminationQueueIndexRoute: typeof AuthenticatedExaminationQueueIndexRoute
+  AuthenticatedClinicDaysOffIndexRoute: typeof AuthenticatedClinicDaysOffIndexRoute
+  AuthenticatedDashboardsIndexRoute: typeof AuthenticatedDashboardsIndexRoute
   AuthenticatedHelpCenterIndexRoute: typeof AuthenticatedHelpCenterIndexRoute
   AuthenticatedInventoryIndexRoute: typeof AuthenticatedInventoryIndexRoute
+  AuthenticatedLandingConfigIndexRoute: typeof AuthenticatedLandingConfigIndexRoute
   AuthenticatedMasterDataIndexRoute: typeof AuthenticatedMasterDataIndexRoute
+  AuthenticatedMedicalHistoriesIndexRoute: typeof AuthenticatedMedicalHistoriesIndexRoute
+  AuthenticatedMedicinesIndexRoute: typeof AuthenticatedMedicinesIndexRoute
+  AuthenticatedMonthlyStatisticsIndexRoute: typeof AuthenticatedMonthlyStatisticsIndexRoute
   AuthenticatedPatientsIndexRoute: typeof AuthenticatedPatientsIndexRoute
   AuthenticatedPostsIndexRoute: typeof AuthenticatedPostsIndexRoute
-  AuthenticatedPrescriptionsIndexRoute: typeof AuthenticatedPrescriptionsIndexRoute
-  AuthenticatedTasksIndexRoute: typeof AuthenticatedTasksIndexRoute
+  AuthenticatedPrescriptionTemplatesIndexRoute: typeof AuthenticatedPrescriptionTemplatesIndexRoute
+  AuthenticatedYearlyStatisticsIndexRoute: typeof AuthenticatedYearlyStatisticsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -540,16 +650,23 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedErrorsErrorRoute: AuthenticatedErrorsErrorRoute,
   AuthenticatedAdminsIndexRoute: AuthenticatedAdminsIndexRoute,
-  AuthenticatedBannersIndexRoute: AuthenticatedBannersIndexRoute,
-  AuthenticatedExaminationQueueIndexRoute:
-    AuthenticatedExaminationQueueIndexRoute,
+  AuthenticatedClinicDaysOffIndexRoute: AuthenticatedClinicDaysOffIndexRoute,
+  AuthenticatedDashboardsIndexRoute: AuthenticatedDashboardsIndexRoute,
   AuthenticatedHelpCenterIndexRoute: AuthenticatedHelpCenterIndexRoute,
   AuthenticatedInventoryIndexRoute: AuthenticatedInventoryIndexRoute,
+  AuthenticatedLandingConfigIndexRoute: AuthenticatedLandingConfigIndexRoute,
   AuthenticatedMasterDataIndexRoute: AuthenticatedMasterDataIndexRoute,
+  AuthenticatedMedicalHistoriesIndexRoute:
+    AuthenticatedMedicalHistoriesIndexRoute,
+  AuthenticatedMedicinesIndexRoute: AuthenticatedMedicinesIndexRoute,
+  AuthenticatedMonthlyStatisticsIndexRoute:
+    AuthenticatedMonthlyStatisticsIndexRoute,
   AuthenticatedPatientsIndexRoute: AuthenticatedPatientsIndexRoute,
   AuthenticatedPostsIndexRoute: AuthenticatedPostsIndexRoute,
-  AuthenticatedPrescriptionsIndexRoute: AuthenticatedPrescriptionsIndexRoute,
-  AuthenticatedTasksIndexRoute: AuthenticatedTasksIndexRoute,
+  AuthenticatedPrescriptionTemplatesIndexRoute:
+    AuthenticatedPrescriptionTemplatesIndexRoute,
+  AuthenticatedYearlyStatisticsIndexRoute:
+    AuthenticatedYearlyStatisticsIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -560,7 +677,6 @@ const rootRouteChildren: RootRouteChildren = {
   authForgotPasswordRoute: authForgotPasswordRoute,
   authResetPasswordRoute: authResetPasswordRoute,
   authSignInRoute: authSignInRoute,
-  authSignUpRoute: authSignUpRoute,
   errors401Route: errors401Route,
   errors403Route: errors403Route,
   errors404Route: errors404Route,

@@ -7,14 +7,14 @@ export const columns: ColumnDef<MasterData>[] = [
   {
     accessorKey: 'key',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Key' />
+      <DataTableColumnHeader column={column} title='Khóa' />
     ),
     cell: ({ row }) => <div>{row.getValue('key')}</div>,
   },
   {
     accessorKey: 'value',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Value' />
+      <DataTableColumnHeader column={column} title='Giá trị' />
     ),
     cell: ({ row }) => (
       <div className='max-w-[200px] truncate'>{row.getValue('value')}</div>

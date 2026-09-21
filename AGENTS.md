@@ -51,15 +51,12 @@ Continuity across sessions lives in `docs/`, NOT in your head.
 These files are in the repo and committed to git.
 
 ## At the start of each session
-Before doing anything, READ in this order:
-1. `docs/memory.md`   — distilled context: user, project, current state.
-2. `docs/progress.md` — done / in progress / next up.
-3. `docs/decisions.md` — architectural decisions made and their rationale (read as needed).
+Before doing anything, read `docs/memory.md` for distilled context about the user,
+project, architecture, and current state.
 
 ## While working
-- When you lock in an important architectural decision → add an entry to `docs/decisions.md`
-  (date, decision, rationale, options rejected). Append only, don't edit past entries.
-- When you finish or drop a task → update `docs/progress.md`.
+- Keep continuity only in `docs/memory.md`.
+- Do not create separate progress or decision log files.
 
 ## At the end of a session (or when I say "update memory")
 Rewrite `docs/memory.md` to be CONCISE:

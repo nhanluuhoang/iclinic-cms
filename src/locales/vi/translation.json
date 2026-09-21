@@ -1,6 +1,6 @@
 {
   "auth": {
-    "appName": "CMS",
+    "appName": "iClinic",
     "appDescription": "Hệ thống quản lý",
     "signIn": "Đăng nhập",
     "signInDescription": "Nhập email và mật khẩu bên dưới để đăng nhập vào tài khoản của bạn",
@@ -16,5 +16,62 @@
   },
   "language": {
     "switch": "Đổi ngôn ngữ"
+  },
+  "mobileTable": {
+    "loading": "Đang tải...",
+    "empty": "Không có dữ liệu.",
+    "context": {
+      "medicineName": "Tên thuốc",
+      "stockMedicine": "Thuốc",
+      "templateName": "Tên mẫu"
+    },
+    "columns": {
+      "address": "Địa chỉ",
+      "batchCount": "Số lô",
+      "batchNo": "Số lô",
+      "code": "Mã phiếu",
+      "countedAt": "Ngày kiểm kê",
+      "createdAt": "Thời gian khám",
+      "dateOfBirth": "Ngày sinh",
+      "diagnosis": "Chẩn đoán",
+      "doctorName": "Bác sĩ",
+      "email": "Email",
+      "expiryDate": "Hạn sử dụng",
+      "expiryStatus": "Cảnh báo",
+      "excerpt": "Mô tả",
+      "fullName": "Họ tên",
+      "gender": "Giới tính",
+      "group": "Nhóm",
+      "isPublished": "Trạng thái",
+      "issuedAt": "Ngày xuất",
+      "itemCount": "Số thuốc",
+      "key": "Khóa",
+      "lineCount": "Số dòng",
+      "manufacturer": "Nhà sản xuất",
+      "medicineCount": "Số thuốc",
+      "medicineName": "Thuốc",
+      "medicines": "Thuốc trong mẫu",
+      "minStock": "Định mức tối thiểu",
+      "name": "Tên",
+      "nearestExpiry": "Hạn sử dụng gần nhất",
+      "note": "Ghi chú",
+      "patientName": "Bệnh nhân",
+      "phone": "Số điện thoại",
+      "qtyReceived": "Đã nhập",
+      "qtyRemaining": "Tồn",
+      "receiptCode": "Phiếu nhập",
+      "receivedAt": "Ngày nhập",
+      "recipientName": "Người nhận",
+      "salePrice": "Giá bán",
+      "stockValue": "Giá trị tồn",
+      "strength": "Hàm lượng",
+      "supplierName": "Nhà cung cấp",
+      "thumbnailUrl": "Ảnh đại diện",
+      "title": "Tiêu đề",
+      "totalQty": "Tồn kho",
+      "unit": "Đơn vị",
+      "unitCost": "Giá nhập",
+      "value": "Giá trị"
+    }
   }
 }

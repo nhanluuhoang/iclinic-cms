@@ -1,14 +1,7 @@
 import { create } from 'zustand'
+import type { ProfileData } from '@/features/auth/api'
 
-interface AuthUser {
-  id: string
-  email: string
-  phone?: string
-  fullName?: string
-  dateOfBirth?: string
-  gender?: number
-  isSuperAdmin: boolean
-}
+type AuthUser = ProfileData
 
 interface AuthState {
   auth: {

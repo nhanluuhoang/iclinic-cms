@@ -25,7 +25,7 @@ export const adminsColumns: ColumnDef<Admin>[] = [
   {
     accessorKey: 'fullName',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Name' />
+      <DataTableColumnHeader column={column} title='Họ tên' />
     ),
     cell: ({ row }) => (
       <LongText className='max-w-36'>{row.getValue('fullName') || ''}</LongText>
