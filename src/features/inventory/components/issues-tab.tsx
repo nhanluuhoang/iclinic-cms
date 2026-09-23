@@ -120,6 +120,13 @@ const columns: ColumnDef<GoodsIssueSummary>[] = [
     ),
   },
   {
+    accessorKey: 'operatorName',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Người thao tác' />
+    ),
+    cell: ({ row }) => row.original.operatorName ?? '—',
+  },
+  {
     accessorKey: 'lineCount',
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title='Số dòng' />

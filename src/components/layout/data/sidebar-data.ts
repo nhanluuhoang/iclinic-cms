@@ -1,8 +1,9 @@
 import {
   CLINICAL_ADMIN_ROLES,
   STAFF_ROLES,
-  SUPER_ADMIN_ROLES,
+  TENANT_APPEARANCE_PLANS,
   TENANT_ADMIN_ROLES,
+  TENANT_STAFF_PLANS,
 } from '@/config/access-control'
 import {
   LayoutDashboard,
@@ -55,7 +56,8 @@ export const sidebarData: SidebarData = {
           title: 'Nhân viên',
           url: '/admins',
           icon: Users,
-          roles: SUPER_ADMIN_ROLES,
+          roles: TENANT_ADMIN_ROLES,
+          plans: TENANT_STAFF_PLANS,
         },
       ],
     },
@@ -111,6 +113,7 @@ export const sidebarData: SidebarData = {
         {
           title: 'Giao diện',
           icon: ShieldCheck,
+          plans: TENANT_APPEARANCE_PLANS,
           items: [
             {
               title: 'Trang giới thiệu',

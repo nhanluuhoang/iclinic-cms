@@ -27,14 +27,12 @@ export function Admins() {
   const navigate = route.useNavigate()
 
   const { data, isLoading } = useQuery({
-    queryKey: ['admins', search],
+    queryKey: ['users', search],
     queryFn: () =>
       GetAdmins({
         fullName: search.fullName || '',
-        phone: search.phone || '',
-        gender: search.gender || '',
-        sort: search.sort || '',
         page: search.page || 1,
+        pageSize: search.pageSize || 10,
       }),
   })
 
@@ -51,16 +49,16 @@ export function Admins() {
       <Main className='flex flex-1 flex-col gap-4 sm:gap-6'>
         <div className='flex flex-wrap items-end justify-between gap-2'>
           <div>
-            <h2 className='text-2xl font-bold tracking-tight'>Quản trị viên</h2>
+            <h2 className='text-2xl font-bold tracking-tight'>Nhân viên</h2>
             <p className='text-muted-foreground'>
-              Quản lý tài khoản quản trị và vai trò hệ thống.
+              Quản lý tài khoản bác sĩ và trợ lý của phòng khám.
             </p>
           </div>
           <AdminsPrimaryButtons />
         </div>
         <AdminsTable
           data={data?.data || []}
-          total={data?.pagination?.total || 0}
+          total={data?.total || 0}
           search={search}
           navigate={navigate}
           isLoading={isLoading}

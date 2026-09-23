@@ -153,6 +153,13 @@ const columns: ColumnDef<StockTakeSummary>[] = [
     ),
   },
   {
+    accessorKey: 'operatorName',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Người thao tác' />
+    ),
+    cell: ({ row }) => row.original.operatorName ?? '—',
+  },
+  {
     id: 'lineCount',
     accessorKey: 'lineCount',
     header: ({ column }) => (

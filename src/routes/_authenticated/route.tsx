@@ -22,7 +22,13 @@ export const Route = createFileRoute('/_authenticated')({
       }
     }
 
-    if (!canAccessPath(user?.role, location.pathname)) {
+    if (
+      !canAccessPath(
+        user?.role,
+        location.pathname,
+        user?.tenant?.servicePlan
+      )
+    ) {
       throw redirect({ to: '/403' })
     }
   },

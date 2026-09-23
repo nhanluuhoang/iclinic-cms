@@ -1,10 +1,12 @@
 import { type LinkProps } from '@tanstack/react-router'
+import { type ServicePlan } from '@/config/access-control'
 
 type BaseNavItem = {
   title: string
   badge?: string
   icon?: React.ElementType
   roles?: string[]
+  plans?: readonly ServicePlan[]
 }
 
 type NavLink = BaseNavItem & {
@@ -23,6 +25,7 @@ type NavGroup = {
   title?: string
   items: NavItem[]
   roles?: string[]
+  plans?: readonly ServicePlan[]
 }
 
 type SidebarData = {

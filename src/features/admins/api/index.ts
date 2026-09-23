@@ -1,60 +1,56 @@
 import { axios } from '@/lib/axios'
 
+export type StaffRole = 'DOCTOR' | 'ASSISTANT'
+
 export interface Params {
   fullName: string
-  phone: string
-  gender: string
-  sort: string
   page: number
+  pageSize: number
 }
 
-export interface AdminDtoRequest {
-  email: string
-  fullName?: string
+export interface StaffInput {
+  email?: string
+  fullName: string
   phone?: string
-  gender?: number
-  dateOfBirth?: string
-}
-
-export interface AdminResponse {
-  status: boolean
-  data: Admin
-}
-
-export interface AdminsResponse {
-  status: boolean
-  data: Admin[]
-  pagination: { total: number }
+  role: StaffRole
+  password?: string
+  passwordConfirmation?: string
+  isActive?: boolean
 }
 
 export interface Admin {
   id: string
-  email: string
-  fullName?: string
-  phone?: string
-  gender?: number
-  dateOfBirth?: string
-  isSuperAdmin: boolean
+  userName: string
+  email: string | null
+  fullName: string
+  phone: string | null
+  role: 'TENANT_ADMIN' | StaffRole
+  isActive: boolean
 }
 
-const CreateAdmin = (data: AdminDtoRequest): Promise<void> => {
-  return axios.post('/admin', data)
+export interface AdminsResponse {
+  data: Admin[]
+  total: number
+  page: number
+  limit: number
 }
 
-const GetAdmins = (params?: Params): Promise<AdminsResponse> => {
-  return axios.get('/admin', { params })
-}
+const CreateAdmin = (data: StaffInput): Promise<Admin> =>
+  axios.post('/users', data)
 
-const GetAdmin = (id: string): Promise<AdminResponse> => {
-  return axios.get(`/admin/${id}`)
-}
+const GetAdmins = ({
+  fullName,
+  page,
+  pageSize,
+}: Params): Promise<AdminsResponse> =>
+  axios.get('/users', {
+    params: { search: fullName || undefined, page, limit: pageSize },
+  })
 
-const UpdateAdmin = (id: string, data: AdminDtoRequest): Promise<void> => {
-  return axios.patch(`/admin/${id}`, data)
-}
+const UpdateAdmin = (id: string, data: StaffInput): Promise<Admin> =>
+  axios.patch(`/users/${id}`, data)
 
-const DeleteAdmin = (id: string): Promise<void> => {
-  return axios.delete(`/admin/${id}`)
-}
+const DeleteAdmin = (id: string): Promise<Admin> =>
+  axios.delete(`/users/${id}`)
 
-export { CreateAdmin, GetAdmins, GetAdmin, UpdateAdmin, DeleteAdmin }
+export { CreateAdmin, GetAdmins, UpdateAdmin, DeleteAdmin }
