@@ -56,7 +56,7 @@ export function AppSidebar() {
         ))}
       </SidebarContent>
       <SidebarFooter data-tour='user-menu'>
-        <NavUser user={sidebarData.user} />
+        <NavUser user={user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
