@@ -23,6 +23,14 @@ interface Page<T> {
   page: number
   limit: number
 }
+interface ApiCreator {
+  fullName: string
+  userName: string
+}
+
+const getOperatorName = (creator: ApiCreator | null) =>
+  creator?.fullName.trim() || creator?.userName || null
+
 interface ApiBatch {
   id: string
   medicineId: string
@@ -50,6 +58,7 @@ interface ApiReceipt {
   invoiceNo: string
   receivedAt: string
   note: string
+  creator: ApiCreator | null
   lines: Array<{
     qty: number
     unitCost: number | string
@@ -64,6 +73,7 @@ interface ApiReceiptSummary {
   invoiceNo: string
   receivedAt: string
   note: string
+  creator: ApiCreator | null
   _count: { lines: number }
 }
 interface ApiStockTake {
@@ -71,6 +81,7 @@ interface ApiStockTake {
   code: string
   countedAt: string
   note: string
+  creator: ApiCreator | null
   lines: Array<{
     batchId: string
     systemQty: number
@@ -87,6 +98,7 @@ interface ApiGoodsIssue {
   recipientName: string
   issuedAt: string
   note: string
+  creator: ApiCreator | null
   lines: Array<{ quantity: number; batch: ApiBatch }>
 }
 
@@ -223,6 +235,7 @@ const mapReceipt = (receipt: ApiReceipt): GoodsReceipt => {
     invoiceNo: receipt.invoiceNo,
     receivedAt: receipt.receivedAt,
     note: receipt.note,
+    operatorName: getOperatorName(receipt.creator),
     lines,
     totalQty: lines.reduce((sum, line) => sum + line.qty, 0),
     totalAmount: lines.reduce((sum, line) => sum + line.amount, 0),
@@ -233,6 +246,7 @@ interface ApiStockTakeSummary {
   code: string
   countedAt: string
   note: string
+  creator: ApiCreator | null
   _count: { lines: number }
 }
 
@@ -242,13 +256,15 @@ interface ApiGoodsIssueSummary {
   recipientName: string
   issuedAt: string
   note: string
+  creator: ApiCreator | null
   _count: { lines: number }
 }
 
 const GetReceipts = async (search = ''): Promise<GoodsReceiptSummary[]> => {
   const summaries = await getAll<ApiReceiptSummary>('/goods-receipts', search)
-  return summaries.map(({ _count, ...receipt }) => ({
+  return summaries.map(({ _count, creator, ...receipt }) => ({
     ...receipt,
+    operatorName: getOperatorName(creator),
     lineCount: _count.lines,
   }))
 }
@@ -268,8 +284,9 @@ const CreateReceipt = (data: GoodsReceiptInput): Promise<void> =>
 
 const GetGoodsIssues = async (search = ''): Promise<GoodsIssueSummary[]> => {
   const summaries = await getAll<ApiGoodsIssueSummary>('/goods-issues', search)
-  return summaries.map(({ _count, ...issue }) => ({
+  return summaries.map(({ _count, creator, ...issue }) => ({
     ...issue,
+    operatorName: getOperatorName(creator),
     lineCount: _count.lines,
   }))
 }
@@ -284,8 +301,10 @@ const GetGoodsIssue = async (id: string): Promise<GoodsIssue> => {
     unit: batch.medicine.unit,
     quantity,
   }))
+  const { creator, ...issueData } = issue
   return {
-    ...issue,
+    ...issueData,
+    operatorName: getOperatorName(creator),
     lines,
     totalQty: lines.reduce((sum, line) => sum + line.quantity, 0),
   }
@@ -299,8 +318,9 @@ const CreateGoodsIssue = (data: GoodsIssueInput): Promise<void> =>
 
 const GetStockTakes = async (search = ''): Promise<StockTakeSummary[]> => {
   const summaries = await getAll<ApiStockTakeSummary>('/stock-takes', search)
-  return summaries.map(({ _count, ...take }) => ({
+  return summaries.map(({ _count, creator, ...take }) => ({
     ...take,
+    operatorName: getOperatorName(creator),
     lineCount: _count.lines,
   }))
 }
@@ -321,6 +341,7 @@ const GetStockTake = async (id: string): Promise<StockTake> => {
     code: take.code,
     countedAt: take.countedAt,
     note: take.note,
+    operatorName: getOperatorName(take.creator),
     lines,
     totalDiff: lines.reduce((sum, line) => sum + line.diff, 0),
   }

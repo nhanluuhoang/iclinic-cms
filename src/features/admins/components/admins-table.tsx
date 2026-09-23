@@ -56,8 +56,6 @@ export function AdminsTable({
     pagination: { defaultPage: 1, defaultPageSize: 10 },
     columnFilters: [
       { columnId: 'fullName', searchKey: 'fullName', type: 'string' },
-      { columnId: 'phone', searchKey: 'phone', type: 'string' },
-      { columnId: 'gender', searchKey: 'gender', type: 'string' },
     ],
     sorting: { defaultSort: '' },
   })
@@ -96,17 +94,6 @@ export function AdminsTable({
         table={table}
         searchPlaceholder='Tìm kiếm tên...'
         searchKey='fullName'
-        filters={[
-          {
-            columnId: 'gender',
-            title: 'Giới tính',
-            options: [
-              { label: 'Nam', value: '1' },
-              { label: 'Nữ', value: '2' },
-              { label: 'Khác', value: '3' },
-            ],
-          },
-        ]}
       />
       <MobileDataCards
         table={table}

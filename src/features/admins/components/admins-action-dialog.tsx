@@ -1,9 +1,9 @@
-'use client'
-
+import { useEffect } from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { showSubmittedData } from '@/lib/show-submitted-data'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -24,301 +24,226 @@ import {
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/password-input'
 import { SelectDropdown } from '@/components/select-dropdown'
-import { type Admin } from '@/features/admins/api'
+import {
+  CreateAdmin,
+  UpdateAdmin,
+  type Admin,
+  type StaffInput,
+} from '@/features/admins/api'
 import { roles } from '../data/data'
 
 const formSchema = z
   .object({
-    firstName: z.string().min(1, 'Vui lòng nhập tên.'),
-    lastName: z.string().min(1, 'Vui lòng nhập họ.'),
-    username: z.string().min(1, 'Vui lòng nhập tên đăng nhập.'),
-    phoneNumber: z.string().min(1, 'Vui lòng nhập số điện thoại.'),
-    email: z.email({
-      error: (iss) => (iss.input === '' ? 'Vui lòng nhập email.' : undefined),
-    }),
-    password: z.string().transform((pwd) => pwd.trim()),
-    role: z.string().min(1, 'Vui lòng chọn vai trò.'),
-    confirmPassword: z.string().transform((pwd) => pwd.trim()),
-    isEdit: z.boolean(),
+    fullName: z.string().trim().min(1, 'Vui lòng nhập họ tên.'),
+    email: z.union([z.literal(''), z.email('Email không hợp lệ.')]),
+    phone: z.string().trim().max(20, 'Tối đa 20 ký tự.'),
+    role: z.enum(['DOCTOR', 'ASSISTANT']),
+    password: z.string(),
+    passwordConfirmation: z.string(),
   })
-  .refine(
-    (data) => {
-      if (data.isEdit && !data.password) return true
-      return data.password.length > 0
-    },
-    {
-      message: 'Vui lòng nhập mật khẩu.',
-      path: ['password'],
+  .superRefine((values, context) => {
+    if (values.password && values.password.length < 12) {
+      context.addIssue({
+        code: 'custom',
+        path: ['password'],
+        message: 'Mật khẩu phải có ít nhất 12 ký tự.',
+      })
     }
-  )
-  .refine(
-    ({ isEdit, password }) => {
-      if (isEdit && !password) return true
-      return password.length >= 8
-    },
-    {
-      message: 'Mật khẩu phải có ít nhất 8 ký tự.',
-      path: ['password'],
+    if (values.password.length > 20) {
+      context.addIssue({
+        code: 'custom',
+        path: ['password'],
+        message: 'Mật khẩu tối đa 20 ký tự.',
+      })
     }
-  )
-  .refine(
-    ({ isEdit, password }) => {
-      if (isEdit && !password) return true
-      return /[a-z]/.test(password)
-    },
-    {
-      message: 'Mật khẩu phải có ít nhất một chữ thường.',
-      path: ['password'],
+    if (values.password !== values.passwordConfirmation) {
+      context.addIssue({
+        code: 'custom',
+        path: ['passwordConfirmation'],
+        message: 'Mật khẩu nhập lại không khớp.',
+      })
     }
-  )
-  .refine(
-    ({ isEdit, password }) => {
-      if (isEdit && !password) return true
-      return /\d/.test(password)
-    },
-    {
-      message: 'Mật khẩu phải có ít nhất một chữ số.',
-      path: ['password'],
-    }
-  )
-  .refine(
-    ({ isEdit, password, confirmPassword }) => {
-      if (isEdit && !password) return true
-      return password === confirmPassword
-    },
-    {
-      message: 'Mật khẩu nhập lại không khớp.',
-      path: ['confirmPassword'],
-    }
-  )
-type AdminForm = z.infer<typeof formSchema>
+  })
 
-type AdminActionDialogProps = {
-  currentRow?: Admin
-  open: boolean
-  onOpenChange: (open: boolean) => void
+type StaffForm = z.infer<typeof formSchema>
+
+const emptyValues: StaffForm = {
+  fullName: '',
+  email: '',
+  phone: '',
+  role: 'DOCTOR',
+  password: '',
+  passwordConfirmation: '',
 }
 
 export function AdminsActionDialog({
   currentRow,
   open,
   onOpenChange,
-}: AdminActionDialogProps) {
+}: {
+  currentRow?: Admin
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}) {
   const isEdit = !!currentRow
-  const form = useForm<AdminForm>({
+  const queryClient = useQueryClient()
+  const form = useForm<StaffForm>({
     resolver: zodResolver(formSchema),
-    defaultValues: isEdit
-      ? {
-          ...currentRow,
-          password: '',
-          confirmPassword: '',
-          isEdit,
-        }
-      : {
-          firstName: '',
-          lastName: '',
-          username: '',
-          email: '',
-          role: '',
-          phoneNumber: '',
-          password: '',
-          confirmPassword: '',
-          isEdit,
-        },
+    defaultValues: emptyValues,
   })
 
-  const onSubmit = (values: AdminForm) => {
-    form.reset()
-    showSubmittedData(values)
-    onOpenChange(false)
-  }
+  useEffect(() => {
+    if (!open) return
+    form.reset(
+      currentRow
+        ? {
+            fullName: currentRow.fullName,
+            email: currentRow.email ?? '',
+            phone: currentRow.phone ?? '',
+            role: currentRow.role === 'ASSISTANT' ? 'ASSISTANT' : 'DOCTOR',
+            password: '',
+            passwordConfirmation: '',
+          }
+        : emptyValues
+    )
+  }, [currentRow, form, open])
 
-  const isPasswordTouched = !!form.formState.dirtyFields.password
+  const save = useMutation({
+    mutationFn: (values: StaffForm) => {
+      if (!isEdit && !values.password) {
+        form.setError('password', { message: 'Vui lòng nhập mật khẩu.' })
+        throw new Error('missing-password')
+      }
+      const payload: StaffInput = {
+        fullName: values.fullName.trim(),
+        email: values.email.trim() || undefined,
+        phone: values.phone.trim() || undefined,
+        role: values.role,
+        ...(values.password && { password: values.password }),
+        ...(!isEdit && {
+          passwordConfirmation: values.passwordConfirmation,
+        }),
+      }
+      return currentRow
+        ? UpdateAdmin(currentRow.id, payload)
+        : CreateAdmin(payload)
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['users'] })
+      toast.success(isEdit ? 'Đã cập nhật nhân viên' : 'Đã tạo nhân viên')
+      onOpenChange(false)
+    },
+    onError: (error) => {
+      if (error instanceof Error && error.message === 'missing-password') return
+      toast.error('Không thể lưu thông tin nhân viên')
+    },
+  })
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(state) => {
-        form.reset()
-        onOpenChange(state)
-      }}
-    >
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className='sm:max-w-lg'>
         <DialogHeader className='text-start'>
-          <DialogTitle>{isEdit ? 'Sửa quản trị viên' : 'Thêm quản trị viên'}</DialogTitle>
+          <DialogTitle>
+            {isEdit ? 'Sửa nhân viên' : 'Thêm nhân viên'}
+          </DialogTitle>
           <DialogDescription>
-            {isEdit
-              ? 'Cập nhật thông tin tài khoản quản trị.'
-              : 'Nhập thông tin để tạo tài khoản quản trị mới.'}
+            Tài khoản nhân viên chỉ thuộc phòng khám hiện tại.
           </DialogDescription>
         </DialogHeader>
-        <div className='h-105 w-[calc(100%+0.75rem)] overflow-y-auto py-1 pe-3'>
-          <Form {...form}>
-            <form
-              id='admin-form'
-              onSubmit={form.handleSubmit(onSubmit)}
-              className='space-y-4 px-0.5'
-            >
-              <FormField
-                control={form.control}
-                name='firstName'
-                render={({ field }) => (
-                  <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
-                    <FormLabel className='col-span-2 text-end'>
-                      Tên
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder='Văn An'
-                        className='col-span-4'
-                        autoComplete='off'
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage className='col-span-4 col-start-3' />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='lastName'
-                render={({ field }) => (
-                  <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
-                    <FormLabel className='col-span-2 text-end'>
-                      Họ
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder='Nguyễn'
-                        className='col-span-4'
-                        autoComplete='off'
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage className='col-span-4 col-start-3' />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='username'
-                render={({ field }) => (
-                  <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
-                    <FormLabel className='col-span-2 text-end'>
-                      Tên đăng nhập
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder='nguyen_van_an'
-                        className='col-span-4'
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage className='col-span-4 col-start-3' />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='email'
-                render={({ field }) => (
-                  <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
-                    <FormLabel className='col-span-2 text-end'>Email</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder='nguyenvanan@gmail.com'
-                        className='col-span-4'
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage className='col-span-4 col-start-3' />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='phoneNumber'
-                render={({ field }) => (
-                  <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
-                    <FormLabel className='col-span-2 text-end'>
-                      Số điện thoại
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder='+123456789'
-                        className='col-span-4'
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage className='col-span-4 col-start-3' />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='role'
-                render={({ field }) => (
-                  <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
-                    <FormLabel className='col-span-2 text-end'>Vai trò</FormLabel>
-                    <SelectDropdown
-                      defaultValue={field.value}
-                      onValueChange={field.onChange}
-                      placeholder='Chọn vai trò'
-                      className='col-span-4'
-                      items={roles.map(({ label, value }) => ({
-                        label,
-                        value,
-                      }))}
-                    />
-                    <FormMessage className='col-span-4 col-start-3' />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='password'
-                render={({ field }) => (
-                  <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
-                    <FormLabel className='col-span-2 text-end'>
-                      Mật khẩu
-                    </FormLabel>
-                    <FormControl>
-                      <PasswordInput
-                        placeholder='Ví dụ: M4tKhau@123'
-                        className='col-span-4'
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage className='col-span-4 col-start-3' />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='confirmPassword'
-                render={({ field }) => (
-                  <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
-                    <FormLabel className='col-span-2 text-end'>
-                      Nhập lại mật khẩu
-                    </FormLabel>
-                    <FormControl>
-                      <PasswordInput
-                        disabled={!isPasswordTouched}
-                        placeholder='Ví dụ: M4tKhau@123'
-                        className='col-span-4'
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage className='col-span-4 col-start-3' />
-                  </FormItem>
-                )}
-              />
-            </form>
-          </Form>
-        </div>
+        <Form {...form}>
+          <form
+            id='staff-form'
+            onSubmit={form.handleSubmit((values) => save.mutate(values))}
+            className='space-y-4'
+          >
+            <FormField
+              control={form.control}
+              name='fullName'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Họ tên</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='email'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input type='email' {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='phone'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Số điện thoại</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='role'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Vai trò</FormLabel>
+                  <SelectDropdown
+                    defaultValue={field.value}
+                    isControlled
+                    onValueChange={field.onChange}
+                    items={roles.map(({ label, value }) => ({ label, value }))}
+                  />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='password'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    {isEdit ? 'Mật khẩu mới (không bắt buộc)' : 'Mật khẩu'}
+                  </FormLabel>
+                  <FormControl>
+                    <PasswordInput {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='passwordConfirmation'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nhập lại mật khẩu</FormLabel>
+                  <FormControl>
+                    <PasswordInput {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </form>
+        </Form>
         <DialogFooter>
-          <Button type='submit' form='admin-form'>
-            Lưu thay đổi
+          <Button type='submit' form='staff-form' disabled={save.isPending}>
+            {save.isPending ? 'Đang lưu...' : 'Lưu thay đổi'}
           </Button>
         </DialogFooter>
       </DialogContent>

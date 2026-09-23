@@ -19,18 +19,22 @@ export function AppSidebar() {
   const { user } = useAuthStore((state) => state.auth)
 
   const checkRole = (roles?: string[]) => hasAnyRole(user?.role, roles)
+  const checkPlan = (plans?: readonly string[]) =>
+    !plans ||
+    (!!user?.tenant?.servicePlan && plans.includes(user.tenant.servicePlan))
 
   const filteredNavGroups = sidebarData.navGroups
     .map((group) => {
-      if (!checkRole(group.roles)) return null
+      if (!checkRole(group.roles) || !checkPlan(group.plans)) return null
 
       const filteredItems = group.items
         .map((item) => {
-          if (!checkRole(item.roles)) return null
+          if (!checkRole(item.roles) || !checkPlan(item.plans)) return null
 
           if ('items' in item && item.items) {
-            const filteredSubItems = item.items.filter((subItem) =>
-              checkRole(subItem.roles)
+            const filteredSubItems = item.items.filter(
+              (subItem) =>
+                checkRole(subItem.roles) && checkPlan(subItem.plans)
             )
             if (filteredSubItems.length === 0) return null
             return { ...item, items: filteredSubItems } as NavItem

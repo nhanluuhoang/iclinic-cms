@@ -2,7 +2,7 @@ import { DotsHorizontalIcon } from '@radix-ui/react-icons'
 import { type Row } from '@tanstack/react-table'
 import { ClipboardList, Edit, FileClock, Trash } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth-store'
-import { hasAnyRole, USER_ROLES } from '@/config/access-control'
+import { hasAnyRole, PRESCRIBER_ROLES } from '@/config/access-control'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -19,7 +19,7 @@ export function DataTableRowActions({ row }: { row: Row<Patient> }) {
   const patient = row.original
   const { setOpen, setCurrentRow } = usePatients()
   const role = useAuthStore((state) => state.auth.user?.role)
-  const canPrescribe = hasAnyRole(role, [USER_ROLES.DOCTOR])
+  const canPrescribe = hasAnyRole(role, PRESCRIBER_ROLES)
 
   return (
     <DropdownMenu>

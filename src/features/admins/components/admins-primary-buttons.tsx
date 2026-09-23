@@ -7,7 +7,7 @@ export function AdminsPrimaryButtons() {
   return (
     <div className='flex gap-2'>
       <Button className='space-x-1' onClick={() => setOpen('add')}>
-        <span>Thêm quản trị viên</span> <UserPlus size={18} />
+        <span>Thêm nhân viên</span> <UserPlus size={18} />
       </Button>
     </div>
   )
