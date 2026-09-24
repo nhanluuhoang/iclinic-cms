@@ -14,8 +14,8 @@ export interface TenantData {
 }
 
 export interface UpdateTenantRequest {
-  name: string
-  address: string
+  name?: string
+  address?: string
 }
 
 export const getOwnTenant = (): Promise<TenantData> => axios.get('/tenants/me')

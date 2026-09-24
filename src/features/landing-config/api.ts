@@ -29,13 +29,11 @@ export interface LandingConfigResponse extends LandingConfigFields {
     address: string | null
     subdomain: string
   }
-  isPublished: boolean
   version: number
 }
 
 export const getLandingConfig = () =>
   axios.get<unknown, LandingConfigResponse>('/landing-config')
 
-export const updateLandingConfig = (
-  data: LandingConfigFields & { isPublished: boolean }
-) => axios.put<unknown, LandingConfigResponse>('/landing-config', data)
+export const updateLandingConfig = (data: LandingConfigFields) =>
+  axios.put<unknown, LandingConfigResponse>('/landing-config', data)

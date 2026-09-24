@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Dialog,
   DialogContent,
@@ -38,6 +39,7 @@ const formSchema = z
     email: z.union([z.literal(''), z.email('Email không hợp lệ.')]),
     phone: z.string().trim().max(20, 'Tối đa 20 ký tự.'),
     role: z.enum(['DOCTOR', 'ASSISTANT']),
+    isActive: z.boolean(),
     password: z.string(),
     passwordConfirmation: z.string(),
   })
@@ -72,6 +74,7 @@ const emptyValues: StaffForm = {
   email: '',
   phone: '',
   role: 'DOCTOR',
+  isActive: true,
   password: '',
   passwordConfirmation: '',
 }
@@ -101,6 +104,7 @@ export function AdminsActionDialog({
             email: currentRow.email ?? '',
             phone: currentRow.phone ?? '',
             role: currentRow.role === 'ASSISTANT' ? 'ASSISTANT' : 'DOCTOR',
+            isActive: currentRow.isActive,
             password: '',
             passwordConfirmation: '',
           }
@@ -119,6 +123,7 @@ export function AdminsActionDialog({
         email: values.email.trim() || undefined,
         phone: values.phone.trim() || undefined,
         role: values.role,
+        isActive: values.isActive,
         ...(values.password && { password: values.password }),
         ...(!isEdit && {
           passwordConfirmation: values.passwordConfirmation,
@@ -207,6 +212,31 @@ export function AdminsActionDialog({
                     onValueChange={field.onChange}
                     items={roles.map(({ label, value }) => ({ label, value }))}
                   />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='isActive'
+              render={({ field }) => (
+                <FormItem className='flex items-center justify-between rounded-md border p-3'>
+                  <div className='space-y-1'>
+                    <FormLabel>Kích hoạt tài khoản</FormLabel>
+                    <p className='text-sm text-muted-foreground'>
+                      Chỉ tài khoản được kích hoạt mới có thể đăng nhập.
+                    </p>
+                  </div>
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={(checked) =>
+                        field.onChange(checked === true)
+                      }
+                      onBlur={field.onBlur}
+                      ref={field.ref}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

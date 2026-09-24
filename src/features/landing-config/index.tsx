@@ -12,7 +12,6 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
 import {
   Card,
   CardContent,
@@ -20,15 +19,16 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { GetPosts } from '@/features/posts/api'
+import { updateOwnTenant } from '@/features/settings/tenant/api'
 import {
   getLandingConfig,
   updateLandingConfig,
@@ -164,19 +164,28 @@ export function LandingConfigPage() {
     queryFn: () => GetPosts({ page: 1, limit: 100, isPublic: true }),
   })
   const [config, setConfig] = useState(emptyConfig)
-  const [isPublished, setIsPublished] = useState(false)
+  const [clinicName, setClinicName] = useState('')
 
   useEffect(() => {
     if (!data) return
-    const { tenant: _tenant, isPublished: published, version: _version, ...fields } = data
+    const { tenant: _tenant, version: _version, ...fields } = data
+    // Form state is initialized when the asynchronous configuration arrives.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setConfig(fields)
-    setIsPublished(published)
+    setClinicName(data.tenant.name)
   }, [data])
 
   const mutation = useMutation({
-    mutationFn: updateLandingConfig,
+    mutationFn: async (landingConfig: LandingConfigFields) => {
+      await updateOwnTenant({ name: clinicName.trim() })
+      await updateLandingConfig(landingConfig)
+    },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['landing-config'] })
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['landing-config'] }),
+        queryClient.invalidateQueries({ queryKey: ['tenant', 'me'] }),
+        queryClient.invalidateQueries({ queryKey: ['auth', 'profile'] }),
+      ])
       toast.success('Đã lưu cấu hình landing page')
     },
     onError: () => toast.error('Không thể lưu cấu hình landing page'),
@@ -204,28 +213,13 @@ export function LandingConfigPage() {
         </div>
       </Header>
       <Main className='mx-auto w-full max-w-4xl space-y-6'>
-        <div className='flex flex-col justify-between gap-4 md:flex-row md:items-center'>
-          <div>
-            <h2 className='text-2xl font-bold tracking-tight'>
-              Trang giới thiệu phòng khám
-            </h2>
-            <p className='text-muted-foreground'>
-              Tùy chỉnh nội dung và giao diện hiển thị cho tenant hiện tại.
-            </p>
-          </div>
-          <div className='flex items-center gap-3 rounded-lg border p-3'>
-            <div>
-              <Label htmlFor='published'>Công khai landing page</Label>
-              <p className='text-xs text-muted-foreground'>
-                Chỉ bản đã công khai mới xuất hiện với khách hàng.
-              </p>
-            </div>
-            <Switch
-              id='published'
-              checked={isPublished}
-              onCheckedChange={setIsPublished}
-            />
-          </div>
+        <div>
+          <h2 className='text-2xl font-bold tracking-tight'>
+            Trang giới thiệu phòng khám
+          </h2>
+          <p className='text-muted-foreground'>
+            Tùy chỉnh nội dung và giao diện hiển thị cho tenant hiện tại.
+          </p>
         </div>
 
         <div className='w-full space-y-5'>
@@ -236,9 +230,8 @@ export function LandingConfigPage() {
           >
             <Field
               label='Tên phòng khám'
-              value={data?.tenant.name ?? ''}
-              readOnly
-              hint='Cập nhật tại Hồ sơ cá nhân → Thông tin phòng khám.'
+              value={clinicName}
+              onChange={setClinicName}
             />
             <Field
               label='Thông điệp ngắn'
@@ -319,7 +312,9 @@ export function LandingConfigPage() {
               <Label>Giới thiệu</Label>
               <Textarea
                 value={config.doctorDescription}
-                onChange={(event) => set('doctorDescription', event.target.value)}
+                onChange={(event) =>
+                  set('doctorDescription', event.target.value)
+                }
               />
             </div>
           </Section>
@@ -334,7 +329,9 @@ export function LandingConfigPage() {
               <Textarea
                 rows={6}
                 value={config.services.join('\n')}
-                onChange={(event) => set('services', event.target.value.split('\n'))}
+                onChange={(event) =>
+                  set('services', event.target.value.split('\n'))
+                }
               />
             </div>
             <div className='space-y-2'>
@@ -387,13 +384,15 @@ export function LandingConfigPage() {
             <div className='space-y-3 md:col-span-2'>
               {(publishedPosts?.data.length ?? 0) === 0 ? (
                 <p className='text-sm text-muted-foreground'>
-                  Chưa có bài viết công khai. Hãy công khai bài viết trước khi chọn.
+                  Chưa có bài viết công khai. Hãy công khai bài viết trước khi
+                  chọn.
                 </p>
               ) : (
                 publishedPosts?.data.map((post) => {
                   const checked = config.featuredPostIds.includes(post.id)
                   const order = config.featuredPostIds.indexOf(post.id) + 1
-                  const disabled = !checked && config.featuredPostIds.length >= 3
+                  const disabled =
+                    !checked && config.featuredPostIds.length >= 3
                   return (
                     <label
                       key={post.id}
@@ -407,13 +406,17 @@ export function LandingConfigPage() {
                             'featuredPostIds',
                             value
                               ? [...config.featuredPostIds, post.id].slice(0, 3)
-                              : config.featuredPostIds.filter((id) => id !== post.id)
+                              : config.featuredPostIds.filter(
+                                  (id) => id !== post.id
+                                )
                           )
                         }}
                       />
                       <span className='min-w-0 flex-1'>
                         <span className='block font-medium'>{post.title}</span>
-                        <span className='text-xs text-muted-foreground'>{post.category}</span>
+                        <span className='text-xs text-muted-foreground'>
+                          {post.category}
+                        </span>
                       </span>
                       {checked && (
                         <span className='rounded-full bg-primary px-2 py-0.5 text-xs font-bold text-primary-foreground'>
@@ -449,17 +452,22 @@ export function LandingConfigPage() {
 
           <div className='sticky bottom-4 flex justify-end rounded-xl border bg-background/95 p-4 shadow-lg backdrop-blur'>
             <Button
-              disabled={mutation.isPending}
-              onClick={() =>
+              disabled={mutation.isPending || !clinicName.trim()}
+              onClick={() => {
+                if (!clinicName.trim()) {
+                  toast.error('Vui lòng nhập tên phòng khám')
+                  return
+                }
                 mutation.mutate({
                   ...config,
-                  services: config.services.map((item) => item.trim()).filter(Boolean),
+                  services: config.services
+                    .map((item) => item.trim())
+                    .filter(Boolean),
                   bookingSlots: config.bookingSlots
                     .map((item) => item.trim())
                     .filter(Boolean),
-                  isPublished,
                 })
-              }
+              }}
             >
               <Save />
               {mutation.isPending ? 'Đang lưu...' : 'Lưu cấu hình'}

@@ -47,7 +47,7 @@ liệu từ server dùng debounce 300 ms. Các bảng dùng chung nằm trong
 - Menu cài đặt tài khoản dùng nhãn “Hồ sơ cá nhân” và có trang `/settings/change-password`; đổi mật khẩu yêu cầu mật khẩu hiện tại. Sidebar đổi “Master Data” thành “Cấu hình chung” và có trang `/clinic-days-off`, lưu ngày nghỉ lặp hằng năm dạng `MM-DD` trong master data.
 - Trang `/settings` dùng dữ liệu thật từ auth store, hiển thị đầy đủ hồ sơ và lưu họ tên, email, điện thoại, giới tính, ngày sinh, địa chỉ, ghi chú qua `PATCH /auth/profile`; tên đăng nhập chỉ đọc.
 
-- CMS có trang `/landing-config` cho tenant admin chỉnh thương hiệu, phần giới thiệu đầu trang, bác sĩ phụ trách, dịch vụ, giờ đặt lịch, liên hệ, SEO và trạng thái công khai; dữ liệu dùng API `GET/PUT /landing-config`.
+- CMS có trang `/landing-config` cho tenant admin chỉnh tên phòng khám, thương hiệu, phần giới thiệu đầu trang, bác sĩ phụ trách, dịch vụ, giờ đặt lịch, liên hệ và SEO; dữ liệu dùng API `GET/PUT /landing-config`, tên được lưu vào `Tenant`, và landing không có trạng thái công khai riêng.
 - Trang `/posts` quản lý bài viết theo tenant bằng API `/posts`: tạo, sửa, xóa, tìm kiếm, lọc bản nháp/công khai. Popup tạo/sửa nằm giữa màn hình như trang Bệnh nhân; nội dung dùng Tiptap với toolbar định dạng tối giản và lưu HTML.
 - Ảnh đại diện bài viết dùng `POST /images/upload?resource=POST`, có vùng chọn file, trạng thái tải, preview 16:9 và gợi ý 1200 × 675 px (JPG/PNG/WebP, tối đa 5 MB); URL public dùng `/images/thumbnail/:fileName`. Ảnh kê toa tiếp tục upload mặc định với resource `PATIENT`.
 - Trang `/landing-config` cho chọn tối đa 3 bài đã công khai để hiển thị trên home, lưu theo thứ tự chọn qua `featuredPostIds`.
@@ -67,6 +67,7 @@ liệu từ server dùng debounce 300 ms. Các bảng dùng chung nằm trong
 
 - Có các nghiệp vụ bệnh nhân, danh mục thuốc, kho thuốc và thứ tự khám; trang demo
   Tasks và route `/tasks` đã được xóa.
+- Form thêm/sửa nhân viên có trạng thái kích hoạt, mặc định bật khi tạo và phản ánh đúng trạng thái khi sửa.
 - `/medicines` là feature danh mục thuốc độc lập. `/inventory` quản lý tồn kho,
   lô, phiếu nhập, phiếu xuất và kiểm kê bằng API thật; dòng phiếu xuất dùng field
   `quantity`, thuốc/lô được tìm kiếm server-side.
